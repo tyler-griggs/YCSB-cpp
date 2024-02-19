@@ -7,20 +7,19 @@
 #  Modifications Copyright 2023 Chengye YU <yuchengye2013 AT outlook.com>.
 #
 
-
 #---------------------build config-------------------------
 
 # Database bindings
 BIND_WIREDTIGER ?= 0
 BIND_LEVELDB ?= 0
-BIND_ROCKSDB ?= 0
+BIND_ROCKSDB?=1
 BIND_LMDB ?= 0
 BIND_SQLITE ?= 0
 
 # Extra options
 DEBUG_BUILD ?=
-EXTRA_CXXFLAGS ?=
-EXTRA_LDFLAGS ?=
+EXTRA_CXXFLAGS?=-I/home/tylergriggs/rocksdb/include/
+EXTRA_LDFLAGS?=-L/home/tylergriggs/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4
 
 # HdrHistogram for tail latency report
 BIND_HDRHISTOGRAM ?= 1
@@ -46,10 +45,10 @@ ifeq ($(BIND_LEVELDB), 1)
 	SOURCES += $(wildcard leveldb/*.cc)
 endif
 
-ifeq ($(BIND_ROCKSDB), 1)
-	LDFLAGS += -lrocksdb
-	SOURCES += $(wildcard rocksdb/*.cc)
-endif
+# ifeq ($(BIND_ROCKSDB), 1)
+LDFLAGS += -lrocksdb
+SOURCES += $(wildcard rocksdb/*.cc)
+# endif
 
 ifeq ($(BIND_LMDB), 1)
 	LDFLAGS += -llmdb
@@ -61,7 +60,7 @@ ifeq ($(BIND_SQLITE), 1)
 	SOURCES += $(wildcard sqlite/*.cc)
 endif
 
-CXXFLAGS += -std=c++17 -Wall -pthread $(EXTRA_CXXFLAGS) -I./
+CXXFLAGS += -std=c++17 -Wall -pthread $(EXTRA_CXXFLAGS) -I./ -fno-rtti
 LDFLAGS += $(EXTRA_LDFLAGS) -lpthread
 SOURCES += $(wildcard core/*.cc)
 OBJECTS += $(SOURCES:.cc=.o)

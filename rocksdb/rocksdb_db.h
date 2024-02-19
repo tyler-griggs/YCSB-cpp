@@ -17,6 +17,11 @@
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
 
+// TODO: including these causes an error (esp. last one)
+#include <rocksdb/slice.h>
+#include <rocksdb/utilities/transaction.h>
+#include <rocksdb/utilities/transaction_db.h>
+
 namespace ycsbc {
 
 class RocksdbDB : public DB {
@@ -25,6 +30,7 @@ class RocksdbDB : public DB {
   ~RocksdbDB() {}
 
   void Init();
+  void TxnInit();
 
   void Cleanup();
 
@@ -94,6 +100,7 @@ class RocksdbDB : public DB {
 
   static std::vector<rocksdb::ColumnFamilyHandle *> cf_handles_;
   static rocksdb::DB *db_;
+  static rocksdb::TransactionDB *txn_db_;
   static int ref_cnt_;
   static std::mutex mu_;
 };

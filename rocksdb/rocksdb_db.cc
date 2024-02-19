@@ -115,68 +115,23 @@ namespace ycsbc {
 
 std::vector<rocksdb::ColumnFamilyHandle *> RocksdbDB::cf_handles_;
 rocksdb::DB *RocksdbDB::db_ = nullptr;
+rocksdb::TransactionDB *RocksdbDB::txn_db_ = nullptr;
 int RocksdbDB::ref_cnt_ = 0;
 std::mutex RocksdbDB::mu_;
 
 void RocksdbDB::Init() {
-// merge operator disabled by default due to link error
-#ifdef USE_MERGEUPDATE
-  class YCSBUpdateMerge : public rocksdb::AssociativeMergeOperator {
-   public:
-    virtual bool Merge(const rocksdb::Slice &key, const rocksdb::Slice *existing_value,
-                       const rocksdb::Slice &value, std::string *new_value,
-                       rocksdb::Logger *logger) const override {
-      assert(existing_value);
-
-      std::vector<Field> values;
-      const char *p = existing_value->data();
-      const char *lim = p + existing_value->size();
-      DeserializeRow(values, p, lim);
-
-      std::vector<Field> new_values;
-      p = value.data();
-      lim = p + value.size();
-      DeserializeRow(new_values, p, lim);
-
-      for (Field &new_field : new_values) {
-        bool found = false;
-        for (Field &field : values) {
-          if (field.name == new_field.name) {
-            found = true;
-            field.value = new_field.value;
-            break;
-          }
-        }
-        if (!found) {
-          values.push_back(new_field);
-        }
-      }
-
-      SerializeRow(values, *new_value);
-      return true;
-    }
-
-    virtual const char *Name() const override {
-      return "YCSBUpdateMerge";
-    }
-  };
-#endif
   const std::lock_guard<std::mutex> lock(mu_);
 
   const utils::Properties &props = *props_;
   const std::string format = props.GetProperty(PROP_FORMAT, PROP_FORMAT_DEFAULT);
   if (format == "single") {
     format_ = kSingleRow;
+    // TODO: modify these to txn-enbaled 
     method_read_ = &RocksdbDB::ReadSingle;
     method_scan_ = &RocksdbDB::ScanSingle;
     method_update_ = &RocksdbDB::UpdateSingle;
     method_insert_ = &RocksdbDB::InsertSingle;
     method_delete_ = &RocksdbDB::DeleteSingle;
-#ifdef USE_MERGEUPDATE
-    if (props.GetProperty(PROP_MERGEUPDATE, PROP_MERGEUPDATE_DEFAULT) == "true") {
-      method_update_ = &RocksdbDB::MergeSingle;
-    }
-#endif
   } else {
     throw utils::Exception("unknown format");
   }
@@ -184,7 +139,7 @@ void RocksdbDB::Init() {
                                             CoreWorkload::FIELD_COUNT_DEFAULT));
 
   ref_cnt_++;
-  if (db_) {
+  if (txn_db_) {
     return;
   }
 
@@ -197,9 +152,9 @@ void RocksdbDB::Init() {
   opt.create_if_missing = true;
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   GetOptions(props, &opt, &cf_descs);
-#ifdef USE_MERGEUPDATE
-  opt.merge_operator.reset(new YCSBUpdateMerge);
-#endif
+
+  // Use txn DB default options.
+  rocksdb::TransactionDBOptions txn_opt;
 
   rocksdb::Status s;
   if (props.GetProperty(PROP_DESTROY, PROP_DESTROY_DEFAULT) == "true") {
@@ -208,15 +163,116 @@ void RocksdbDB::Init() {
       throw utils::Exception(std::string("RocksDB DestroyDB: ") + s.ToString());
     }
   }
+
   if (cf_descs.empty()) {
-    s = rocksdb::DB::Open(opt, db_path, &db_);
+    s = rocksdb::TransactionDB::Open(opt, txn_opt, db_path, &txn_db_);
   } else {
-    s = rocksdb::DB::Open(opt, db_path, cf_descs, &cf_handles_, &db_);
+    s = rocksdb::TransactionDB::Open(opt, txn_opt, db_path, cf_descs, &cf_handles_, &txn_db_);
   }
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Open: ") + s.ToString());
   }
 }
+
+// void RocksdbDB::Init() {
+// // merge operator disabled by default due to link error
+// #ifdef USE_MERGEUPDATE
+//   class YCSBUpdateMerge : public rocksdb::AssociativeMergeOperator {
+//    public:
+//     virtual bool Merge(const rocksdb::Slice &key, const rocksdb::Slice *existing_value,
+//                        const rocksdb::Slice &value, std::string *new_value,
+//                        rocksdb::Logger *logger) const override {
+//       assert(existing_value);
+
+//       std::vector<Field> values;
+//       const char *p = existing_value->data();
+//       const char *lim = p + existing_value->size();
+//       DeserializeRow(values, p, lim);
+
+//       std::vector<Field> new_values;
+//       p = value.data();
+//       lim = p + value.size();
+//       DeserializeRow(new_values, p, lim);
+
+//       for (Field &new_field : new_values) {
+//         bool found = false;
+//         for (Field &field : values) {
+//           if (field.name == new_field.name) {
+//             found = true;
+//             field.value = new_field.value;
+//             break;
+//           }
+//         }
+//         if (!found) {
+//           values.push_back(new_field);
+//         }
+//       }
+
+//       SerializeRow(values, *new_value);
+//       return true;
+//     }
+
+//     virtual const char *Name() const override {
+//       return "YCSBUpdateMerge";
+//     }
+//   };
+// #endif
+//   const std::lock_guard<std::mutex> lock(mu_);
+
+//   const utils::Properties &props = *props_;
+//   const std::string format = props.GetProperty(PROP_FORMAT, PROP_FORMAT_DEFAULT);
+//   if (format == "single") {
+//     format_ = kSingleRow;
+//     method_read_ = &RocksdbDB::ReadSingle;
+//     method_scan_ = &RocksdbDB::ScanSingle;
+//     method_update_ = &RocksdbDB::UpdateSingle;
+//     method_insert_ = &RocksdbDB::InsertSingle;
+//     method_delete_ = &RocksdbDB::DeleteSingle;
+// #ifdef USE_MERGEUPDATE
+//     if (props.GetProperty(PROP_MERGEUPDATE, PROP_MERGEUPDATE_DEFAULT) == "true") {
+//       method_update_ = &RocksdbDB::MergeSingle;
+//     }
+// #endif
+//   } else {
+//     throw utils::Exception("unknown format");
+//   }
+//   fieldcount_ = std::stoi(props.GetProperty(CoreWorkload::FIELD_COUNT_PROPERTY,
+//                                             CoreWorkload::FIELD_COUNT_DEFAULT));
+
+//   ref_cnt_++;
+//   if (db_) {
+//     return;
+//   }
+
+//   const std::string &db_path = props.GetProperty(PROP_NAME, PROP_NAME_DEFAULT);
+//   if (db_path == "") {
+//     throw utils::Exception("RocksDB db path is missing");
+//   }
+
+//   rocksdb::Options opt;
+//   opt.create_if_missing = true;
+//   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
+//   GetOptions(props, &opt, &cf_descs);
+// #ifdef USE_MERGEUPDATE
+//   opt.merge_operator.reset(new YCSBUpdateMerge);
+// #endif
+
+//   rocksdb::Status s;
+//   if (props.GetProperty(PROP_DESTROY, PROP_DESTROY_DEFAULT) == "true") {
+//     s = rocksdb::DestroyDB(db_path, opt);
+//     if (!s.ok()) {
+//       throw utils::Exception(std::string("RocksDB DestroyDB: ") + s.ToString());
+//     }
+//   }
+//   if (cf_descs.empty()) {
+//     s = rocksdb::DB::Open(opt, db_path, &db_);
+//   } else {
+//     s = rocksdb::DB::Open(opt, db_path, cf_descs, &cf_handles_, &db_);
+//   }
+//   if (!s.ok()) {
+//     throw utils::Exception(std::string("RocksDB Open: ") + s.ToString());
+//   }
+// }
 
 void RocksdbDB::Cleanup() { 
   const std::lock_guard<std::mutex> lock(mu_);
@@ -230,6 +286,7 @@ void RocksdbDB::Cleanup() {
     }
   }
   delete db_;
+  delete txn_db_;
 }
 
 void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt,
@@ -431,7 +488,9 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
                                  const std::vector<std::string> *fields,
                                  std::vector<Field> &result) {
   std::string data;
-  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
+  // Perform read outside of transaction.
+  rocksdb::Status s = txn_db_->Get(rocksdb::ReadOptions(), key, &data);
+
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -469,8 +528,15 @@ DB::Status RocksdbDB::ScanSingle(const std::string &table, const std::string &ke
 
 DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &key,
                                    std::vector<Field> &values) {
+  
+  // Begin transaction.
+  rocksdb::WriteOptions write_opt = rocksdb::WriteOptions();
+  rocksdb::ReadOptions read_opt = rocksdb::ReadOptions();
+  rocksdb::Transaction* txn = txn_db_->BeginTransaction(write_opt);
+
+  // Read the key.
   std::string data;
-  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
+  rocksdb::Status s = txn->Get(read_opt, key, &data);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -479,6 +545,8 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
   std::vector<Field> current_values;
   DeserializeRow(current_values, data);
   assert(current_values.size() == static_cast<size_t>(fieldcount_));
+
+  // Update value.
   for (Field &new_field : values) {
     bool found MAYBE_UNUSED = false;
     for (Field &cur_field : current_values) {
@@ -490,11 +558,19 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
     }
     assert(found);
   }
-  rocksdb::WriteOptions wopt;
 
+  // Write new value.
   data.clear();
   SerializeRow(current_values, data);
-  s = db_->Put(wopt, key, data);
+  s = txn->Put(key, data);
+  if (!s.ok()) {
+    throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
+  }
+
+  // Commit the transaction.
+  s = txn->Commit();
+
+  // TODO: handle cases where commit does not succeed.
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
   }
