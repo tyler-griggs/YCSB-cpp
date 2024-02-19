@@ -10,6 +10,7 @@
 
 #include <string>
 #include <mutex>
+#include <iostream>
 
 #include "core/db.h"
 #include "utils/properties.h"
@@ -21,6 +22,7 @@
 #include <rocksdb/slice.h>
 #include <rocksdb/utilities/transaction.h>
 #include <rocksdb/utilities/transaction_db.h>
+#include <rocksdb/statistics.h>
 
 namespace ycsbc {
 

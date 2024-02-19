@@ -116,6 +116,7 @@ namespace ycsbc {
 std::vector<rocksdb::ColumnFamilyHandle *> RocksdbDB::cf_handles_;
 rocksdb::DB *RocksdbDB::db_ = nullptr;
 rocksdb::TransactionDB *RocksdbDB::txn_db_ = nullptr;
+std::shared_ptr<rocksdb::Statistics> db_stats = nullptr;
 int RocksdbDB::ref_cnt_ = 0;
 std::mutex RocksdbDB::mu_;
 
@@ -163,6 +164,11 @@ void RocksdbDB::Init() {
       throw utils::Exception(std::string("RocksDB DestroyDB: ") + s.ToString());
     }
   }
+
+  // Create stats tracker
+  db_stats = rocksdb::CreateDBStatistics();
+  db_stats->set_stats_level(rocksdb::StatsLevel::kAll);
+  opt.statistics = db_stats;
 
   if (cf_descs.empty()) {
     s = rocksdb::TransactionDB::Open(opt, txn_opt, db_path, &txn_db_);
@@ -276,6 +282,22 @@ void RocksdbDB::Init() {
 
 void RocksdbDB::Cleanup() { 
   const std::lock_guard<std::mutex> lock(mu_);
+
+  // Dump stats
+  std::string filename = "stats/stats.txt";
+  std::ofstream statsFile(filename);
+  if (statsFile.is_open()) {
+      // Write statistics to the file
+      if (db_stats != nullptr) {
+          statsFile << db_stats->ToString();
+      }
+
+      statsFile.close(); // Close the file
+      std::cout << "Statistics written to " << filename << std::endl;
+    } else {
+      std::cerr << "Failed to open file " << filename << std::endl;
+    }
+
   if (--ref_cnt_) {
     return;
   }
@@ -572,7 +594,7 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
 
   // TODO: handle cases where commit does not succeed.
   if (!s.ok()) {
-    throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
+    throw utils::Exception(std::string("RocksDB Update Commit: ") + s.ToString());
   }
   return kOK;
 }
@@ -591,12 +613,24 @@ DB::Status RocksdbDB::MergeSingle(const std::string &table, const std::string &k
 
 DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &key,
                                    std::vector<Field> &values) {
+  // Begin transaction.
+  rocksdb::WriteOptions write_opt = rocksdb::WriteOptions();
+  rocksdb::Transaction* txn = txn_db_->BeginTransaction(write_opt);
+
+  // Write value.
   std::string data;
   SerializeRow(values, data);
-  rocksdb::WriteOptions wopt;
-  rocksdb::Status s = db_->Put(wopt, key, data);
+  rocksdb::Status s = txn->Put(key, data);
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
+  }
+
+  // Commit the transaction.
+  s = txn->Commit();
+
+  // TODO: handle cases where commit does not succeed.
+  if (!s.ok()) {
+    throw utils::Exception(std::string("RocksDB Insert Commit: ") + s.ToString());
   }
   return kOK;
 }
