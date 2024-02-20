@@ -20,6 +20,7 @@
 #include "client.h"
 #include "core_workload.h"
 #include "db_factory.h"
+#include "fair_scheduler.h"
 #include "measurements.h"
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
@@ -141,7 +142,7 @@ int main(const int argc, const char *argv[]) {
       }
 
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr));
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -164,6 +165,8 @@ int main(const int argc, const char *argv[]) {
   measurements->Reset();
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
+
+  FairScheduler scheduler;
 
   // transaction phase
   if (do_transaction) {
@@ -197,7 +200,7 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim));
+                                             thread_ops, false, !do_load, true, &latch, rlim, &scheduler));
     }
 
     std::future<void> rlim_future;

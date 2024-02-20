@@ -14,6 +14,7 @@
 
 #include "core/db.h"
 #include "utils/properties.h"
+#include "thread_pool.h"
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
@@ -28,16 +29,22 @@ namespace ycsbc {
 
 class RocksdbDB : public DB {
  public:
-  RocksdbDB() {}
+  RocksdbDB() {} 
   ~RocksdbDB() {}
 
   void Init();
-  void TxnInit();
 
   void Cleanup();
 
   Status Read(const std::string &table, const std::string &key,
               const std::vector<std::string> *fields, std::vector<Field> &result) {
+    
+    // return thread_pool_.accessDB([this, &table, &key, fields, &result] {
+    //     return ReadSingle(table, key, fields, result);
+    // });
+    
+    // return futureStatus.get();
+
     return (this->*(method_read_))(table, key, fields, result);
   }
 
@@ -105,6 +112,7 @@ class RocksdbDB : public DB {
   static rocksdb::TransactionDB *txn_db_;
   static int ref_cnt_;
   static std::mutex mu_;
+  // TGClientThreadPool thread_pool_;
 };
 
 DB *NewRocksdbDB();

@@ -17,11 +17,13 @@
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
 #include "utils/utils.h"
+#include "fair_scheduler.h"
 
 namespace ycsbc {
 
 inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
-                        bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim) {
+                        bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim,
+                        FairScheduler *scheduler) {
 
   try {
     if (init_db) {
@@ -37,7 +39,16 @@ inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_op
       if (is_loading) {
         wl->DoInsert(*db);
       } else {
-        wl->DoTransaction(*db);
+
+        // return thread_pool_.accessDB([this, &table, &key, fields, &result] {
+        //     return ReadSingle(table, key, fields, result);
+        // });
+
+        scheduler->Schedule([wl, db] {
+          return wl->DoTransaction(*db);
+        });
+
+        // wl->DoTransaction(*db);
       }
       ops++;
     }

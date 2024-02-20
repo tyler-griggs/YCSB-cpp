@@ -127,7 +127,6 @@ void RocksdbDB::Init() {
   const std::string format = props.GetProperty(PROP_FORMAT, PROP_FORMAT_DEFAULT);
   if (format == "single") {
     format_ = kSingleRow;
-    // TODO: modify these to txn-enbaled 
     method_read_ = &RocksdbDB::ReadSingle;
     method_scan_ = &RocksdbDB::ScanSingle;
     method_update_ = &RocksdbDB::UpdateSingle;
