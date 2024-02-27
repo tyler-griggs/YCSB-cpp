@@ -18,12 +18,14 @@
 #include "utils/rate_limit.h"
 #include "utils/utils.h"
 #include "fair_scheduler.h"
+#include "threadpool.h"
 
 namespace ycsbc {
 
 inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim,
-                        FairScheduler *scheduler) {
+                        ThreadPool *threadpool) {
+                        // FairScheduler *scheduler) {
 
   try {
     if (init_db) {
@@ -44,9 +46,15 @@ inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_op
         //     return ReadSingle(table, key, fields, result);
         // });
 
-        scheduler->Schedule([wl, db] {
-          return wl->DoTransaction(*db);
-        });
+        auto txn_lambda = [wl, db]() {
+          wl->DoTransaction(*db);
+          return nullptr;  // to match void* return
+        };
+        threadpool->dispatch(txn_lambda);
+
+        // scheduler->Schedule([wl, db] {
+        //   return wl->DoTransaction(*db);
+        // });
 
         // wl->DoTransaction(*db);
       }

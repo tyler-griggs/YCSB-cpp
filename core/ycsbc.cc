@@ -22,6 +22,7 @@
 #include "db_factory.h"
 #include "fair_scheduler.h"
 #include "measurements.h"
+#include "threadpool.h"
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
 #include "utils/timer.h"
@@ -166,7 +167,8 @@ int main(const int argc, const char *argv[]) {
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
 
-  FairScheduler scheduler;
+  // FairScheduler scheduler;
+  ThreadPool threadpool;
 
   // transaction phase
   if (do_transaction) {
@@ -200,7 +202,8 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim, &scheduler));
+                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool));
+                                            //  thread_ops, false, !do_load, true, &latch, rlim, &scheduler));
     }
 
     std::future<void> rlim_future;
