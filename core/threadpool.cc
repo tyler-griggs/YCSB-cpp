@@ -26,21 +26,23 @@
  **********************************************************************/
 #include "threadpool.h"
 
-#include <thread>
+#include <iostream>
+#include <future>
 #include <sched.h>
 #include <utility>
-#include <iostream>
+#include <thread>
 
 void ThreadPool::start(int num_threads){
   fprintf(stderr, "starting client threadpool\n");
   int num_cpus = std::thread::hardware_concurrency();
   fprintf(stderr, "Num_cpus: %d\nNum_threads: %d\n", num_cpus, num_threads);
+  fprintf(stderr, "MainThread running on CPU %d\n", sched_getcpu());
 
   running = true;
   for (int i = 0; i < num_threads; i++) {
     std::thread *t;
     t = new std::thread([this, i] {
-      fprintf(stderr, "Thread %d running on CPU %d\n", i, sched_getcpu());
+      fprintf(stderr, "Worker thread %d running on CPU %d\n", i, sched_getcpu());
       while (true) {
         std::function<void*()> job;
         {
@@ -49,20 +51,20 @@ void ThreadPool::start(int num_threads){
             break;
           }
         }
+        // fprintf(stderr, "Thread %d starting job\n", i);
         job();
       }
-      fprintf(stderr, "Thread %d done\n", i);
+      fprintf(stderr, "Worker thread %d done\n", i);
     });
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
-    CPU_SET(i, &cpuset);
+    CPU_SET(16 + i, &cpuset);
     int rc = pthread_setaffinity_np(t->native_handle(),
                                     sizeof(cpu_set_t), &cpuset);
     if (rc != 0) {
       fprintf(stderr, "Couldn't set thread affinity.\n");
       std::exit(1);
     }
-    fprintf(stderr, "MainThread running on CPU %d.", sched_getcpu());
     threads.push_back(t);
     // t->detach();
   }
@@ -79,14 +81,34 @@ void* EmptyJob() {
 void ThreadPool::stop() {
   running = false;
 
-  for (auto t: threads){
-    // Add empty jobs to wake up threads.
+  // Add empty jobs to wake up threads.
+  for (int i = 0; i < threads.size(); ++i) {
     dispatch(&EmptyJob);
+  }
+
+  for (auto t: threads){
     t->join();
     delete t;
   }
 }
 
-void ThreadPool::dispatch(std::function<void*()> f) {
-  worklist.enqueue(std::move(f));
+std::future<void*> ThreadPool::dispatch(std::function<void*()> f) {
+    std::shared_ptr<std::promise<void*>> promise = std::make_shared<std::promise<void*>>();
+    std::future<void*> result = promise->get_future();
+
+    // Wrap the user function to set the promise value upon completion
+    std::function<void*()> wrappedJob = [promise, f]() {
+      promise->set_value(f());
+      return nullptr;
+    };
+
+    worklist.enqueue(std::move(wrappedJob));
+    return result;
 }
+
+// std::future<void*> ThreadPool::dispatch(std::function<void*()> f) {
+//   std::packaged_task<void*()> task(std::move(f));
+//   std::future<void*> result = task.get_future();
+//   worklist.enqueue(std::move(f));
+//   return result;
+// }

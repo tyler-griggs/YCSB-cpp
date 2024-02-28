@@ -28,6 +28,7 @@
 #define _LIB_THREADPOOL_H_
 
 #include <functional>
+#include <future>
 #include <thread>
 #include "concurrentqueue/concurrentqueue.h"
 #include "concurrentqueue/blockingconcurrentqueue.h"
@@ -43,12 +44,13 @@ public:
 
   void start(int num_threads = 1);
   void stop();
-  void dispatch(std::function<void*()> f);
+  std::future<void*> dispatch(std::function<void*()> f);
 
 private:
   bool running;
   std::vector<std::thread*> threads;
   moodycamel::BlockingConcurrentQueue<std::function<void*()>> worklist;
+  // moodycamel::BlockingConcurrentQueue<std::packaged_task<void*()>> worklist;
 };
 
 #endif  // _LIB_THREADPOOL_H_

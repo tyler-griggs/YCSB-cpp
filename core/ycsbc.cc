@@ -143,7 +143,7 @@ int main(const int argc, const char *argv[]) {
       }
 
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr));
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -166,9 +166,9 @@ int main(const int argc, const char *argv[]) {
   measurements->Reset();
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
-
   // FairScheduler scheduler;
   ThreadPool threadpool;
+  // threadpool.start(/*num_threads=*/ 8);
 
   // transaction phase
   if (do_transaction) {
@@ -202,7 +202,7 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool));
+                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool, i));
                                             //  thread_ops, false, !do_load, true, &latch, rlim, &scheduler));
     }
 

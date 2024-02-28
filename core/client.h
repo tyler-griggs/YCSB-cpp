@@ -10,6 +10,7 @@
 #define YCSB_C_CLIENT_H_
 
 #include <iostream>
+#include <pthread.h>
 #include <string>
 
 #include "db.h"
@@ -24,8 +25,19 @@ namespace ycsbc {
 
 inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim,
-                        ThreadPool *threadpool) {
+                        ThreadPool *threadpool, int client_idx) {
                         // FairScheduler *scheduler) {
+
+  // cpu_set_t cpuset;
+  // CPU_ZERO(&cpuset);
+  // CPU_SET(1 + client_idx, &cpuset);
+  // int rc = pthread_setaffinity_np(pthread_self(),
+  //                                 sizeof(cpu_set_t), &cpuset);
+  // if (rc != 0) {
+  //   fprintf(stderr, "Couldn't set thread affinity.\n");
+  //   std::exit(1);
+  // }
+  // fprintf(stderr, "Client %d running on CPU %d\n", client_idx, sched_getcpu());
 
   try {
     if (init_db) {
@@ -46,17 +58,18 @@ inline int ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_op
         //     return ReadSingle(table, key, fields, result);
         // });
 
-        auto txn_lambda = [wl, db]() {
-          wl->DoTransaction(*db);
-          return nullptr;  // to match void* return
-        };
-        threadpool->dispatch(txn_lambda);
+        // auto txn_lambda = [wl, db]() {
+        //   wl->DoTransaction(*db);
+        //   return nullptr;  // to match void* return
+        // };
+        // std::future<void*> result = threadpool->dispatch(txn_lambda);
+        // result.wait();
+
+        wl->DoTransaction(*db);
 
         // scheduler->Schedule([wl, db] {
         //   return wl->DoTransaction(*db);
         // });
-
-        // wl->DoTransaction(*db);
       }
       ops++;
     }
