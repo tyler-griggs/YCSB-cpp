@@ -21,7 +21,9 @@
 #include "client.h"
 #include "core_workload.h"
 #include "db_factory.h"
+#include "fair_scheduler.h"
 #include "measurements.h"
+#include "threadpool.h"
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
 #include "utils/timer.h"
@@ -164,6 +166,7 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
                                              thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
     }
     assert((int)client_threads.size() == num_threads);

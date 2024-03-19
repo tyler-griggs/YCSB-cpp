@@ -7,7 +7,6 @@
 #  Modifications Copyright 2023 Chengye YU <yuchengye2013 AT outlook.com>.
 #
 
-
 #---------------------build config-------------------------
 
 # Database bindings
@@ -47,10 +46,10 @@ ifeq ($(BIND_LEVELDB), 1)
 	SOURCES += $(wildcard leveldb/*.cc)
 endif
 
-ifeq ($(BIND_ROCKSDB), 1)
-	LDFLAGS += -lrocksdb
-	SOURCES += $(wildcard rocksdb/*.cc)
-endif
+# ifeq ($(BIND_ROCKSDB), 1)
+LDFLAGS += -lrocksdb
+SOURCES += $(wildcard rocksdb/*.cc)
+# endif
 
 ifeq ($(BIND_LMDB), 1)
 	LDFLAGS += -llmdb

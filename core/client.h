@@ -10,6 +10,7 @@
 #define YCSB_C_CLIENT_H_
 
 #include <iostream>
+#include <pthread.h>
 #include <string>
 #include <chrono>
 #include <vector>
