@@ -18,7 +18,7 @@
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/options_util.h>
 #include <rocksdb/write_batch.h>
-
+#include <iostream>
 namespace {
   const std::string PROP_NAME = "rocksdb.dbname";
   const std::string PROP_NAME_DEFAULT = "";
@@ -220,6 +220,44 @@ void RocksdbDB::Init() {
 
 void RocksdbDB::Cleanup() { 
   const std::lock_guard<std::mutex> lock(mu_);
+  
+  // Get Compaction Stats
+  // Also, get the size of levels in bytes.
+  std::string value;
+  if (db_->GetProperty("rocksdb.levelstats", &value)) {
+      std::cout << "LSM stats:\n" << value << std::endl;
+  }
+
+  // // Query and print the size and number of files for each level.
+  // // This property returns a multi-line string containing the number of files per level
+  // if (db_->GetProperty("rocksdb.num-files-at-level0", &value)) {
+  //     std::cout << "Level 0: " << value << " files" << std::endl;
+  // }
+
+  // // To get sizes of each level, and number of files in each level, use a loop if many levels.
+  // int level = 0;
+  // while (db_->GetProperty("rocksdb.num-files-at-level" + std::to_string(level), &value) && !value.empty()) {
+  //     std::cout << "Level " << level << ": " << value << " files" << std::endl;
+
+      
+  //     ++level;
+  // }
+
+  // Dump stats
+  // std::string filename = "stats/stats.txt";
+  // std::ofstream statsFile(filename);
+  // if (statsFile.is_open()) {
+  //   // Write statistics to the file
+  //   if (db_stats != nullptr) {
+  //       statsFile << db_stats->ToString();
+  //   }
+
+  //   statsFile.close(); // Close the file
+  //   std::cout << "Statistics written to " << filename << std::endl;
+  // } else {
+  //   std::cerr << "Failed to open file " << filename << std::endl;
+  // }
+
   if (--ref_cnt_) {
     return;
   }

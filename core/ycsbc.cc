@@ -16,6 +16,7 @@
 #include <future>
 #include <chrono>
 #include <iomanip>
+#include "threadpool.h"
 
 #include "client.h"
 #include "core_workload.h"
@@ -84,6 +85,29 @@ void RateLimitThread(std::string rate_file, std::vector<ycsbc::utils::RateLimite
   }
 }
 
+void writeToCSV(const std::string& filename, const std::vector<std::tuple<long long, std::vector<int>>>& data) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file for writing.\n";
+        return;
+    }
+    for (const auto& row : data) {
+      auto& timestamp = std::get<0>(row);
+      auto& ints = std::get<1>(row);
+      // auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(timestamp.time_since_epoch()).count();
+      file << timestamp << ",";
+      for (size_t i = 0; i < ints.size(); ++i) {
+        file << ints[i];
+        if (i < ints.size() - 1) {
+          file << ",";
+        }
+      }
+      file << "\n";
+    }
+    file.close();
+    std::cout << "Data written to " << filename << std::endl;
+}
+
 int main(const int argc, const char *argv[]) {
   ycsbc::utils::Properties props;
   ParseCommandLine(argc, argv, props);
@@ -118,7 +142,7 @@ int main(const int argc, const char *argv[]) {
 
   // print status periodically
   const bool show_status = (props.GetProperty("status", "false") == "true");
-  const int status_interval = std::stoi(props.GetProperty("status.interval", "10"));
+  const int status_interval = std::stoi(props.GetProperty("status.interval", "5"));
 
   // load phase
   if (do_load) {
@@ -133,22 +157,24 @@ int main(const int argc, const char *argv[]) {
       status_future = std::async(std::launch::async, StatusThread,
                                  measurements, &latch, status_interval);
     }
-    std::vector<std::future<int>> client_threads;
+    std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     for (int i = 0; i < num_threads; ++i) {
       int thread_ops = total_ops / num_threads;
       if (i < total_ops % num_threads) {
         thread_ops++;
       }
-
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr));
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
     }
     assert((int)client_threads.size() == num_threads);
 
+    std::vector<std::tuple<long long, std::vector<int>>> client_op_progresses;
     int sum = 0;
     for (auto &n : client_threads) {
       assert(n.valid());
-      sum += n.get();
+      std::tuple<long long, std::vector<int>> start_and_client_op_progress = n.get();
+      client_op_progresses.push_back(start_and_client_op_progress);
+      sum += std::get<1>(start_and_client_op_progress).back();
     }
     double runtime = timer.End();
 
@@ -164,6 +190,9 @@ int main(const int argc, const char *argv[]) {
   measurements->Reset();
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
+  // FairScheduler scheduler;
+  ThreadPool threadpool;
+  threadpool.start(/*num_threads=*/ 4);
 
   // transaction phase
   if (do_transaction) {
@@ -183,7 +212,7 @@ int main(const int argc, const char *argv[]) {
       status_future = std::async(std::launch::async, StatusThread,
                                  measurements, &latch, status_interval);
     }
-    std::vector<std::future<int>> client_threads;
+    std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;
     for (int i = 0; i < num_threads; ++i) {
       int thread_ops = total_ops / num_threads;
@@ -197,7 +226,7 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim));
+                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool, i));
     }
 
     std::future<void> rlim_future;
@@ -207,16 +236,21 @@ int main(const int argc, const char *argv[]) {
 
     assert((int)client_threads.size() == num_threads);
 
+    std::vector<std::tuple<long long, std::vector<int>>> client_op_progresses;
     int sum = 0;
     for (auto &n : client_threads) {
       assert(n.valid());
-      sum += n.get();
+      std::tuple<long long, std::vector<int>> start_and_client_op_progress = n.get();
+      client_op_progresses.push_back(start_and_client_op_progress);
+      sum += std::get<1>(start_and_client_op_progress).back();
     }
     double runtime = timer.End();
 
     if (show_status) {
       status_future.wait();
     }
+
+    writeToCSV("client_progress.csv", client_op_progresses);
 
     std::cout << "Run runtime(sec): " << runtime << std::endl;
     std::cout << "Run operations(ops): " << sum << std::endl;
