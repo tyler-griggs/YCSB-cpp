@@ -54,6 +54,7 @@ class HdrHistogramMeasurements : public Measurements {
 #endif
 
 Measurements *CreateMeasurements(utils::Properties *props);
+std::vector<Measurements*> CreatePerClientMeasurements(utils::Properties *props, int num_clients);
 
 } // ycsbc
 

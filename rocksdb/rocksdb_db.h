@@ -10,26 +10,18 @@
 
 #include <string>
 #include <mutex>
-#include <iostream>
 
 #include "core/db.h"
 #include "utils/properties.h"
-#include "thread_pool.h"
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
-
-// TODO: including these causes an error (esp. last one)
-#include <rocksdb/slice.h>
-#include <rocksdb/utilities/transaction.h>
-#include <rocksdb/utilities/transaction_db.h>
-#include <rocksdb/statistics.h>
 
 namespace ycsbc {
 
 class RocksdbDB : public DB {
  public:
-  RocksdbDB() {} 
+  RocksdbDB() {}
   ~RocksdbDB() {}
 
   void Init();
@@ -37,14 +29,8 @@ class RocksdbDB : public DB {
   void Cleanup();
 
   Status Read(const std::string &table, const std::string &key,
-              const std::vector<std::string> *fields, std::vector<Field> &result) {
-    
-    // return thread_pool_.accessDB([this, &table, &key, fields, &result] {
-    //     return ReadSingle(table, key, fields, result);
-    // });
-    
-    // return futureStatus.get();
-
+              const std::vector<std::string> *fields, std::vector<Field> &result,
+              int client_id = 0) {
     return (this->*(method_read_))(table, key, fields, result);
   }
 
@@ -109,10 +95,8 @@ class RocksdbDB : public DB {
 
   static std::vector<rocksdb::ColumnFamilyHandle *> cf_handles_;
   static rocksdb::DB *db_;
-  static rocksdb::TransactionDB *txn_db_;
   static int ref_cnt_;
   static std::mutex mu_;
-  // TGClientThreadPool thread_pool_;
 };
 
 DB *NewRocksdbDB();
@@ -120,4 +104,3 @@ DB *NewRocksdbDB();
 } // ycsbc
 
 #endif // YCSB_C_ROCKSDB_DB_H_
-

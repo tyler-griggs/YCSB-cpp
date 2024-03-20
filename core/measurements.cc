@@ -131,4 +131,13 @@ Measurements *CreateMeasurements(utils::Properties *props) {
   return measurements;
 }
 
+std::vector<Measurements*> CreatePerClientMeasurements(utils::Properties *props, int num_clients) {
+  std::string name = props->GetProperty(MEASUREMENT_TYPE, MEASUREMENT_TYPE_DEFAULT);
+  std::vector<Measurements*> per_client_measurements;
+  for (int i = 0; i < num_clients; ++i) {
+    per_client_measurements.push_back(new HdrHistogramMeasurements());
+  }
+  return per_client_measurements;
+}
+
 } // ycsbc

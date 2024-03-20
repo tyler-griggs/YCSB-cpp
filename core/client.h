@@ -27,7 +27,8 @@ namespace ycsbc {
 inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, int client_id) {
 
-  std::vector<int> op_progress;                        
+  std::vector<int> op_progress;       
+  int client_log_interval_s = 1;                 
 
   try {
     if (init_db) {
@@ -39,8 +40,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     //   adjusted_num_ops = int(adjusted_num_ops * 1.5);
     // }
 
-    auto full_start = std::chrono::system_clock::now();
-    auto full_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(full_start.time_since_epoch()).count();
+    auto client_start = std::chrono::system_clock::now();
+    auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
     auto interval_start_time = std::chrono::steady_clock::now();
     int ops = 0;
     for (int i = 0; i < adjusted_num_ops; ++i) {
@@ -56,6 +57,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           wl->DoTransaction(*db, client_id);
           return nullptr;  // to match void* return
         };
+
+        // Submit operation to thread pool and wait for it. 
         std::future<void*> result = threadpool->dispatch(txn_lambda);
         result.wait();
 
@@ -63,12 +66,13 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
       }
       ops++;
 
+      // Periodically check whether log interval has been hit
       if (i % 100 == 0) {
         auto current_time = std::chrono::steady_clock::now();
         auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
-        if (elapsedTime.count() >= 2) { // Every 2 seconds
-          op_progress.push_back(ops); // Add ops to the vector
-          interval_start_time = std::chrono::steady_clock::now(); // Reset startTime
+        if (elapsedTime.count() >= client_log_interval_s) {
+          op_progress.push_back(ops);
+          interval_start_time = std::chrono::steady_clock::now();
       }
       }
     }
@@ -79,9 +83,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
 
     latch->CountDown();
     op_progress.push_back(ops);
-    // return ops;
-    return std::make_tuple(full_start_micros, op_progress);
-    // return op_progress;
+    return std::make_tuple(client_start_micros, op_progress);
   } catch (const utils::Exception &e) {
     std::cerr << "Caught exception: " << e.what() << std::endl;
     exit(1);

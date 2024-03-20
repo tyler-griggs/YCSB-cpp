@@ -29,7 +29,8 @@ void BasicDB::Init() {
 }
 
 DB::Status BasicDB::Read(const std::string &table, const std::string &key,
-                         const std::vector<std::string> *fields, std::vector<Field> &result) {
+                         const std::vector<std::string> *fields, std::vector<Field> &result,
+                         int client_id) {
   std::lock_guard<std::mutex> lock(mutex_);
   *out_ << "READ " << table << ' ' << key;
   if (fields) {

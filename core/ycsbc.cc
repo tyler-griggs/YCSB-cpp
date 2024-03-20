@@ -33,7 +33,7 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
-void StatusThread(ycsbc::Measurements *measurements, ycsbc::utils::CountDownLatch *latch, int interval) {
+void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, ycsbc::utils::CountDownLatch *latch, int interval) {
   using namespace std::chrono;
   time_point<system_clock> start = system_clock::now();
   bool done = false;
@@ -46,7 +46,11 @@ void StatusThread(ycsbc::Measurements *measurements, ycsbc::utils::CountDownLatc
               << static_cast<long long>(elapsed_time.count()) << " sec: ";
 
     std::cout << measurements->GetStatusMsg() << std::endl;
-
+    for (size_t i = 0; i < per_client_measurements.size(); ++i) {
+      std::cout << "client" << i << " stats:\n";
+      std::cout << per_client_measurements[i]->GetStatusMsg() << std::endl;
+      per_client_measurements[i]->Reset();
+    }
     if (done) {
       break;
     }
@@ -129,9 +133,18 @@ int main(const int argc, const char *argv[]) {
     exit(1);
   }
 
+  std::vector<ycsbc::Measurements*> per_client_measurements = ycsbc::CreatePerClientMeasurements(&props, num_threads);
+  for (const auto measurement : per_client_measurements) {
+    if (measurement == nullptr) {
+      std::cerr << "Unknown per-client measurements name" << std::endl;
+      exit(1);
+    }
+  }
+
   std::vector<ycsbc::DB *> dbs;
   for (int i = 0; i < num_threads; i++) {
-    ycsbc::DB *db = ycsbc::DBFactory::CreateDB(&props, measurements);
+    // ycsbc::DB *db = ycsbc::DBFactory::CreateDB(&props, measurements);
+    ycsbc::DB *db = ycsbc::DBFactory::CreateDBWithPerClientStats(&props, measurements, per_client_measurements);
     if (db == nullptr) {
       std::cerr << "Unknown database name " << props["dbname"] << std::endl;
       exit(1);
@@ -144,7 +157,7 @@ int main(const int argc, const char *argv[]) {
 
   // print status periodically
   const bool show_status = (props.GetProperty("status", "false") == "true");
-  const int status_interval = std::stoi(props.GetProperty("status.interval", "5"));
+  const int status_interval = std::stoi(props.GetProperty("status.interval", "2"));
 
   // load phase
   if (do_load) {
@@ -157,7 +170,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, &latch, status_interval);
+                                 measurements, per_client_measurements, &latch, status_interval);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     for (int i = 0; i < num_threads; ++i) {
@@ -166,7 +179,6 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
                                              thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
     }
     assert((int)client_threads.size() == num_threads);
@@ -213,7 +225,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, &latch, status_interval);
+                                 measurements, per_client_measurements, &latch, status_interval);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;

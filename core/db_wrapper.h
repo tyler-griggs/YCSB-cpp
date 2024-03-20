@@ -21,6 +21,7 @@ namespace ycsbc {
 class DBWrapper : public DB {
  public:
   DBWrapper(DB *db, Measurements *measurements) : db_(db), measurements_(measurements) {}
+  DBWrapper(DB *db, Measurements *measurements, std::vector<Measurements*> per_client_measurements) : db_(db), measurements_(measurements), per_client_measurements_(per_client_measurements) {}
   ~DBWrapper() {
     delete db_;
   }
@@ -31,14 +32,17 @@ class DBWrapper : public DB {
     db_->Cleanup();
   }
   Status Read(const std::string &table, const std::string &key,
-              const std::vector<std::string> *fields, std::vector<Field> &result) {
+              const std::vector<std::string> *fields, std::vector<Field> &result,
+              int client_id) {
     timer_.Start();
     Status s = db_->Read(table, key, fields, result);
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(READ, elapsed);
+      per_client_measurements_[client_id]->Report(READ, elapsed);
     } else {
       measurements_->Report(READ_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(READ_FAILED, elapsed);
     }
     return s;
   }
@@ -90,6 +94,7 @@ class DBWrapper : public DB {
  private:
   DB *db_;
   Measurements *measurements_;
+  std::vector<Measurements*> per_client_measurements_;
   utils::Timer<uint64_t, std::nano> timer_;
 };
 

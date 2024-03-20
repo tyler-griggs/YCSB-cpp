@@ -23,6 +23,7 @@ class DBFactory {
   using DBCreator = DB *(*)();
   static bool RegisterDB(std::string db_name, DBCreator db_creator);
   static DB *CreateDB(utils::Properties *props, Measurements *measurements);
+  static DB *CreateDBWithPerClientStats(utils::Properties *props, Measurements *measurements, std::vector<Measurements*> per_client_measurements);
  private:
   static std::map<std::string, DBCreator> &Registry();
 };

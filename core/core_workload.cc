@@ -87,7 +87,7 @@ const string CoreWorkload::SCAN_LENGTH_DISTRIBUTION_PROPERTY = "scanlengthdistri
 const string CoreWorkload::SCAN_LENGTH_DISTRIBUTION_DEFAULT = "uniform";
 
 const string CoreWorkload::INSERT_ORDER_PROPERTY = "insertorder";
-const string CoreWorkload::INSERT_ORDER_DEFAULT = "hashed";
+const string CoreWorkload::INSERT_ORDER_DEFAULT = "ordered";
 
 const string CoreWorkload::INSERT_START_PROPERTY = "insertstart";
 const string CoreWorkload::INSERT_START_DEFAULT = "0";
@@ -136,11 +136,14 @@ void CoreWorkload::Init(const utils::Properties &p) {
   write_all_fields_ = utils::StrToBool(p.GetProperty(WRITE_ALL_FIELDS_PROPERTY,
                                                      WRITE_ALL_FIELDS_DEFAULT));
 
-  if (p.GetProperty(INSERT_ORDER_PROPERTY, INSERT_ORDER_DEFAULT) == "hashed") {
-    ordered_inserts_ = false;
-  } else {
-    ordered_inserts_ = true;
-  }
+  // if (p.GetProperty(INSERT_ORDER_PROPERTY, INSERT_ORDER_DEFAULT) == "hashed") {
+  //   ordered_inserts_ = false;
+  // } else {
+  //   ordered_inserts_ = true;
+  // }
+
+  // No hashing.
+  ordered_inserts_ = true;
 
 
   if (read_proportion > 0) {
@@ -213,13 +216,14 @@ ycsbc::Generator<uint64_t> *CoreWorkload::GetFieldLenGenerator(
 }
 
 std::string CoreWorkload::BuildKeyName(uint64_t key_num) {
-  if (!ordered_inserts_) {
-    key_num = utils::Hash(key_num);
-  }
+  // if (!ordered_inserts_) {
+  //   key_num = utils::Hash(key_num);
+  // }
   std::string prekey = "user";
   std::string value = std::to_string(key_num);
-  int fill = std::max(0, zero_padding_ - static_cast<int>(value.size()));
-  return prekey.append(fill, '0').append(value);
+  // int fill = std::max(0, zero_padding_ - static_cast<int>(value.size()));
+  // return prekey.append(fill, '0').append(value);
+  return prekey.append(value);
 }
 
 void CoreWorkload::BuildValues(std::vector<ycsbc::DB::Field> &values) {
@@ -312,9 +316,9 @@ DB::Status CoreWorkload::TransactionRead(DB &db, int client_id) {
   if (!read_all_fields()) {
     std::vector<std::string> fields;
     fields.push_back(NextFieldName());
-    return db.Read(table_name_, key, &fields, result);
+    return db.Read(table_name_, key, &fields, result, client_id);
   } else {
-    return db.Read(table_name_, key, NULL, result);
+    return db.Read(table_name_, key, NULL, result, client_id);
   }
 }
 
