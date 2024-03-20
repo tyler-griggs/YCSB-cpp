@@ -11,7 +11,7 @@ output_csv_path = 'output.csv'
 
 # Regular expression for matching the "Stalling writes" line format
 stall_pattern = re.compile(r'(\d{4}/\d{2}/\d{2}-\d{2}:\d{2}:\d{2}.\d{6}) \d+ \[WARN\] \[/column_family.cc:\d+\] \[default\] Stalling writes because we have \d+ level-0 files rate (\d+)')
-stall_pattern2 = re.compile(r"(\d{4}/\d{2}/\d{2}-\d{2}:\d{2}:\d{2}\.\d{6}).*rate (\d+)")
+stall_pattern2 = re.compile(r'(\d{4}/\d{2}/\d{2}-\d{2}:\d{2}:\d{2}.\d{6}) \d+ \[WARN\] \[/column_family.cc:\d+\] \[default\] Stalling writes because we have \d+ immutable memtables.*rate (\d+)')
 
 def timestamp_to_micros(timestamp_str):
     # Define the format of the timestamp in the log

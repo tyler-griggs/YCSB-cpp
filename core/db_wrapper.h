@@ -58,14 +58,17 @@ class DBWrapper : public DB {
     }
     return s;
   }
-  Status Update(const std::string &table, const std::string &key, std::vector<Field> &values) {
+  Status Update(const std::string &table, const std::string &key, std::vector<Field> &values,
+                int client_id) {
     timer_.Start();
     Status s = db_->Update(table, key, values);
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(UPDATE, elapsed);
+      per_client_measurements_[client_id]->Report(UPDATE, elapsed);
     } else {
       measurements_->Report(UPDATE_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(UPDATE_FAILED, elapsed);
     }
     return s;
   }

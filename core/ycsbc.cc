@@ -48,7 +48,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     std::cout << measurements->GetStatusMsg() << std::endl;
     for (size_t i = 0; i < per_client_measurements.size(); ++i) {
       std::cout << "client" << i << " stats:\n";
-      std::cout << per_client_measurements[i]->GetStatusMsg() << std::endl;
+      std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
       per_client_measurements[i]->Reset();
     }
     if (done) {
@@ -91,6 +91,16 @@ void RateLimitThread(std::string rate_file, std::vector<ycsbc::utils::RateLimite
   }
 }
 
+std::vector<int> stringToIntVector(const std::string& input) {
+  std::vector<int> result;
+  std::stringstream ss(input);
+  std::string item;
+  while (std::getline(ss, item, ',')) {
+    result.push_back(std::stoi(item));
+  }
+  return result;
+}
+
 void writeToCSV(const std::string& filename, const std::vector<std::tuple<long long, std::vector<int>>>& data) {
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -126,6 +136,7 @@ int main(const int argc, const char *argv[]) {
   }
 
   const int num_threads = stoi(props.GetProperty("threadcount", "1"));
+  std::vector<int> target_rates = stringToIntVector(props.GetProperty("target_rates", "0"));
 
   ycsbc::Measurements *measurements = ycsbc::CreateMeasurements(&props);
   if (measurements == nullptr) {
@@ -179,7 +190,7 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i));
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -241,7 +252,7 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool, i));
+                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool, i, target_rates[i]));
     }
 
     std::future<void> rlim_future;
@@ -294,6 +305,15 @@ void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &pr
         exit(0);
       }
       props.SetProperty("threadcount", argv[argindex]);
+      argindex++;
+    } else if (strcmp(argv[argindex], "-target_rates") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        std::cerr << "Missing argument value for -target_rates" << std::endl;
+        exit(0);
+      }
+      props.SetProperty("target_rates", argv[argindex]);
       argindex++;
     } else if (strcmp(argv[argindex], "-db") == 0) {
       argindex++;

@@ -372,7 +372,7 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id) {
   } else {
     BuildSingleValue(values);
   }
-  return db.Update(table_name_, key, values);
+  return db.Update(table_name_, key, values, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {

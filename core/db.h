@@ -79,7 +79,7 @@ class DB {
   /// @return Zero on success, a non-zero error code on error.
   ///
   virtual Status Update(const std::string &table, const std::string &key,
-                     std::vector<Field> &values) = 0;
+                     std::vector<Field> &values, int client_id = 0) = 0;
   ///
   /// Inserts a record into the database.
   /// Field/value pairs in the specified vector are written into the record.
