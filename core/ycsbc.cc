@@ -218,6 +218,7 @@ int main(const int argc, const char *argv[]) {
 
   // FairScheduler scheduler;
   ThreadPool threadpool;
+  // TODO: reenable thread pool
   threadpool.start(/*num_threads=*/ 4);
 
   // transaction phase

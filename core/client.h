@@ -77,16 +77,16 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
         wl->DoInsert(*db);
       } else {
 
-        // auto txn_lambda = [wl, db, client_id]() {
-        //   wl->DoTransaction(*db, client_id);
-        //   return nullptr;  // to match void* return
-        // };
+        auto txn_lambda = [wl, db, client_id]() {
+          wl->DoTransaction(*db, client_id);
+          return nullptr;  // to match void* return
+        };
 
-        // // Submit operation to thread pool and wait for it. 
-        // std::future<void*> result = threadpool->dispatch(txn_lambda);
-        // result.wait();
+        // Submit operation to thread pool and wait for it. 
+        std::future<void*> result = threadpool->dispatch(txn_lambda);
+        result.wait();
 
-        wl->DoTransaction(*db, client_id);
+        // wl->DoTransaction(*db, client_id);
       }
       ops++;
 

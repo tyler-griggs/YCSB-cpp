@@ -56,15 +56,15 @@ void ThreadPool::start(int num_threads){
       }
       fprintf(stderr, "Worker thread %d done\n", i);
     });
-    // cpu_set_t cpuset;
-    // CPU_ZERO(&cpuset);
-    // CPU_SET(16 + i, &cpuset);
-    // int rc = pthread_setaffinity_np(t->native_handle(),
-    //                                 sizeof(cpu_set_t), &cpuset);
-    // if (rc != 0) {
-    //   fprintf(stderr, "Couldn't set thread affinity.\n");
-    //   std::exit(1);
-    // }
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(i, &cpuset);
+    int rc = pthread_setaffinity_np(t->native_handle(),
+                                    sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+      fprintf(stderr, "Couldn't set thread affinity.\n");
+      std::exit(1);
+    }
     threads.push_back(t);
     // t->detach();
   }
@@ -82,7 +82,7 @@ void ThreadPool::stop() {
   running = false;
 
   // Add empty jobs to wake up threads.
-  for (int i = 0; i < threads.size(); ++i) {
+  for (size_t i = 0; i < threads.size(); ++i) {
     dispatch(&EmptyJob);
   }
 
