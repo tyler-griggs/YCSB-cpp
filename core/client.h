@@ -24,9 +24,9 @@
 #include "threadpool.h"
 namespace ycsbc {
 
-void EnforceClientRateLimit(long client_start_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num) {
+void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num) {
   if (target_ops_per_s > 0) {
-    long deadline = client_start_ns + op_num * target_ops_tick_ns;
+    long deadline = op_start_time_ns + target_ops_tick_ns;
     std::chrono::nanoseconds deadline_ns(deadline);
     std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> target_time_point(deadline_ns);
 
@@ -38,6 +38,10 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
                         int client_id, int target_ops_per_s) {
 
+  // if (client_id == 0) {
+  // std::this_thread::sleep_for(std::chrono::seconds(40*client_id));
+  // }
+
   std::vector<int> op_progress;       
   int client_log_interval_s = 1;                 
 
@@ -45,8 +49,6 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   if (target_ops_per_s > 0) {
     target_ops_tick_ns = (long) (1000000000 / target_ops_per_s);
   }
-  std::cout << "TARGET PER S: " << target_ops_per_s << std::endl;
-  std::cout << "TARGET PER NS: " << target_ops_tick_ns << std::endl;
 
   try {
     if (init_db) {
@@ -60,7 +62,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
 
     auto client_start = std::chrono::system_clock::now();
     auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
-    auto client_start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(client_start.time_since_epoch()).count();
+    // auto client_start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(client_start.time_since_epoch()).count();
     auto interval_start_time = std::chrono::steady_clock::now();
     int ops = 0;
     for (int i = 0; i < adjusted_num_ops; ++i) {
@@ -68,23 +70,23 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
         rlim->Consume(1);
       }
 
-      // auto op_start_time = std::chrono::high_resolution_clock::now();
-      // auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
+      auto op_start_time = std::chrono::high_resolution_clock::now();
+      auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
 
       if (is_loading) {
         wl->DoInsert(*db);
       } else {
 
-        auto txn_lambda = [wl, db, client_id]() {
-          wl->DoTransaction(*db, client_id);
-          return nullptr;  // to match void* return
-        };
+        // auto txn_lambda = [wl, db, client_id]() {
+        //   wl->DoTransaction(*db, client_id);
+        //   return nullptr;  // to match void* return
+        // };
 
-        // Submit operation to thread pool and wait for it. 
-        std::future<void*> result = threadpool->dispatch(txn_lambda);
-        result.wait();
+        // // Submit operation to thread pool and wait for it. 
+        // std::future<void*> result = threadpool->dispatch(txn_lambda);
+        // result.wait();
 
-        // wl->DoTransaction(*db, client_id);
+        wl->DoTransaction(*db, client_id);
       }
       ops++;
 
@@ -98,7 +100,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
         }
       }
 
-      EnforceClientRateLimit(client_start_ns, target_ops_per_s, target_ops_tick_ns, ops);
+      EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
     }
 
     if (cleanup_db) {

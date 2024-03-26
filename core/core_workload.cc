@@ -270,7 +270,7 @@ bool CoreWorkload::DoInsert(DB &db) {
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   DB::Status status;
 
-  // if (client_id == 0 || client_id == 1) {
+  // if (client_id == 0) {
   //   // if (op_chooser_.Next() == READ) {
   //   //   status = TransactionRead(db, client_id);
   //   // } else {
@@ -293,7 +293,7 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
       status = TransactionInsert(db);
       break;
     case SCAN:
-      status = TransactionScan(db);
+      status = TransactionScan(db, client_id);
       break;
     case READMODIFYWRITE:
       status = TransactionReadModifyWrite(db);
@@ -307,8 +307,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 DB::Status CoreWorkload::TransactionRead(DB &db, int client_id) {
   uint64_t key_num = NextTransactionKeyNum();
 
-  uint64_t client_key_num = key_num;
-  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // uint64_t client_key_num = key_num;
+  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
   // uint64_t client_key_num = key_num + (std::max(client_id-1, 0)) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
@@ -344,10 +344,13 @@ DB::Status CoreWorkload::TransactionReadModifyWrite(DB &db) {
   return db.Update(table_name_, key, values);
 }
 
-DB::Status CoreWorkload::TransactionScan(DB &db) {
+DB::Status CoreWorkload::TransactionScan(DB &db, int client_id) {
   uint64_t key_num = NextTransactionKeyNum();
-  const std::string key = BuildKeyName(key_num);
-  int len = scan_len_chooser_->Next();
+  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+
+  const std::string key = BuildKeyName(client_key_num);
+  // int len = scan_len_chooser_->Next();
+  int len = 1000;
   std::vector<std::vector<DB::Field>> result;
   if (!read_all_fields()) {
     std::vector<std::string> fields;
@@ -362,8 +365,8 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t client_key_num = key_num % (6250000 / 4) + client_id * (6250000 / 4);
   // uint64_t client_key_num = key_num + ((client_id+1)%4) * (6250000 / 4);
-  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
-  uint64_t client_key_num = key_num;
+  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // uint64_t client_key_num = key_num;
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;

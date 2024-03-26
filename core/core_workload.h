@@ -207,7 +207,7 @@ class CoreWorkload {
 
   DB::Status TransactionRead(DB &db, int client_id);
   DB::Status TransactionReadModifyWrite(DB &db);
-  DB::Status TransactionScan(DB &db);
+  DB::Status TransactionScan(DB &db, int client_id);
   DB::Status TransactionUpdate(DB &db, int client_id);
   DB::Status TransactionInsert(DB &db);
 
