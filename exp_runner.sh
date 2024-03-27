@@ -50,16 +50,17 @@ iostat_pid=$!
 mpstat_pid=$!
 
 
-
-
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
-  -s -p operationcount=300000 -p recordcount=1562500 -p updateproportion=0 -p insertproportion=0 -p readproportion=1 -p scanproportion=0 \
+  -s -p operationcount=300000 \
+  -p recordcount=1562500 \
+  -p updateproportion=1 \
+  -p insertproportion=0 \
+  -p readproportion=0 \
+  -p scanproportion=0 \
   -threads 4 \
+  -target_rates "450,450,450,450" \
   -p zipfian_const=0.99 -p requestdistribution=zipfian | tee status_thread.txt &
-  # -target_rates 1000 -p zipfian_const=0.99 -p requestdistribution=zipfian | tee status_thread.txt &
-
-
 
 ycsb_pid=$!
 # Wait for the ycsb process to finish
