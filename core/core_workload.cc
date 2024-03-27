@@ -30,6 +30,7 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
   "SCAN",
   "READMODIFYWRITE",
   "DELETE",
+  "RANDOM_INSERT",
   "INSERT-FAILED",
   "READ-FAILED",
   "UPDATE-FAILED",
@@ -70,6 +71,9 @@ const string CoreWorkload::SCAN_PROPORTION_DEFAULT = "0.0";
 
 const string CoreWorkload::READMODIFYWRITE_PROPORTION_PROPERTY = "readmodifywriteproportion";
 const string CoreWorkload::READMODIFYWRITE_PROPORTION_DEFAULT = "0.0";
+
+const string CoreWorkload::RANDOM_INSERT_PROPORTION_PROPERTY = "randominsertproportion";
+const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 
 const string CoreWorkload::REQUEST_DISTRIBUTION_PROPERTY = "requestdistribution";
 const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform";
@@ -120,6 +124,9 @@ void CoreWorkload::Init(const utils::Properties &p) {
   double readmodifywrite_proportion = std::stod(p.GetProperty(
       READMODIFYWRITE_PROPORTION_PROPERTY, READMODIFYWRITE_PROPORTION_DEFAULT));
 
+  double randominsert_proportion = std::stod(p.GetProperty(
+      RANDOM_INSERT_PROPORTION_PROPERTY, RANDOM_INSERT_PROPORTION_DEFAULT));
+
   record_count_ = std::stoi(p.GetProperty(RECORD_COUNT_PROPERTY));
   std::string request_dist = p.GetProperty(REQUEST_DISTRIBUTION_PROPERTY,
                                            REQUEST_DISTRIBUTION_DEFAULT);
@@ -160,6 +167,9 @@ void CoreWorkload::Init(const utils::Properties &p) {
   }
   if (readmodifywrite_proportion > 0) {
     op_chooser_.AddValue(READMODIFYWRITE, readmodifywrite_proportion);
+  }
+  if (randominsert_proportion > 0) {
+    op_chooser_.AddValue(RANDOM_INSERT, randominsert_proportion);
   }
 
   insert_key_sequence_ = new CounterGenerator(insert_start);
@@ -282,7 +292,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   //   status = TransactionRead(db, client_id);
   // }
 
-  switch (op_chooser_.Next()) {
+  auto op_choice = op_chooser_.Next();
+  switch (op_choice) {
     case READ:
       status = TransactionRead(db, client_id);
       break;
@@ -298,7 +309,11 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
     case READMODIFYWRITE:
       status = TransactionReadModifyWrite(db);
       break;
+    case RANDOM_INSERT:
+      status = TransactionRandomInsert(db, client_id);
+      break;
     default:
+      std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
       throw utils::Exception("Operation request is not recognized!");
   }
   return (status == DB::kOK);
@@ -376,6 +391,17 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id) {
     BuildSingleValue(values);
   }
   return db.Update(table_name_, key, values, client_id);
+}
+
+// TODO: build request pipeline to add randominsert property
+DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id) {
+  uint64_t key_num = NextTransactionKeyNum();
+  // uint64_t key_num = transaction_insert_key_sequence_->Next();
+  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  const std::string key = BuildKeyName(client_key_num);
+  std::vector<DB::Field> values;
+  BuildValues(values);
+  return db.Insert(table_name_, key, values, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {

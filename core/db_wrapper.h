@@ -72,14 +72,16 @@ class DBWrapper : public DB {
     }
     return s;
   }
-  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values) {
+  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id) {
     timer_.Start();
     Status s = db_->Insert(table, key, values);
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(INSERT, elapsed);
+      per_client_measurements_[client_id]->Report(INSERT, elapsed);
     } else {
       measurements_->Report(INSERT_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(INSERT_FAILED, elapsed);
     }
     return s;
   }

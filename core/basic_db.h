@@ -34,7 +34,7 @@ class BasicDB : public DB {
   Status Update(const std::string &table, const std::string &key, std::vector<Field> &values, 
                 int client_id = 0);
 
-  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values);
+  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id = 0);
 
   Status Delete(const std::string &table, const std::string &key);
 

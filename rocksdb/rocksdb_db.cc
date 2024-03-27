@@ -513,7 +513,7 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
     assert(found);
   }
   rocksdb::WriteOptions wopt;
-  // TODO: WAL disable
+  // TODO: WAL disabled
   wopt.disableWAL = true;
 
   data.clear();
@@ -542,6 +542,8 @@ DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &
   std::string data;
   SerializeRow(values, data);
   rocksdb::WriteOptions wopt;
+  // TODO: WAL disabled
+  wopt.disableWAL = true;
   rocksdb::Status s = db_->Put(wopt, key, data);
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());

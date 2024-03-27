@@ -90,7 +90,7 @@ class DB {
   /// @return Zero on success, a non-zero error code on error.
   ///
   virtual Status Insert(const std::string &table, const std::string &key,
-                     std::vector<Field> &values) = 0;
+                     std::vector<Field> &values, int client_id = 0) = 0;
   ///
   /// Deletes a record from the database.
   ///

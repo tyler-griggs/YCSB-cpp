@@ -43,7 +43,7 @@ class RocksdbDB : public DB {
     return (this->*(method_update_))(table, key, values);
   }
 
-  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values) {
+  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id = 0) {
     return (this->*(method_insert_))(table, key, values);
   }
 

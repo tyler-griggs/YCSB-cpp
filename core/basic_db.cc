@@ -74,7 +74,7 @@ DB::Status BasicDB::Update(const std::string &table, const std::string &key,
 }
 
 DB::Status BasicDB::Insert(const std::string &table, const std::string &key,
-                           std::vector<Field> &values) {
+                           std::vector<Field> &values, int client_id) {
   std::lock_guard<std::mutex> lock(mutex_);
   *out_ << "INSERT " << table << ' ' << key << " [ ";
   for (auto v : values) {

@@ -49,20 +49,20 @@ iostat_pid=$!
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
 mpstat_pid=$!
 
-
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
-  -s -p operationcount=350000 \
+  -s -p operationcount=35000000 \
   -p recordcount=1562500 \
-  -p updateproportion=1 \
+  -p updateproportion=0 \
   -p insertproportion=0 \
   -p readproportion=0 \
   -p scanproportion=0 \
+  -p randominsertproportion=1 \
   -threads 4 \
-  -target_rates "800,800,800,800" \
-  -p rate_limit=220 \
+  -target_rates "24000,24000,24000,24000" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
+#   -p rate_limit=200 \
 #   -p zipfian_const=0.99 -p requestdistribution=zipfian \
  
 # ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s -p operationcount=300000 -p recordcount=1562500 -p updateproportion=1 -p insertproportion=0 -p readproportion=0 -p scanproportion=0 -threads 4 -target_rates "600,600,600,600" -p zipfian_const=0.99 -p requestdistribution=zipfian | tee status_thread.txt &

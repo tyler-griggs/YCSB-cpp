@@ -29,6 +29,7 @@ enum Operation {
   SCAN,
   READMODIFYWRITE,
   DELETE,
+  RANDOM_INSERT,
   INSERT_FAILED,
   READ_FAILED,
   UPDATE_FAILED,
@@ -111,6 +112,9 @@ class CoreWorkload {
   ///
   static const std::string READMODIFYWRITE_PROPORTION_PROPERTY;
   static const std::string READMODIFYWRITE_PROPORTION_DEFAULT;
+
+  static const std::string RANDOM_INSERT_PROPORTION_PROPERTY;
+  static const std::string RANDOM_INSERT_PROPORTION_DEFAULT;
 
   ///
   /// The name of the property for the the distribution of request keys.
@@ -209,6 +213,7 @@ class CoreWorkload {
   DB::Status TransactionReadModifyWrite(DB &db);
   DB::Status TransactionScan(DB &db, int client_id);
   DB::Status TransactionUpdate(DB &db, int client_id);
+  DB::Status TransactionRandomInsert(DB &db, int client_id);
   DB::Status TransactionInsert(DB &db);
 
   std::string table_name_;
