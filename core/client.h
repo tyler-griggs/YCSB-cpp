@@ -37,6 +37,15 @@ void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long t
 inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
                         int client_id, int target_ops_per_s) {
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(2*client_id+1, &cpuset);
+  int rc = pthread_setaffinity_np(pthread_self(),
+                                  sizeof(cpu_set_t), &cpuset);
+  if (rc != 0) {
+    fprintf(stderr, "Couldn't set thread affinity.\n");
+    std::exit(1);
+  }
 
   // if (client_id == 0) {
   // std::this_thread::sleep_for(std::chrono::seconds(40*client_id));

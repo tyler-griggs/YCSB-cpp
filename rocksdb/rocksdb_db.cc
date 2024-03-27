@@ -18,6 +18,11 @@
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/options_util.h>
 #include <rocksdb/write_batch.h>
+// #include <rocksdb/rate_limiter.h>
+
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
+#include <rocksdb/rate_limiter.h>
 
 namespace {
   const std::string PROP_NAME = "rocksdb.dbname";
@@ -103,6 +108,9 @@ namespace {
 
   const std::string PROP_FS_URI = "rocksdb.fs_uri";
   const std::string PROP_FS_URI_DEFAULT = "";
+
+  const std::string PROP_RATE_LIMIT = "rate_limit";
+  const std::string PROP_RATE_LIMIT_DEFAULT = "0";
 
   static std::shared_ptr<rocksdb::Env> env_guard;
   static std::shared_ptr<rocksdb::Cache> block_cache;
@@ -365,6 +373,20 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
       opt->OptimizeLevelStyleCompaction();
     }
   }
+
+  size_t rate_limit = std::stoi(props.GetProperty(PROP_RATE_LIMIT, PROP_RATE_LIMIT_DEFAULT));
+  if (rate_limit > 0) {
+    // Add rate limiter
+    opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
+        rate_limit * 1024 * 1024 , // <rate_limit> MB/s rate limit
+        100 * 1000,        // Refill period = 100ms (default)
+        10                // Fairness (default)
+        // rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
+        // false              // Disable auto-tuning
+    ));
+  }
+
+  
 }
 
 void RocksdbDB::SerializeRow(const std::vector<Field> &values, std::string &data) {
@@ -491,6 +513,7 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
     assert(found);
   }
   rocksdb::WriteOptions wopt;
+  wopt.disableWAL = true;
 
   data.clear();
   SerializeRow(current_values, data);

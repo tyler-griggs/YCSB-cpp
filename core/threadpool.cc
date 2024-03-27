@@ -58,7 +58,7 @@ void ThreadPool::start(int num_threads){
     });
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
-    CPU_SET(i, &cpuset);
+    CPU_SET(2*i, &cpuset);
     int rc = pthread_setaffinity_np(t->native_handle(),
                                     sizeof(cpu_set_t), &cpuset);
     if (rc != 0) {
