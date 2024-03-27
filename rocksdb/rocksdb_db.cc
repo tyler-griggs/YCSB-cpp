@@ -513,6 +513,7 @@ DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &
     assert(found);
   }
   rocksdb::WriteOptions wopt;
+  // TODO: WAL disable
   wopt.disableWAL = true;
 
   data.clear();
