@@ -53,16 +53,16 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
   -s -p operationcount=35000000 \
   -p recordcount=1562500 \
-  -p updateproportion=1 \
+  -p updateproportion=0 \
   -p insertproportion=0 \
   -p readproportion=0 \
-  -p scanproportion=0 \
+  -p scanproportion=1 \
   -p randominsertproportion=0 \
-  -threads 4 \
-  -target_rates "12800,12800,12800,12800" \
+  -threads 2 \
+  -target_rates "6400,1280" \
+  -p rate_limit=50 \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
-#   -p rate_limit=200 \
 #   -p zipfian_const=0.99 -p requestdistribution=zipfian \
  
 # ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s -p operationcount=300000 -p recordcount=1562500 -p updateproportion=1 -p insertproportion=0 -p readproportion=0 -p scanproportion=0 -threads 4 -target_rates "600,600,600,600" -p zipfian_const=0.99 -p requestdistribution=zipfian | tee status_thread.txt &
