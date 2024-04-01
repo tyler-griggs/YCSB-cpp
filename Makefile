@@ -17,7 +17,7 @@ BIND_LMDB ?= 0
 BIND_SQLITE ?= 0
 
 # Extra options
-DEBUG_BUILD ?=
+DEBUG_BUILD ?= 1
 EXTRA_CXXFLAGS ?= -I/home/tylergriggs/rocksdb/include/
 EXTRA_LDFLAGS ?= -L/home/tylergriggs/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4
 
@@ -47,7 +47,7 @@ ifeq ($(BIND_LEVELDB), 1)
 endif
 
 # ifeq ($(BIND_ROCKSDB), 1)
-LDFLAGS += -lrocksdb
+LDFLAGS += -lrocksdb_debug
 SOURCES += $(wildcard rocksdb/*.cc)
 # endif
 

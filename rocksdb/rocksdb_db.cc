@@ -463,6 +463,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
     DeserializeRowFilter(result, data, *fields);
   } else {
     DeserializeRow(result, data);
+    // TODO(tgriggs): this is failing
     assert(result.size() == static_cast<size_t>(fieldcount_));
   }
   return kOK;

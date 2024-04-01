@@ -280,39 +280,39 @@ bool CoreWorkload::DoInsert(DB &db) {
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   DB::Status status;
 
-  if (client_id == 0) {
-    (void) op_chooser_.Next();
-    // status = TransactionUpdate(db, client_id);
-    status = TransactionRandomInsert(db, client_id);
-  } else {
-    (void) op_chooser_.Next();
-    status = TransactionRead(db, client_id);
-  }
-
-  // auto op_choice = op_chooser_.Next();
-  // switch (op_choice) {
-  //   case READ:
-  //     status = TransactionRead(db, client_id);
-  //     break;
-  //   case UPDATE:
-  //     status = TransactionUpdate(db, client_id);
-  //     break;
-  //   case INSERT:
-  //     status = TransactionInsert(db);
-  //     break;
-  //   case SCAN:
-  //     status = TransactionScan(db, client_id);
-  //     break;
-  //   case READMODIFYWRITE:
-  //     status = TransactionReadModifyWrite(db);
-  //     break;
-  //   case RANDOM_INSERT:
-  //     status = TransactionRandomInsert(db, client_id);
-  //     break;
-  //   default:
-  //     std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
-  //     throw utils::Exception("Operation request is not recognized!");
+  // if (client_id == 0) {
+  //   (void) op_chooser_.Next();
+  //   // status = TransactionUpdate(db, client_id);
+  //   status = TransactionRandomInsert(db, client_id);
+  // } else {
+  //   (void) op_chooser_.Next();
+  //   status = TransactionRead(db, client_id);
   // }
+
+  auto op_choice = op_chooser_.Next();
+  switch (op_choice) {
+    case READ:
+      status = TransactionRead(db, client_id);
+      break;
+    case UPDATE:
+      status = TransactionUpdate(db, client_id);
+      break;
+    case INSERT:
+      status = TransactionInsert(db);
+      break;
+    case SCAN:
+      status = TransactionScan(db, client_id);
+      break;
+    case READMODIFYWRITE:
+      status = TransactionReadModifyWrite(db);
+      break;
+    case RANDOM_INSERT:
+      status = TransactionRandomInsert(db, client_id);
+      break;
+    default:
+      std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
+      throw utils::Exception("Operation request is not recognized!");
+  }
   return (status == DB::kOK);
 }
 
