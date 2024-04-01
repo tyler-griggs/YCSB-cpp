@@ -17,7 +17,7 @@ BIND_LMDB ?= 0
 BIND_SQLITE ?= 0
 
 # Extra options
-DEBUG_BUILD ?= 1
+DEBUG_BUILD ?=
 EXTRA_CXXFLAGS ?= -I/home/tylergriggs/rocksdb/include/
 EXTRA_LDFLAGS ?= -L/home/tylergriggs/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4
 
