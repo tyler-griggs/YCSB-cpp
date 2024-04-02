@@ -377,16 +377,15 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   size_t rate_limit = std::stoi(props.GetProperty(PROP_RATE_LIMIT, PROP_RATE_LIMIT_DEFAULT));
   if (rate_limit > 0) {
     // Add rate limiter
-    opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
+    // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
+    opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
         rate_limit * 1024 * 1024 , // <rate_limit> MB/s rate limit
         100 * 1000,        // Refill period = 100ms (default)
-        10                // Fairness (default)
-        // rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
-        // false              // Disable auto-tuning
+        10,                // Fairness (default)
+        rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
+        false              // Disable auto-tuning
     ));
   }
-
-  
 }
 
 void RocksdbDB::SerializeRow(const std::vector<Field> &values, std::string &data) {
