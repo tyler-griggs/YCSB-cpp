@@ -104,10 +104,14 @@ const std::string CoreWorkload::FIELD_NAME_PREFIX_DEFAULT = "field";
 
 const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
 
+const std::string CoreWorkload::OP_MODE_PROPERTY = "op_mode";
+const std::string CoreWorkload::OP_MODE_DEFAULT = "real"; // real, fake
+
 namespace ycsbc {
 
 void CoreWorkload::Init(const utils::Properties &p) {
   table_name_ = p.GetProperty(TABLENAME_PROPERTY,TABLENAME_DEFAULT);
+  op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "real";
 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
   field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
@@ -279,40 +283,43 @@ bool CoreWorkload::DoInsert(DB &db) {
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   DB::Status status;
-
-  if (client_id == 0) {
-    (void) op_chooser_.Next();
-    status = TransactionUpdate(db, client_id);
-    // status = TransactionRandomInsert(db, client_id);
+  if (op_mode_real_) {
+    auto op_choice = op_chooser_.Next();
+    switch (op_choice) {
+      case READ:
+        status = TransactionRead(db, client_id);
+        break;
+      case UPDATE:
+        status = TransactionUpdate(db, client_id);
+        break;
+      case INSERT:
+        status = TransactionInsert(db);
+        break;
+      case SCAN:
+        status = TransactionScan(db, client_id);
+        break;
+      case READMODIFYWRITE:
+        status = TransactionReadModifyWrite(db);
+        break;
+      case RANDOM_INSERT:
+        status = TransactionRandomInsert(db, client_id);
+        break;
+      default:
+        std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
+        throw utils::Exception("Operation request is not recognized!");
+    }
   } else {
-    (void) op_chooser_.Next();
-    status = TransactionRead(db, client_id);
+    if (client_id == 0) {
+      (void) op_chooser_.Next();
+      // status = TransactionUpdate(db, client_id);
+      status = TransactionRandomInsert(db, client_id);
+    } else {
+      (void) op_chooser_.Next();
+      status = TransactionRead(db, client_id);
+    }
   }
 
-  // auto op_choice = op_chooser_.Next();
-  // switch (op_choice) {
-  //   case READ:
-  //     status = TransactionRead(db, client_id);
-  //     break;
-  //   case UPDATE:
-  //     status = TransactionUpdate(db, client_id);
-  //     break;
-  //   case INSERT:
-  //     status = TransactionInsert(db);
-  //     break;
-  //   case SCAN:
-  //     status = TransactionScan(db, client_id);
-  //     break;
-  //   case READMODIFYWRITE:
-  //     status = TransactionReadModifyWrite(db);
-  //     break;
-  //   case RANDOM_INSERT:
-  //     status = TransactionRandomInsert(db, client_id);
-  //     break;
-  //   default:
-  //     std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
-  //     throw utils::Exception("Operation request is not recognized!");
-  // }
+  
   return (status == DB::kOK);
 }
 

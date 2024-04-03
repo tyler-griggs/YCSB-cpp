@@ -172,6 +172,9 @@ class CoreWorkload {
   ///
   static const std::string ZIPFIAN_CONST_PROPERTY;
 
+  static const std::string OP_MODE_PROPERTY;
+  static const std::string OP_MODE_DEFAULT;
+
   ///
   /// Initialize the scenario.
   /// Called once, in the main client thread, before any operations are started.
@@ -231,6 +234,7 @@ class CoreWorkload {
   bool ordered_inserts_;
   size_t record_count_;
   int zero_padding_;
+  bool op_mode_real_;
 };
 
 } // ycsbc
