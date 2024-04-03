@@ -112,6 +112,9 @@ namespace {
   const std::string PROP_RATE_LIMIT = "rate_limit";
   const std::string PROP_RATE_LIMIT_DEFAULT = "0";
 
+    const std::string PROP_READ_RATE_LIMIT = "read_rate_limit";
+  const std::string PROP_READ_RATE_LIMIT_DEFAULT = "0";
+
   static std::shared_ptr<rocksdb::Env> env_guard;
   static std::shared_ptr<rocksdb::Cache> block_cache;
 #if ROCKSDB_MAJOR < 8
@@ -375,15 +378,19 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   }
 
   size_t rate_limit = std::stoi(props.GetProperty(PROP_RATE_LIMIT, PROP_RATE_LIMIT_DEFAULT));
+  size_t read_rate_limit = std::stoi(props.GetProperty(PROP_READ_RATE_LIMIT, PROP_READ_RATE_LIMIT_DEFAULT));
   if (rate_limit > 0) {
     // Add rate limiter
     // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
     opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-        rate_limit * 1024 * 1024 , // <rate_limit> MB/s rate limit
+        rate_limit * 1024 * 1024, // <rate_limit> MB/s rate limit
         100 * 1000,        // Refill period = 100ms (default)
         10,                // Fairness (default)
-        rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
-        false              // Disable auto-tuning
+        rocksdb::RateLimiter::Mode::kAllIo, // All IO
+        // rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
+        false,              // Disable auto-tuning
+        /* single_burst_bytes */ 0,
+        read_rate_limit * 1024 * 1024 
     ));
   }
 }

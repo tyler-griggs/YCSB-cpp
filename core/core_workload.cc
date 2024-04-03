@@ -280,7 +280,7 @@ bool CoreWorkload::DoInsert(DB &db) {
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   DB::Status status;
 
-  if (client_id == 0 || client_id == 1) {
+  if (client_id == 0) {
     (void) op_chooser_.Next();
     status = TransactionUpdate(db, client_id);
     // status = TransactionRandomInsert(db, client_id);

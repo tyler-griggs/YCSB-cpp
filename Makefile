@@ -47,7 +47,8 @@ ifeq ($(BIND_LEVELDB), 1)
 endif
 
 # ifeq ($(BIND_ROCKSDB), 1)
-LDFLAGS += -lrocksdb_debug
+# LDFLAGS += -lrocksdb_debug
+LDFLAGS += -lrocksdb
 SOURCES += $(wildcard rocksdb/*.cc)
 # endif
 
