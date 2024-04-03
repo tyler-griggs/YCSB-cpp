@@ -53,13 +53,14 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
   -s -p operationcount=35000000 \
   -p recordcount=1562500 \
-  -p updateproportion=0 \
+  -p updateproportion=1 \
   -p insertproportion=0 \
-  -p readproportion=1 \
+  -p readproportion=0 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
-  -p rate_limit=100 \
+  -target_rates "400,400,400,400" \
+  -p rate_limit=200 \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
 #   -target_rates "6400,1280" \
