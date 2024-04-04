@@ -12,7 +12,7 @@ cleanup() {
 
 # Function to process iostat's output and write to CSV
 process_iostat_output() {
-    echo "Timestamp,r/s,rMB/s,r_await,w/s,wMB/s,w_await" > iostat_results.csv
+    echo "Timestamp,r/s,rMB/s,r_await,rareq-sz,w/s,wMB/s,w_await,wareq-sz" > iostat_results.csv
     current_timestamp=""
     while IFS= read -r line; do
         if [[ $line == *"Time:"* ]]; then
@@ -20,7 +20,7 @@ process_iostat_output() {
             current_timestamp=$(echo $line | awk '{print $2, $3}')
         elif [[ $line == *nvme0n1* ]]; then
             # Write the current timestamp along with the iostat metrics
-            echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$8,",",$9,",",12}' >> iostat_results.csv
+            echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
         fi
     done < iostat_output.txt
 }
@@ -60,7 +60,7 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -threads 2 \
   -p op_mode=fake \
-  -target_rates "0,960" \
+  -target_rates "500,960" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
 #   -p rate_limit=52 \
