@@ -47,9 +47,9 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     std::exit(1);
   }
 
-  // if (client_id == 0) {
-  //   std::this_thread::sleep_for(std::chrono::seconds(30));
-  // }
+  if (client_id == 0) {
+    std::this_thread::sleep_for(std::chrono::seconds(60));
+  }
 
   std::vector<int> op_progress;       
   int client_log_interval_s = 1;                 

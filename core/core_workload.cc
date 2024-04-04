@@ -311,8 +311,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   } else {
     if (client_id == 0) {
       (void) op_chooser_.Next();
-      // status = TransactionUpdate(db, client_id);
-      status = TransactionRandomInsert(db, client_id);
+      status = TransactionUpdate(db, client_id);
+      // status = TransactionRandomInsert(db, client_id);
     } else {
       (void) op_chooser_.Next();
       status = TransactionRead(db, client_id);
