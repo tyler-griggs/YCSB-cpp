@@ -33,7 +33,8 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
-void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, ycsbc::utils::CountDownLatch *latch, int interval) {
+void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, 
+                  ycsbc::utils::CountDownLatch *latch, int interval, std::vector<ycsbc::DB *> dbs) {
   using namespace std::chrono;
   time_point<system_clock> start = system_clock::now();
   bool done = false;
@@ -51,6 +52,14 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
       per_client_measurements[i]->Reset();
     }
+    // for (size_t i = 0; i < dbs.size(); ++i) {
+    //   if (i == 0) {
+    //     continue;
+    //   }
+    //   std::cout << "db_get: client" << i << ": ";
+    //   dbs[i]->PrintDbStats();
+    // }
+
     if (done) {
       break;
     }
@@ -181,7 +190,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval);
+                                 measurements, per_client_measurements, &latch, status_interval, dbs);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     for (int i = 0; i < num_threads; ++i) {
@@ -236,7 +245,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval);
+                                 measurements, per_client_measurements, &latch, status_interval, dbs);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;

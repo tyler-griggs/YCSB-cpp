@@ -319,7 +319,6 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
     }
   }
 
-  
   return (status == DB::kOK);
 }
 

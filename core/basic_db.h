@@ -14,8 +14,10 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <mutex>
-
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
 namespace ycsbc {
 
 class BasicDB : public DB {
@@ -37,6 +39,8 @@ class BasicDB : public DB {
   Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id = 0);
 
   Status Delete(const std::string &table, const std::string &key);
+
+  void PrintDbStats();
 
  private:
   static std::mutex mutex_;

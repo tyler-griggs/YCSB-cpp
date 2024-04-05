@@ -90,6 +90,10 @@ DB::Status BasicDB::Delete(const std::string &table, const std::string &key) {
   return kOK;
 }
 
+void BasicDB::PrintDbStats() {
+  return;
+}
+
 DB *NewBasicDB() {
   return new BasicDB;
 }

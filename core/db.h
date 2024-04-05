@@ -13,7 +13,9 @@
 
 #include <vector>
 #include <string>
-
+#include <memory>
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
 namespace ycsbc {
 
 ///
@@ -99,6 +101,8 @@ class DB {
   /// @return Zero on success, a non-zero error code on error.
   ///
   virtual Status Delete(const std::string &table, const std::string &key) = 0;
+
+  virtual void PrintDbStats() = 0;
 
   virtual ~DB() { }
 

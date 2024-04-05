@@ -16,6 +16,7 @@
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
+#include <rocksdb/statistics.h>
 
 namespace ycsbc {
 
@@ -50,6 +51,8 @@ class RocksdbDB : public DB {
   Status Delete(const std::string &table, const std::string &key) {
     return (this->*(method_delete_))(table, key);
   }
+
+  void PrintDbStats();
 
  private:
   enum RocksFormat {

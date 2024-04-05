@@ -11,7 +11,7 @@
 #include "core/core_workload.h"
 #include "core/db_factory.h"
 #include "utils/utils.h"
-
+#include <iostream>
 #include <rocksdb/cache.h>
 #include <rocksdb/filter_policy.h>
 #include <rocksdb/merge_operator.h>
@@ -214,6 +214,9 @@ void RocksdbDB::Init() {
 #ifdef USE_MERGEUPDATE
   opt.merge_operator.reset(new YCSBUpdateMerge);
 #endif
+
+  std::cout << "[TGRIGGS_LOG] creating stats object\n";
+  opt.statistics = rocksdb::CreateDBStatistics();
 
   rocksdb::Status s;
   if (props.GetProperty(PROP_DESTROY, PROP_DESTROY_DEFAULT) == "true") {
@@ -578,6 +581,17 @@ DB::Status RocksdbDB::DeleteSingle(const std::string &table, const std::string &
 
 DB *NewRocksdbDB() {
   return new RocksdbDB;
+}
+
+void RocksdbDB::PrintDbStats() {
+  if (db_ == nullptr) {
+    return;
+  }
+
+  std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);
+  // std::string hist_data = db_->GetOptions().statistics->getHistogramString(rocksdb::Tickers::DB_GET);
+  std::cout << "[TGRIGGS_LOG] DB_GET hist: " << hist_data << std::endl;
+  // bool found = db_->GetOptions().statistics->HistogramData(rocksdb::Tickers::DB_GET, &hist_data);
 }
 
 const bool registered = DBFactory::RegisterDB("rocksdb", NewRocksdbDB);

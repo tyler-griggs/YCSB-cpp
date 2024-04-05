@@ -15,6 +15,8 @@
 #include "measurements.h"
 #include "utils/timer.h"
 #include "utils/utils.h"
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
 
 namespace ycsbc {
 
@@ -96,6 +98,11 @@ class DBWrapper : public DB {
     }
     return s;
   }
+
+  void PrintDbStats() {
+    db_->PrintDbStats();
+  }
+  
  private:
   DB *db_;
   Measurements *measurements_;
