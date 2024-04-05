@@ -60,12 +60,13 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -threads 2 \
   -p op_mode=fake \
-  -target_rates "500,960" \
-  -p rate_limit=52 \
-  -p read_rate_limit=52 \
+  -target_rates "50,1200" \
+  -p rate_limit=30 \
+  -p read_rate_limit=30 \
   -p refill_period=10 \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
+
 
 #   -target_rates "200,1200" \
 #   -p zipfian_const=0.99 -p requestdistribution=zipfian \
