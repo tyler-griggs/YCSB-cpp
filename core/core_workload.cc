@@ -180,8 +180,8 @@ void CoreWorkload::Init(const utils::Properties &p) {
   transaction_insert_key_sequence_ = new AcknowledgedCounterGenerator(record_count_);
 
   if (request_dist == "uniform") {
+    std::cout << "[TGRIGGS_LOG] Uniform distribution." << std::endl;
     key_chooser_ = new UniformGenerator(0, record_count_ - 1);
-
   } else if (request_dist == "zipfian") {
     // If the number of keys changes, we don't want to change popular keys.
     // So we construct the scrambled zipfian generator with a keyspace
@@ -283,14 +283,14 @@ bool CoreWorkload::DoInsert(DB &db) {
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 
-  std::string table_name;
   // std::string table_name = "multi-cf-3";
-  // std::string table_name = table_name_;
-  if (client_id == 0 || client_id == 1) {
-    table_name = "multi-cf-1";
-  } else {
-    table_name = "multi-cf-2";
-  }
+  std::string table_name = table_name_;
+  // std::string table_name;
+  // if (client_id == 0 || client_id == 1) {
+  //   table_name = "multi-cf-1";
+  // } else {
+  //   table_name = "multi-cf-2";
+  // }
 
   DB::Status status;
   if (op_mode_real_) {
@@ -337,8 +337,12 @@ DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string tabl
 
   // uint64_t client_key_num = key_num;
   // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  uint64_t client_key_num = key_num;
+  if (client_id != 0) {
+    client_key_num += (6250000 / 4);
+  } 
   // For multi-cf
-  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
 
 
   const std::string key = BuildKeyName(client_key_num);
@@ -413,8 +417,12 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
   // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  uint64_t client_key_num = key_num;
+  if (client_id != 0) {
+    client_key_num += (6250000 / 4);
+  } 
   // For multi-cf
-  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;

@@ -388,7 +388,7 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
 
   if (refill_period == 0) {
-    refill_period = 100;
+    std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
 
   if (rate_limit > 0) {
@@ -396,10 +396,9 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
     opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
         rate_limit * 1024 * 1024, // <rate_limit> MB/s rate limit
-        refill_period * 1000,        // Refill period = 100ms (default)
+        refill_period * 1000,        // Refill period
         10,                // Fairness (default)
         rocksdb::RateLimiter::Mode::kAllIo, // All IO
-        // rocksdb::RateLimiter::Mode::kWritesOnly, // Apply only to writes
         false,              // Disable auto-tuning
         /* single_burst_bytes */ 0,
         read_rate_limit * 1024 * 1024 
@@ -481,7 +480,6 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
     DeserializeRowFilter(result, data, *fields);
   } else {
     DeserializeRow(result, data);
-    // TODO(tgriggs): this is failing
     assert(result.size() == static_cast<size_t>(fieldcount_));
   }
   return kOK;

@@ -39,7 +39,10 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
                         int client_id, int target_ops_per_s) {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
-  CPU_SET(2*client_id+1, &cpuset);
+  // CPU_SET(2*client_id+1, &cpuset);
+  size_t cpu_for_client = client_id+3;
+  CPU_SET(cpu_for_client, &cpuset);
+  std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
   int rc = pthread_setaffinity_np(pthread_self(),
                                   sizeof(cpu_set_t), &cpuset);
   if (rc != 0) {
@@ -86,16 +89,16 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
         wl->DoInsert(*db);
       } else {
 
-        auto txn_lambda = [wl, db, client_id]() {
-          wl->DoTransaction(*db, client_id);
-          return nullptr;  // to match void* return
-        };
+        // auto txn_lambda = [wl, db, client_id]() {
+        //   wl->DoTransaction(*db, client_id);
+        //   return nullptr;  // to match void* return
+        // };
 
-        // Submit operation to thread pool and wait for it. 
-        std::future<void*> result = threadpool->dispatch(txn_lambda);
-        result.wait();
+        // // Submit operation to thread pool and wait for it. 
+        // std::future<void*> result = threadpool->dispatch(txn_lambda);
+        // result.wait();
 
-        // wl->DoTransaction(*db, client_id);
+        wl->DoTransaction(*db, client_id);
       }
       ops++;
 

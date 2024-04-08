@@ -18,7 +18,7 @@ process_iostat_output() {
         if [[ $line == *"Time:"* ]]; then
             # Extract timestamp
             current_timestamp=$(echo $line | awk '{print $2, $3}')
-        elif [[ $line == *nvme0n2* ]]; then
+        elif [[ $line == *nvme0n3* ]]; then
             # Write the current timestamp along with the iostat metrics
             echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
         fi
@@ -43,7 +43,7 @@ process_mpstat_output() {
 trap cleanup EXIT
 
 # Start iostat in the background, appending a timestamp to each interval, and redirecting output to a file
-(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n2 1;) > iostat_output.txt &
+(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n3 1;) > iostat_output.txt &
 iostat_pid=$!
 
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
@@ -68,8 +68,31 @@ mpstat_pid=$!
 #   | tee status_thread.txt &
  
 # Multi column family
+# ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data \
+#   -s -p operationcount=35000000 \
+#   -p recordcount=1562500 \
+#   -p updateproportion=0 \
+#   -p insertproportion=0 \
+#   -p readproportion=1 \
+#   -p scanproportion=0 \
+#   -p randominsertproportion=0 \
+#   -p table=multi-cf-1 \
+#   -threads 2 \
+#   -p op_mode=real \
+#   -target_rates "900,900" \
+#   -p requestdistribution=uniform \
+#   | tee status_thread.txt &
+
+#   -p rate_limit=50 \
+#   -p read_rate_limit=50 \
+#   -p refill_period=10 \
+#   -p zipfian_const=0.99 -p requestdistribution=zipfian \
+
+
+# Multi column family
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-  -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data \
+  -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data \
   -s -p operationcount=35000000 \
   -p recordcount=1562500 \
   -p updateproportion=0 \
@@ -77,17 +100,12 @@ mpstat_pid=$!
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -threads 4 \
+  -p table=multi-cf-3 \
+  -threads 2 \
   -p op_mode=fake \
-  -target_rates "200,800,800,800" \
-  -p rate_limit=50 \
-  -p read_rate_limit=50 \
-  -p refill_period=10 \
+  -target_rates "200,900" \
   -p requestdistribution=uniform \
-  | tee status_thread.txt &
-#   -p table=multi-cf-1 \
-
-#   -p zipfian_const=0.99 -p requestdistribution=zipfian \
+  | tee status_thread2.txt &
 
 ycsb_pid=$!
 # Wait for the ycsb process to finish
