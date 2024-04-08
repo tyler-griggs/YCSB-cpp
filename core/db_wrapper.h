@@ -36,6 +36,7 @@ class DBWrapper : public DB {
   Status Read(const std::string &table, const std::string &key,
               const std::vector<std::string> *fields, std::vector<Field> &result,
               int client_id) {
+    // std::cout << "[TGRIGGS_LOG] " << client_id << " read from " << table << std::endl;
     timer_.Start();
     Status s = db_->Read(table, key, fields, result);
     uint64_t elapsed = timer_.End();

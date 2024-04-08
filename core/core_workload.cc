@@ -282,27 +282,37 @@ bool CoreWorkload::DoInsert(DB &db) {
 }
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
+
+  std::string table_name;
+  // std::string table_name = "multi-cf-3";
+  // std::string table_name = table_name_;
+  if (client_id == 0 || client_id == 1) {
+    table_name = "multi-cf-1";
+  } else {
+    table_name = "multi-cf-2";
+  }
+
   DB::Status status;
   if (op_mode_real_) {
     auto op_choice = op_chooser_.Next();
     switch (op_choice) {
       case READ:
-        status = TransactionRead(db, client_id);
+        status = TransactionRead(db, client_id, table_name);
         break;
       case UPDATE:
-        status = TransactionUpdate(db, client_id);
+        status = TransactionUpdate(db, client_id, table_name);
         break;
       case INSERT:
         status = TransactionInsert(db);
         break;
       case SCAN:
-        status = TransactionScan(db, client_id);
+        status = TransactionScan(db, client_id, table_name);
         break;
       case READMODIFYWRITE:
         status = TransactionReadModifyWrite(db);
         break;
       case RANDOM_INSERT:
-        status = TransactionRandomInsert(db, client_id);
+        status = TransactionRandomInsert(db, client_id, table_name);
         break;
       default:
         std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
@@ -311,32 +321,34 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   } else {
     if (client_id == 0) {
       (void) op_chooser_.Next();
-      status = TransactionUpdate(db, client_id);
-      // status = TransactionRandomInsert(db, client_id);
+      // status = TransactionUpdate(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
     } else {
       (void) op_chooser_.Next();
-      status = TransactionRead(db, client_id);
+      status = TransactionRead(db, client_id, table_name);
     }
   }
 
   return (status == DB::kOK);
 }
 
-DB::Status CoreWorkload::TransactionRead(DB &db, int client_id) {
+DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
 
   // uint64_t client_key_num = key_num;
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
-  // uint64_t client_key_num = key_num + (std::max(client_id-1, 0)) * (6250000 / 4);
+  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // For multi-cf
+  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> result;
   if (!read_all_fields()) {
     std::vector<std::string> fields;
     fields.push_back(NextFieldName());
-    return db.Read(table_name_, key, &fields, result, client_id);
+    return db.Read(table_name, key, &fields, result, client_id);
   } else {
-    return db.Read(table_name_, key, NULL, result, client_id);
+    return db.Read(table_name, key, NULL, result, client_id);
   }
 }
 
@@ -362,9 +374,11 @@ DB::Status CoreWorkload::TransactionReadModifyWrite(DB &db) {
   return db.Update(table_name_, key, values);
 }
 
-DB::Status CoreWorkload::TransactionScan(DB &db, int client_id) {
+DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // For multi-cf
+  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   // int len = scan_len_chooser_->Next();
@@ -373,16 +387,17 @@ DB::Status CoreWorkload::TransactionScan(DB &db, int client_id) {
   if (!read_all_fields()) {
     std::vector<std::string> fields;
     fields.push_back(NextFieldName());
-    return db.Scan(table_name_, key, len, &fields, result);
+    return db.Scan(table_name, key, len, &fields, result);
   } else {
-    return db.Scan(table_name_, key, len, NULL, result);
+    return db.Scan(table_name, key, len, NULL, result);
   }
 }
 
-DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id) {
+DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
-  // uint64_t client_key_num = key_num;
+  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // For multi-cf
+  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
@@ -391,17 +406,20 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id) {
   } else {
     BuildSingleValue(values);
   }
-  return db.Update(table_name_, key, values, client_id);
+  return db.Update(table_name, key, values, client_id);
 }
 
-DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id) {
+DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  // For multi-cf
+  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
   BuildValues(values);
-  return db.Insert(table_name_, key, values, client_id);
+  return db.Insert(table_name, key, values, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {

@@ -212,11 +212,11 @@ class CoreWorkload {
   uint64_t NextTransactionKeyNum();
   std::string NextFieldName();
 
-  DB::Status TransactionRead(DB &db, int client_id);
+  DB::Status TransactionRead(DB &db, int client_id, std::string table_name);
   DB::Status TransactionReadModifyWrite(DB &db);
-  DB::Status TransactionScan(DB &db, int client_id);
-  DB::Status TransactionUpdate(DB &db, int client_id);
-  DB::Status TransactionRandomInsert(DB &db, int client_id);
+  DB::Status TransactionScan(DB &db, int client_id, std::string table_name);
+  DB::Status TransactionUpdate(DB &db, int client_id, std::string table_name);
+  DB::Status TransactionRandomInsert(DB &db, int client_id, std::string table_name);
   DB::Status TransactionInsert(DB &db);
 
   std::string table_name_;
