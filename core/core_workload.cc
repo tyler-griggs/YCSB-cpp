@@ -284,13 +284,13 @@ bool CoreWorkload::DoInsert(DB &db) {
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 
   // std::string table_name = "multi-cf-3";
-  std::string table_name = table_name_;
-  // std::string table_name;
-  // if (client_id == 0 || client_id == 1) {
-  //   table_name = "multi-cf-1";
-  // } else {
-  //   table_name = "multi-cf-2";
-  // }
+  // std::string table_name = table_name_;
+  std::string table_name;
+  if (client_id == 0 || client_id == 1) {
+    table_name = "multi-cf-1";
+  } else {
+    table_name = "multi-cf-2";
+  }
 
   DB::Status status;
   if (op_mode_real_) {

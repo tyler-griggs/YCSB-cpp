@@ -40,7 +40,14 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   // CPU_SET(2*client_id+1, &cpuset);
-  size_t cpu_for_client = client_id+3;
+
+  size_t cpu_for_client = client_id+8;
+  if (client_id == 0 || client_id == 1) {
+    cpu_for_client = client_id + 1;
+  } else {
+    cpu_for_client = client_id + 8;
+
+  }
   CPU_SET(cpu_for_client, &cpuset);
   std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
   int rc = pthread_setaffinity_np(pthread_self(),
