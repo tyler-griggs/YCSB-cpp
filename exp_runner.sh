@@ -79,10 +79,17 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -threads 4 \
   -p op_mode=fake \
-  -target_rates "300,900,900,900" \
+  -p rate_limit=50 \
+  -p read_rate_limit=50 \
+  -p refill_period=10 \
+  -target_rates "200,500,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
 #   -p table=multi-cf-1 \
+
+#   -p rate_limit=120 \
+#   -p read_rate_limit=120 \
+#   -p refill_period=10 \
 
 # Multi column family
 # ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
@@ -107,6 +114,7 @@ mpstat_pid=$!
 
 
 ycsb_pid=$!
+echo "YCSB pid: ${ycsb_pid}"
 # Wait for the ycsb process to finish
 wait $ycsb_pid
 
@@ -156,3 +164,13 @@ wait $ycsb_pid
 #   -p table=multi-cf-4 \
 #   -p requestdistribution=uniform \
 #   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data-2 -s | tee status_thread.txt &
+
+# Load REAL multi-tenant column family on nvme0n1
+nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+  -p recordcount=3125000 \
+  -p fieldcount=16 \
+  -p fieldlength=1024 \
+  -threads 1 \
+  -p table=cf1 \
+  -p requestdistribution=uniform \
+  -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &

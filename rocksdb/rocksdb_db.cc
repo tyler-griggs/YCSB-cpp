@@ -215,6 +215,10 @@ void RocksdbDB::Init() {
   opt.merge_operator.reset(new YCSBUpdateMerge);
 #endif
 
+  std::cout << "[TGRIGGS_LOG] init column families: cf1, cf2\n";
+  cf_descs.emplace_back("cf1", rocksdb::ColumnFamilyOptions());
+  cf_descs.emplace_back("cf2", rocksdb::ColumnFamilyOptions());
+
   std::cout << "[TGRIGGS_LOG] creating stats object\n";
   opt.statistics = rocksdb::CreateDBStatistics();
 
@@ -466,11 +470,31 @@ void RocksdbDB::DeserializeRow(std::vector<Field> &values, const std::string &da
   DeserializeRow(values, p, lim);
 }
 
+rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
+  int cf_idx;
+  if (table == "cf1") {
+    cf_idx = 0;
+  } else if (table == "cf2") {
+    cf_idx = 1;
+  } else {
+    return nullptr;
+  }
+  assert(cf_idx < cf_handles_.size());
+  return cf_handles_[cf_idx];
+}
+
 DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &key,
                                  const std::vector<std::string> *fields,
                                  std::vector<Field> &result) {
   std::string data;
-  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
+
+  auto* handle = table2handle(table);
+  if (handle == nullptr) {
+    std::cout << "[TGRIGGS_LOG] Bad table/handle." << std::endl;
+    return kError;
+  }
+
+  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), handle, key, &data);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -556,12 +580,18 @@ DB::Status RocksdbDB::MergeSingle(const std::string &table, const std::string &k
 
 DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &key,
                                    std::vector<Field> &values) {
+  auto* handle = table2handle(table);
+  if (handle == nullptr) {
+    std::cout << "[TGRIGGS_LOG] Bad table/handle." << std::endl;
+    return kError;
+  }
+  
   std::string data;
   SerializeRow(values, data);
   rocksdb::WriteOptions wopt;
   // TODO: WAL disabled
   wopt.disableWAL = true;
-  rocksdb::Status s = db_->Put(wopt, key, data);
+  rocksdb::Status s = db_->Put(wopt, handle, key, data);
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
   }
