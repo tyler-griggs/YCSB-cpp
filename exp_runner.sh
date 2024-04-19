@@ -18,7 +18,7 @@ process_iostat_output() {
         if [[ $line == *"Time:"* ]]; then
             # Extract timestamp
             current_timestamp=$(echo $line | awk '{print $2, $3}')
-        elif [[ $line == *nvme0n2* ]]; then
+        elif [[ $line == *nvme0n1* ]]; then
             # Write the current timestamp along with the iostat metrics
             echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
         fi
@@ -43,33 +43,15 @@ process_mpstat_output() {
 trap cleanup EXIT
 
 # Start iostat in the background, appending a timestamp to each interval, and redirecting output to a file
-(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n2 1;) > iostat_output.txt &
+(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n1 1;) > iostat_output.txt &
 iostat_pid=$!
 
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
 mpstat_pid=$!
 
 # Start ycsb process in the background
-# ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
-#   -s -p operationcount=35000000 \
-#   -p recordcount=1562500 \
-#   -p updateproportion=0 \
-#   -p insertproportion=0 \
-#   -p readproportion=1 \
-#   -p scanproportion=0 \
-#   -p randominsertproportion=0 \
-#   -threads 4 \
-#   -p op_mode=real \
-#   -target_rates "100,100,100,100" \
-#   -p rate_limit=5000 \
-#   -p read_rate_limit=5000 \
-#   -p refill_period=100 \
-#   -p requestdistribution=uniform \
-#   | tee status_thread.txt &
- 
-# Multi column family
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-  -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data \
+  -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
   -s -p operationcount=35000000 \
   -p recordcount=1562500 \
   -p updateproportion=0 \
@@ -78,22 +60,14 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
-  -p op_mode=fake \
-  -p rate_limit=50 \
-  -p read_rate_limit=50 \
-  -p refill_period=10 \
-  -target_rates "200,500,500,500" \
+  -p op_mode=real \
+  -target_rates "1000,1000,1000,1000" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
-#   -p table=multi-cf-1 \
-
-#   -p rate_limit=120 \
-#   -p read_rate_limit=120 \
-#   -p refill_period=10 \
-
+ 
 # Multi column family
 # ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data-2 \
+#   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data \
 #   -s -p operationcount=35000000 \
 #   -p recordcount=1562500 \
 #   -p updateproportion=0 \
@@ -101,17 +75,30 @@ mpstat_pid=$!
 #   -p readproportion=1 \
 #   -p scanproportion=0 \
 #   -p randominsertproportion=0 \
-#   -p table=multi-cf-2 \
+#   -threads 2 \
+#   -p op_mode=real \
+#   -target_rates "900,900" \
+#   -p requestdistribution=uniform \
+#   | tee status_thread.txt &
+
+# Multi column family
+# ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data-2 \
+#   -s -p operationcount=35000000 \
+#   -p recordcount=1562500 \
+#   -p updateproportion=0 \
+#   -p insertproportion=0 \
+#   -p readproportion=1 \
+#   -p scanproportion=0 \
+#   -p randominsertproportion=0 \
 #   -threads 2 \
 #   -p op_mode=fake \
-#   -target_rates "300,900" \
-#   -p rate_limit=100 \
-#   -p read_rate_limit=100 \
+#   -target_rates "200,900" \
+#   -p rate_limit=60 \
+#   -p read_rate_limit=60 \
 #   -p refill_period=10 \
 #   -p requestdistribution=uniform \
 #   | tee status_thread2.txt &
-
-
 
 ycsb_pid=$!
 echo "YCSB pid: ${ycsb_pid}"
@@ -166,11 +153,11 @@ wait $ycsb_pid
 #   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data-2 -s | tee status_thread.txt &
 
 # Load REAL multi-tenant column family on nvme0n1
-nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-  -p recordcount=3125000 \
-  -p fieldcount=16 \
-  -p fieldlength=1024 \
-  -threads 1 \
-  -p table=cf1 \
-  -p requestdistribution=uniform \
-  -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &
+# nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p recordcount=3125000 \
+#   -p fieldcount=16 \
+#   -p fieldlength=1024 \
+#   -threads 1 \
+#   -p table=cf2 \
+#   -p requestdistribution=uniform \
+#   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &

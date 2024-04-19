@@ -209,14 +209,15 @@ void RocksdbDB::Init() {
 
   rocksdb::Options opt;
   opt.create_if_missing = true;
+  opt.create_missing_column_families = true;
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   GetOptions(props, &opt, &cf_descs);
 #ifdef USE_MERGEUPDATE
   opt.merge_operator.reset(new YCSBUpdateMerge);
 #endif
 
-  std::cout << "[TGRIGGS_LOG] init column families: cf1, cf2\n";
-  cf_descs.emplace_back("cf1", rocksdb::ColumnFamilyOptions());
+  std::cout << "[TGRIGGS_LOG] init column families: default, cf2\n";
+  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, rocksdb::ColumnFamilyOptions());
   cf_descs.emplace_back("cf2", rocksdb::ColumnFamilyOptions());
 
   std::cout << "[TGRIGGS_LOG] creating stats object\n";
@@ -364,6 +365,8 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     if (cache_size > 0) {
       block_cache = rocksdb::NewLRUCache(cache_size);
       table_options.block_cache = block_cache;
+    } else {
+      table_options.no_block_cache = true;  // Disable block cache
     }
 #if ROCKSDB_MAJOR < 8
     size_t compressed_cache_size = std::stoul(props.GetProperty(PROP_COMPRESSED_CACHE_SIZE,
@@ -472,7 +475,7 @@ void RocksdbDB::DeserializeRow(std::vector<Field> &values, const std::string &da
 
 rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   int cf_idx;
-  if (table == "cf1") {
+  if (table == rocksdb::kDefaultColumnFamilyName) {
     cf_idx = 0;
   } else if (table == "cf2") {
     cf_idx = 1;
@@ -495,6 +498,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
   }
 
   rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), handle, key, &data);
+  // rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -592,6 +596,7 @@ DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &
   // TODO: WAL disabled
   wopt.disableWAL = true;
   rocksdb::Status s = db_->Put(wopt, handle, key, data);
+  // rocksdb::Status s = db_->Put(wopt, key, data);
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
   }

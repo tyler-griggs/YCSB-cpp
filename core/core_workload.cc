@@ -283,14 +283,14 @@ bool CoreWorkload::DoInsert(DB &db) {
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 
-  // std::string table_name = "multi-cf-3";
-  std::string table_name = table_name_;
-  // std::string table_name;
-  // if (client_id == 0) {
-  //   table_name = "multi-cf-1";
-  // } else {
-  //   table_name = "multi-cf-2";
-  // }
+  // std::string table_name = table_name_;
+  std::string table_name;
+  if (client_id == 0 || client_id == 1) {
+    // table_name = "default";
+    table_name = rocksdb::kDefaultColumnFamilyName;
+  } else {
+    table_name = "cf2";
+  }
 
   DB::Status status;
   if (op_mode_real_) {
@@ -336,7 +336,7 @@ DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string tabl
   uint64_t key_num = NextTransactionKeyNum();
 
   // uint64_t client_key_num = key_num;
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
   // uint64_t client_key_num = key_num;
   // if (client_id != 0) {
   //   client_key_num += (6250000 / 4);
@@ -416,7 +416,7 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string ta
 DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  uint64_t client_key_num = key_num + client_id * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
   // uint64_t client_key_num = key_num;
   // if (client_id != 0) {
   //   client_key_num += (6250000 / 4);
