@@ -52,9 +52,10 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
       per_client_measurements[i]->Reset();
 
-      // Get per-client stats out of the DB
-      dbs[i]->PrintDbStats();
     }
+    // Print DB-wide and CF-wide stats -- only need to use a single client
+    std::cout << "DB stats:\n";
+    dbs[0]->PrintDbStats();
     // for (size_t i = 0; i < dbs.size(); ++i) {
     //   // dbs[i]->GetCFMemTableStats();
 
