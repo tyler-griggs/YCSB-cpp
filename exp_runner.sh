@@ -56,12 +56,12 @@ mpstat_pid=$!
   -p recordcount=1562500 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=1 \
+  -p readproportion=0 \
   -p scanproportion=0 \
-  -p randominsertproportion=0 \
+  -p randominsertproportion=1 \
   -threads 4 \
   -p op_mode=real \
-  -target_rates "1000,1000,1000,1000" \
+  -target_rates "150,150,150,150" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
  
@@ -157,7 +157,7 @@ wait $ycsb_pid
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
-#   -threads 1 \
 #   -p table=cf2 \
+#   -threads 1 \
 #   -p requestdistribution=uniform \
 #   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &

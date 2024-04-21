@@ -283,7 +283,7 @@ bool CoreWorkload::DoInsert(DB &db) {
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 
-  // std::string table_name = table_name_;
+  // std::string table_name = rocksdb::kDefaultColumnFamilyName;
   std::string table_name;
   if (client_id == 0 || client_id == 1) {
     // table_name = "default";

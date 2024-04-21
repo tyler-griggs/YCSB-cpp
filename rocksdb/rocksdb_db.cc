@@ -216,9 +216,22 @@ void RocksdbDB::Init() {
   opt.merge_operator.reset(new YCSBUpdateMerge);
 #endif
 
+  auto cf_opt = rocksdb::ColumnFamilyOptions();
+
+  // Give each column family half of the memtable budget.
+  int val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
+  if (val != 0) {
+    cf_opt.max_write_buffer_number = val / 2;
+  }
+  val = std::stoi(props.GetProperty(PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT));
+  if (val != 0) {
+    cf_opt.write_buffer_size = val;
+  }
+  cf_opt.min_write_buffer_number_to_merge = 2;
+
   std::cout << "[TGRIGGS_LOG] init column families: default, cf2\n";
-  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, rocksdb::ColumnFamilyOptions());
-  cf_descs.emplace_back("cf2", rocksdb::ColumnFamilyOptions());
+  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opt);
+  cf_descs.emplace_back("cf2", cf_opt);
 
   std::cout << "[TGRIGGS_LOG] creating stats object\n";
   opt.statistics = rocksdb::CreateDBStatistics();
@@ -319,12 +332,13 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     }
     val = std::stoi(props.GetProperty(PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT));
     if (val != 0) {
+      std::cout << "TGRIGGS_LOG buffer size: " << val << std::endl;
       opt->write_buffer_size = val;
     }
-    val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
-    if (val != 0) {
-      opt->max_write_buffer_number = val;
-    }
+    // val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
+    // if (val != 0) {
+    //   opt->max_write_buffer_number = val;
+    // }
     val = std::stoi(props.GetProperty(PROP_COMPACTION_PRI, PROP_COMPACTION_PRI_DEFAULT));
     if (val != -1) {
       opt->compaction_pri = static_cast<rocksdb::CompactionPri>(val);
@@ -493,7 +507,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
 
   auto* handle = table2handle(table);
   if (handle == nullptr) {
-    std::cout << "[TGRIGGS_LOG] Bad table/handle." << std::endl;
+    std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
 
@@ -586,7 +600,7 @@ DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &
                                    std::vector<Field> &values) {
   auto* handle = table2handle(table);
   if (handle == nullptr) {
-    std::cout << "[TGRIGGS_LOG] Bad table/handle." << std::endl;
+    std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
   
@@ -621,9 +635,23 @@ void RocksdbDB::PrintDbStats() {
     return;
   }
 
-  std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);
+  db_->GetCFMemTableStats();
+
+  // for (const auto handle : cf_handles_) {
+
+
+
+  //   rocksdb::ColumnFamilyMetaData cf_meta;
+  //   db_->GetColumnFamilyMetaData(handle, &cf_meta);
+  //   std::cout << "Column Family: " << handle->GetName() 
+  //             << ", Memtable Count: " << cf_meta.memtables.size() << std::endl;
+  // }
+
+  // Histogram of Get() operations
+  // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);
+  // std::cout << "[TGRIGGS_LOG] DB_GET hist: " << hist_data << std::endl;
+
   // std::string hist_data = db_->GetOptions().statistics->getHistogramString(rocksdb::Tickers::DB_GET);
-  std::cout << "[TGRIGGS_LOG] DB_GET hist: " << hist_data << std::endl;
   // bool found = db_->GetOptions().statistics->HistogramData(rocksdb::Tickers::DB_GET, &hist_data);
 }
 

@@ -51,12 +51,18 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       std::cout << "client" << i << " stats:\n";
       std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
       per_client_measurements[i]->Reset();
+
+      // Get per-client stats out of the DB
+      dbs[i]->PrintDbStats();
     }
     // for (size_t i = 0; i < dbs.size(); ++i) {
-    //   if (i == 0) {
-    //     continue;
-    //   }
-    //   std::cout << "db_get: client" << i << ": ";
+    //   // dbs[i]->GetCFMemTableStats();
+
+    //   // if (i == 0) {
+    //   //   continue;
+    //   // }
+    //   // std::cout << "db_get: client" << i << ": ";
+    //   std::cout << "DB " << i << " stats:\n";
     //   dbs[i]->PrintDbStats();
     // }
 

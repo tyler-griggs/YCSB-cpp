@@ -21,4 +21,4 @@ readallfields=true
 fieldcount=16
 fieldlength=1024
 
-requestdistribution=zipfian
+; requestdistribution=zipfian
