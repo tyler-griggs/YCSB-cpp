@@ -436,7 +436,9 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
+  int num_keys = 100;
   uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
+  client_key_num = std::min(client_key_num, uint64_t(6250000 / 4 - num_keys));
   // uint64_t client_key_num = key_num;
   // if (client_id != 0) {
   //   client_key_num += (6250000 / 4);
@@ -447,7 +449,7 @@ DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::stri
   // const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
   BuildValues(values);
-  return db.InsertBatch(table_name, client_key_num, values, 1, client_id);
+  return db.InsertBatch(table_name, client_key_num, values, num_keys, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {

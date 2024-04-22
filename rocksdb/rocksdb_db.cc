@@ -630,7 +630,6 @@ DB::Status RocksdbDB::InsertMany(const std::string &table, int start_key,
   SerializeRow(values, data);
   rocksdb::WriteBatch batch;
   for (int i = 0; i < num_keys; ++i) {
-    std::cout << "[TGRIGGS_LOG] Adding to batch: " << "user" + std::to_string(start_key + i) << std::endl;
     batch.Put("user" + std::to_string(start_key + i), data);
   }
 

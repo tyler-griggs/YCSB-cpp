@@ -56,12 +56,12 @@ mpstat_pid=$!
   -p recordcount=1562500 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=0 \
+  -p readproportion=1 \
   -p scanproportion=0 \
-  -p randominsertproportion=1 \
+  -p randominsertproportion=0 \
   -threads 4 \
-  -p op_mode=real \
-  -target_rates "150,150,150,150" \
+  -p op_mode=fake \
+  -target_rates "10,10,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
  
