@@ -57,10 +57,13 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   }
 
   // TODO: create flags for this
+  int burst_gap_s = 30;
+  int num_bursts = 1;
   int adjusted_num_ops = num_ops;
   if (client_id == 0 || client_id == 1) {
     std::this_thread::sleep_for(std::chrono::seconds(30));
     adjusted_num_ops = 160; 
+    num_bursts = 6;
   }
 
   std::vector<int> op_progress;       
@@ -86,42 +89,45 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     auto interval_start_time = std::chrono::steady_clock::now();
 
     int ops = 0;
-    for (int i = 0; i < adjusted_num_ops; ++i) {
-      if (rlim) {
-        rlim->Consume(1);
-      }
-
-      auto op_start_time = std::chrono::high_resolution_clock::now();
-      auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
-
-      if (is_loading) {
-        wl->DoInsert(*db);
-      } else {
-
-        // auto txn_lambda = [wl, db, client_id]() {
-        //   wl->DoTransaction(*db, client_id);
-        //   return nullptr;  // to match void* return
-        // };
-
-        // // Submit operation to thread pool and wait for it. 
-        // std::future<void*> result = threadpool->dispatch(txn_lambda);
-        // result.wait();
-
-        wl->DoTransaction(*db, client_id);
-      }
-      ops++;
-
-      // Periodically check whether log interval has been hit
-      if (i % 100 == 0) {
-        auto current_time = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
-        if (elapsedTime.count() >= client_log_interval_s) {
-          op_progress.push_back(ops);
-          interval_start_time = std::chrono::steady_clock::now();
+    for (int b = 0; b < num_bursts; ++b) {
+      for (int i = 0; i < adjusted_num_ops; ++i) {
+        if (rlim) {
+          rlim->Consume(1);
         }
-      }
 
-      EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+        auto op_start_time = std::chrono::high_resolution_clock::now();
+        auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
+
+        if (is_loading) {
+          wl->DoInsert(*db);
+        } else {
+
+          // auto txn_lambda = [wl, db, client_id]() {
+          //   wl->DoTransaction(*db, client_id);
+          //   return nullptr;  // to match void* return
+          // };
+
+          // // Submit operation to thread pool and wait for it. 
+          // std::future<void*> result = threadpool->dispatch(txn_lambda);
+          // result.wait();
+
+          wl->DoTransaction(*db, client_id);
+        }
+        ops++;
+
+        // Periodically check whether log interval has been hit
+        if (i % 100 == 0) {
+          auto current_time = std::chrono::steady_clock::now();
+          auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
+          if (elapsedTime.count() >= client_log_interval_s) {
+            op_progress.push_back(ops);
+            interval_start_time = std::chrono::steady_clock::now();
+          }
+        }
+
+        EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+      }
+      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
     }
 
     if (cleanup_db) {
