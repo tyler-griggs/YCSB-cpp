@@ -41,7 +41,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   CPU_ZERO(&cpuset);
   // CPU_SET(2*client_id+1, &cpuset);
 
-  size_t cpu_for_client = client_id+8;
+  size_t cpu_for_client = client_id + 8;
   // if (client_id == 0 || client_id == 1) {
   //   cpu_for_client = client_id + 1;
   // } else {
@@ -56,9 +56,12 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     std::exit(1);
   }
 
-  // if (client_id == 0) {
-  //   std::this_thread::sleep_for(std::chrono::seconds(60));
-  // }
+  // TODO: create flags for this
+  int adjusted_num_ops = num_ops;
+  if (client_id == 0 || client_id == 1) {
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+    adjusted_num_ops = 160; 
+  }
 
   std::vector<int> op_progress;       
   int client_log_interval_s = 1;                 
@@ -73,7 +76,6 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
       db->Init();
     }
 
-    int adjusted_num_ops = num_ops;
     // if (client_id == 0) {
     //   adjusted_num_ops = int(adjusted_num_ops * 1.5);
     // }
@@ -82,6 +84,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
     // auto client_start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(client_start.time_since_epoch()).count();
     auto interval_start_time = std::chrono::steady_clock::now();
+
     int ops = 0;
     for (int i = 0; i < adjusted_num_ops; ++i) {
       if (rlim) {
