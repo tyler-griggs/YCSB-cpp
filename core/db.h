@@ -102,6 +102,8 @@ class DB {
   ///
   virtual Status Delete(const std::string &table, const std::string &key) = 0;
 
+  virtual Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) = 0;
+
   virtual void PrintDbStats() = 0;
 
   virtual ~DB() { }

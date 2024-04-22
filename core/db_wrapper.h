@@ -100,6 +100,20 @@ class DBWrapper : public DB {
     return s;
   }
 
+  Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) {
+    timer_.Start();
+    Status s = db_->InsertBatch(table, start_key, values, num_keys);
+    uint64_t elapsed = timer_.End();
+    if (s == kOK) {
+      measurements_->Report(INSERT_BATCH, elapsed);
+      per_client_measurements_[client_id]->Report(INSERT_BATCH, elapsed);
+    } else {
+      measurements_->Report(INSERT_BATCH_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(INSERT_BATCH_FAILED, elapsed);
+    }
+    return s;
+  }
+
   void PrintDbStats() {
     db_->PrintDbStats();
   }

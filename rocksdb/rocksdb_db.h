@@ -48,6 +48,10 @@ class RocksdbDB : public DB {
     return (this->*(method_insert_))(table, key, values);
   }
 
+  Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) {
+    return (this->*(method_insert_batch_))(table, start_key, values, num_keys);
+  }
+
   Status Delete(const std::string &table, const std::string &key) {
     return (this->*(method_delete_))(table, key);
   }
@@ -83,6 +87,8 @@ class RocksdbDB : public DB {
   Status InsertSingle(const std::string &table, const std::string &key,
                       std::vector<Field> &values);
   Status DeleteSingle(const std::string &table, const std::string &key);
+  Status InsertMany(const std::string &table, int start_key,
+                      std::vector<Field> &values, int num_keys);
 
   Status (RocksdbDB::*method_read_)(const std::string &, const std:: string &,
                                     const std::vector<std::string> *, std::vector<Field> &);
@@ -93,6 +99,8 @@ class RocksdbDB : public DB {
                                       std::vector<Field> &);
   Status (RocksdbDB::*method_insert_)(const std::string &, const std::string &,
                                       std::vector<Field> &);
+  Status (RocksdbDB::*method_insert_batch_)(const std::string &, int,
+                                      std::vector<Field> &, int);
   Status (RocksdbDB::*method_delete_)(const std::string &, const std::string &);
 
   int fieldcount_;

@@ -31,12 +31,14 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
   "READMODIFYWRITE",
   "DELETE",
   "RANDOM_INSERT",
+  "INSERT_BATCH",
   "INSERT-FAILED",
   "READ-FAILED",
   "UPDATE-FAILED",
   "SCAN-FAILED",
   "READMODIFYWRITE-FAILED",
-  "DELETE-FAILED"
+  "DELETE-FAILED",
+  "INSERT_BATCH-FAILED"
 };
 
 const string CoreWorkload::TABLENAME_PROPERTY = "table";
@@ -319,10 +321,11 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 0) {
+    if (client_id == 0 || client_id == 1) {
       (void) op_chooser_.Next();
       // status = TransactionUpdate(db, client_id, table_name);
-      status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionInsertBatch(db, client_id, table_name);
     } else {
       (void) op_chooser_.Next();
       status = TransactionRead(db, client_id, table_name);
@@ -428,6 +431,23 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
   std::vector<DB::Field> values;
   BuildValues(values);
   return db.Insert(table_name, key, values, client_id);
+}
+
+DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
+  uint64_t key_num = NextTransactionKeyNum();
+  // uint64_t key_num = transaction_insert_key_sequence_->Next();
+  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
+  // uint64_t client_key_num = key_num;
+  // if (client_id != 0) {
+  //   client_key_num += (6250000 / 4);
+  // } 
+  // For multi-cf
+  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+
+  // const std::string key = BuildKeyName(client_key_num);
+  std::vector<DB::Field> values;
+  BuildValues(values);
+  return db.InsertBatch(table_name, client_key_num, values, 1, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {

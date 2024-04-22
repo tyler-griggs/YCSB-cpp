@@ -30,12 +30,14 @@ enum Operation {
   READMODIFYWRITE,
   DELETE,
   RANDOM_INSERT,
+  INSERT_BATCH,
   INSERT_FAILED,
   READ_FAILED,
   UPDATE_FAILED,
   SCAN_FAILED,
   READMODIFYWRITE_FAILED,
   DELETE_FAILED,
+  INSERT_BATCH_FAILED,
   MAXOPTYPE
 };
 
@@ -218,6 +220,7 @@ class CoreWorkload {
   DB::Status TransactionUpdate(DB &db, int client_id, std::string table_name);
   DB::Status TransactionRandomInsert(DB &db, int client_id, std::string table_name);
   DB::Status TransactionInsert(DB &db);
+  DB::Status TransactionInsertBatch(DB &db, int client_id, std::string table_name);
 
   std::string table_name_;
   int field_count_;

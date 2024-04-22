@@ -40,6 +40,8 @@ class BasicDB : public DB {
 
   Status Delete(const std::string &table, const std::string &key);
 
+  Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0);
+
   void PrintDbStats();
 
  private:

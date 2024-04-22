@@ -186,6 +186,7 @@ void RocksdbDB::Init() {
     method_update_ = &RocksdbDB::UpdateSingle;
     method_insert_ = &RocksdbDB::InsertSingle;
     method_delete_ = &RocksdbDB::DeleteSingle;
+    method_insert_batch_ = &RocksdbDB::InsertMany;
 #ifdef USE_MERGEUPDATE
     if (props.GetProperty(PROP_MERGEUPDATE, PROP_MERGEUPDATE_DEFAULT) == "true") {
       method_update_ = &RocksdbDB::MergeSingle;
@@ -613,6 +614,33 @@ DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &
   // rocksdb::Status s = db_->Put(wopt, key, data);
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Put: ") + s.ToString());
+  }
+  return kOK;
+}
+
+DB::Status RocksdbDB::InsertMany(const std::string &table, int start_key,
+                      std::vector<Field> &values, int num_keys) {
+  auto* handle = table2handle(table);
+  if (handle == nullptr) {
+    std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+    return kError;
+  }
+  
+  std::string data;
+  SerializeRow(values, data);
+  rocksdb::WriteBatch batch;
+  for (int i = 0; i < num_keys; ++i) {
+    std::cout << "[TGRIGGS_LOG] Adding to batch: " << "user" + std::to_string(start_key + i) << std::endl;
+    batch.Put("user" + std::to_string(start_key + i), data);
+  }
+
+  rocksdb::WriteOptions wopt;
+  // TODO: WAL disabled
+  wopt.disableWAL = true;
+  rocksdb::Status s = db_->Write(wopt, &batch);
+
+  if (!s.ok()) {
+    throw utils::Exception(std::string("RocksDB WriteBatch: ") + s.ToString());
   }
   return kOK;
 }

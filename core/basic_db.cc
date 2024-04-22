@@ -90,6 +90,13 @@ DB::Status BasicDB::Delete(const std::string &table, const std::string &key) {
   return kOK;
 }
 
+DB::Status BasicDB::InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "INSERT_BATCH " << table << ' ' << start_key << std::endl;
+  return kOK;
+
+}
+
 void BasicDB::PrintDbStats() {
   return;
 }
