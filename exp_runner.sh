@@ -61,7 +61,7 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -threads 4 \
   -p op_mode=fake \
-  -target_rates "0,0,500,500" \
+  -target_rates "8,8,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
  
