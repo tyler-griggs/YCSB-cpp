@@ -321,15 +321,15 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 0 || client_id == 1) {
+    if (client_id == 0) {
       (void) op_chooser_.Next();
       // status = TransactionUpdate(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionInsertBatch(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionInsertBatch(db, client_id, table_name);
     } else {
       (void) op_chooser_.Next();
-      status = TransactionRandomInsert(db, client_id, table_name);
-      // status = TransactionRead(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionRead(db, client_id, table_name);
     }
   }
 

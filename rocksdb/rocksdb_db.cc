@@ -662,17 +662,17 @@ void RocksdbDB::PrintDbStats() {
     return;
   }
 
-  db_->GetCFMemTableStats();
+  // db_->GetCFMemTableStats();
 
   // for (const auto handle : cf_handles_) {
-
-
-
   //   rocksdb::ColumnFamilyMetaData cf_meta;
   //   db_->GetColumnFamilyMetaData(handle, &cf_meta);
   //   std::cout << "Column Family: " << handle->GetName() 
   //             << ", Memtable Count: " << cf_meta.memtables.size() << std::endl;
   // }
+
+  std::string hist_data = db_->GetOptions().statistics->ToString();
+  std::cout << "[TGRIGGS_LOG] Stats:\n" << hist_data << std::endl;
 
   // Histogram of Get() operations
   // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);

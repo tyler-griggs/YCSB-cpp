@@ -60,8 +60,11 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
+  -p rate_limit=100 \
+  -p read_rate_limit=100 \
+  -p refill_period=10 \
   -p op_mode=fake \
-  -target_rates "0,0,100,100" \
+  -target_rates "700,500,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
  
