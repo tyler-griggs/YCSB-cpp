@@ -328,7 +328,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
       status = TransactionInsertBatch(db, client_id, table_name);
     } else {
       (void) op_chooser_.Next();
-      status = TransactionRead(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionRead(db, client_id, table_name);
     }
   }
 

@@ -228,7 +228,7 @@ void RocksdbDB::Init() {
   if (val != 0) {
     cf_opt.write_buffer_size = val;
   }
-  cf_opt.min_write_buffer_number_to_merge = 2;
+  cf_opt.min_write_buffer_number_to_merge = 1;
 
   std::cout << "[TGRIGGS_LOG] init column families: default, cf2\n";
   cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opt);
