@@ -321,12 +321,17 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 0) {
+    if (client_id == 0 || client_id == 1) {
       (void) op_chooser_.Next();
       // status = TransactionUpdate(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionInsertBatch(db, client_id, table_name);
+    } else if (client_id == 2) {
+      (void) op_chooser_.Next();
       status = TransactionRandomInsert(db, client_id, table_name);
-      // status = TransactionInsertBatch(db, client_id, table_name);
-    } else {
+      // status = TransactionRead(db, client_id, table_name);
+    }
+    else {
       (void) op_chooser_.Next();
       // status = TransactionRandomInsert(db, client_id, table_name);
       status = TransactionRead(db, client_id, table_name);
@@ -437,7 +442,7 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int num_keys = 100;
+  int num_keys = 100*4;
   uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
   client_key_num = std::min(client_key_num, uint64_t(6250000 / 4 - num_keys));
   // uint64_t client_key_num = key_num;

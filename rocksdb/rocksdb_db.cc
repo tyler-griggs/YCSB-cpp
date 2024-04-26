@@ -418,7 +418,7 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
     opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
         rate_limit * 1024 * 1024, // <rate_limit> MB/s rate limit
-        refill_period * 1000,        // Refill period
+        refill_period * 1000,        // Refill period (ms)
         10,                // Fairness (default)
         rocksdb::RateLimiter::Mode::kAllIo, // All IO
         false,              // Disable auto-tuning
