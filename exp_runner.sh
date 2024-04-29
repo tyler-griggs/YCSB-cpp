@@ -63,7 +63,9 @@ mpstat_pid=$!
   -p rate_limit=280 \
   -p read_rate_limit=280 \
   -p refill_period=10 \
-  -p op_mode=fake \
+  -p burst_gap_s=10 \
+  -p burst_size_ops=100 \
+  -p op_mode=real \
   -target_rates "0,0,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
@@ -164,5 +166,6 @@ wait $ycsb_pid
 #   -p fieldlength=1024 \
 #   -p table=cf2 \
 #   -threads 1 \
+#   -p op_mode=real \
 #   -p requestdistribution=uniform \
 #   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &

@@ -207,7 +207,7 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0));
+                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0, 0, 0));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -236,6 +236,9 @@ int main(const int argc, const char *argv[]) {
   // FairScheduler scheduler;
   ThreadPool threadpool;
   // threadpool.start(/*num_threads=*/ 4);
+
+  int burst_gap_s = std::stoi(props.GetProperty("burst_gap_s", "0"));
+  int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));
 
   // transaction phase
   if (do_transaction) {
@@ -269,7 +272,9 @@ int main(const int argc, const char *argv[]) {
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim, &threadpool, i, target_rates[i]));
+                                             thread_ops, false, !do_load, true, &latch, rlim, 
+                                             &threadpool, i, target_rates[i], burst_gap_s, 
+                                             burst_size_ops));
     }
 
     std::future<void> rlim_future;

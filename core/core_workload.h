@@ -177,6 +177,12 @@ class CoreWorkload {
   static const std::string OP_MODE_PROPERTY;
   static const std::string OP_MODE_DEFAULT;
 
+  static const std::string BURST_GAP_S;
+  static const std::string BURST_GAP_S_DEFAULT;
+
+  static const std::string BURST_SIZE_OPS;
+  static const std::string BURST_SIZE_OPS_DEFAULT;
+
   ///
   /// Initialize the scenario.
   /// Called once, in the main client thread, before any operations are started.

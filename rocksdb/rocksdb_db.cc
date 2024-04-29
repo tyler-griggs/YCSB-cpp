@@ -11,6 +11,7 @@
 #include "core/core_workload.h"
 #include "core/db_factory.h"
 #include "utils/utils.h"
+#include <sstream>
 #include <iostream>
 #include <rocksdb/cache.h>
 #include <rocksdb/filter_policy.h>
@@ -57,6 +58,9 @@ namespace {
 
   const std::string PROP_MAX_WRITE_BUFFER = "rocksdb.max_write_buffer_number";
   const std::string PROP_MAX_WRITE_BUFFER_DEFAULT = "0";
+
+  const std::string PROP_MIN_MEMTABLE_TO_MERGE = "rocksdb.min_write_buffer_number_to_merge";
+  const std::string PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT = "1";
 
   const std::string PROP_COMPACTION_PRI = "rocksdb.compaction_pri";
   const std::string PROP_COMPACTION_PRI_DEFAULT = "-1";
@@ -115,7 +119,7 @@ namespace {
   const std::string PROP_REFILL_PERIOD = "refill_period";
   const std::string PROP_REFILL_PERIOD_DEFAULT = "0";
 
-    const std::string PROP_READ_RATE_LIMIT = "read_rate_limit";
+  const std::string PROP_READ_RATE_LIMIT = "read_rate_limit";
   const std::string PROP_READ_RATE_LIMIT_DEFAULT = "0";
 
   static std::shared_ptr<rocksdb::Env> env_guard;
@@ -213,26 +217,14 @@ void RocksdbDB::Init() {
   opt.create_missing_column_families = true;
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   GetOptions(props, &opt, &cf_descs);
-#ifdef USE_MERGEUPDATE
-  opt.merge_operator.reset(new YCSBUpdateMerge);
-#endif
-
-  auto cf_opt = rocksdb::ColumnFamilyOptions();
-
-  // Give each column family half of the memtable budget.
-  int val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
-  if (val != 0) {
-    cf_opt.max_write_buffer_number = val / 2;
-  }
-  val = std::stoi(props.GetProperty(PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT));
-  if (val != 0) {
-    cf_opt.write_buffer_size = val;
-  }
-  cf_opt.min_write_buffer_number_to_merge = 1;
 
   std::cout << "[TGRIGGS_LOG] init column families: default, cf2\n";
-  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opt);
-  cf_descs.emplace_back("cf2", cf_opt);
+  std::vector<rocksdb::ColumnFamilyOptions> cf_opts;
+  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
+  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
+  GetCfOptions(props, cf_opts);
+  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opts[0]);
+  cf_descs.emplace_back("cf2", cf_opts[1]);
 
   std::cout << "[TGRIGGS_LOG] creating stats object\n";
   opt.statistics = rocksdb::CreateDBStatistics();
@@ -376,13 +368,7 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     }
 
     rocksdb::BlockBasedTableOptions table_options;
-    size_t cache_size = std::stoul(props.GetProperty(PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT));
-    if (cache_size > 0) {
-      block_cache = rocksdb::NewLRUCache(cache_size);
-      table_options.block_cache = block_cache;
-    } else {
-      table_options.no_block_cache = true;  // Disable block cache
-    }
+    table_options.no_block_cache = true;  // We handle block cache at per-CF level
 #if ROCKSDB_MAJOR < 8
     size_t compressed_cache_size = std::stoul(props.GetProperty(PROP_COMPRESSED_CACHE_SIZE,
                                                                 PROP_COMPRESSED_CACHE_SIZE_DEFAULT));
@@ -425,6 +411,45 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
         /* single_burst_bytes */ 0,
         read_rate_limit * 1024 * 1024 
     ));
+  }
+}
+
+std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string& prop, const std::string& default_val) {
+  std::string vals = props.GetProperty(prop, default_val);
+  std::vector<std::string> output;
+  std::string val;
+
+  std::istringstream stream(vals);
+  while (std::getline(stream, val, ':')) {
+    output.push_back(val);
+  }
+  return output;
+}
+
+
+void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
+  std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i) {
+    cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
+  }
+  vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i) {
+    cf_opt[i].write_buffer_size = std::stoi(vals[i]);
+  }
+  vals = Prop2vector(props, PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i) {
+    cf_opt[i].min_write_buffer_number_to_merge = std::stoi(vals[i]);
+  }
+  vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i) {
+    rocksdb::BlockBasedTableOptions table_options;
+    if (std::stoul(vals[i]) > 0) {
+      block_cache = rocksdb::NewLRUCache(std::stoul(vals[i]));
+      table_options.block_cache = block_cache;
+    } else {
+      table_options.no_block_cache = true;  // Disable block cache
+    }
+    cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
   }
 }
 

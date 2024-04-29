@@ -36,17 +36,11 @@ void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long t
 
 inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
-                        int client_id, int target_ops_per_s) {
+                        int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops) {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
-  // CPU_SET(2*client_id+1, &cpuset);
 
   size_t cpu_for_client = client_id + 8;
-  // if (client_id == 0 || client_id == 1) {
-  //   cpu_for_client = client_id + 1;
-  // } else {
-  //   cpu_for_client = client_id + 8;
-  // }
   CPU_SET(cpu_for_client, &cpuset);
   std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
   int rc = pthread_setaffinity_np(pthread_self(),
@@ -56,15 +50,14 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     std::exit(1);
   }
 
-  // TODO: create flags for this
-  int burst_gap_s = 30;
   int num_bursts = 1;
   int adjusted_num_ops = num_ops;
-  if (client_id == 0 || client_id == 1) {
+  if (burst_gap_s > 0 && (client_id == 0 || client_id == 1)) {
     std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
     // adjusted_num_ops = 123; 
     // adjusted_num_ops = 145; 
-    adjusted_num_ops = 180/4; 
+    // adjusted_num_ops = 180; 
+    adjusted_num_ops = burst_size_ops;
     num_bursts = 100;
   }
  
@@ -81,13 +74,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
       db->Init();
     }
 
-    // if (client_id == 0) {
-    //   adjusted_num_ops = int(adjusted_num_ops * 1.5);
-    // }
-
     auto client_start = std::chrono::system_clock::now();
     auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
-    // auto client_start_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(client_start.time_since_epoch()).count();
     auto interval_start_time = std::chrono::steady_clock::now();
 
     int ops = 0;

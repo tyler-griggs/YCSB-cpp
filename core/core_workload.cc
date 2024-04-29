@@ -109,6 +109,12 @@ const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
 const std::string CoreWorkload::OP_MODE_PROPERTY = "op_mode";
 const std::string CoreWorkload::OP_MODE_DEFAULT = "real"; // real, fake
 
+const std::string CoreWorkload::BURST_GAP_S = "burst_gap_s";
+const std::string CoreWorkload::BURST_GAP_S_DEFAULT = "0";
+
+const std::string CoreWorkload::BURST_SIZE_OPS = "burst_size_ops";
+const std::string CoreWorkload::BURST_SIZE_OPS_DEFAULT = "0";
+
 namespace ycsbc {
 
 void CoreWorkload::Init(const utils::Properties &p) {
@@ -442,7 +448,7 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int num_keys = 100*4;
+  int num_keys = 100;
   uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
   client_key_num = std::min(client_key_num, uint64_t(6250000 / 4 - num_keys));
   // uint64_t client_key_num = key_num;
