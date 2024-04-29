@@ -63,10 +63,10 @@ mpstat_pid=$!
   -p rate_limit=280 \
   -p read_rate_limit=280 \
   -p refill_period=10 \
-  -p burst_gap_s=10 \
-  -p burst_size_ops=100 \
+  -p burst_gap_s=0 \
+  -p burst_size_ops=0 \
   -p op_mode=real \
-  -target_rates "0,0,500,500" \
+  -target_rates "50,50,500,500" \
   -p requestdistribution=uniform \
   | tee status_thread.txt &
 

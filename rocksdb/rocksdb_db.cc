@@ -16,6 +16,7 @@
 #include <rocksdb/cache.h>
 #include <rocksdb/filter_policy.h>
 #include <rocksdb/merge_operator.h>
+#include <rocksdb/statistics.h>
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/options_util.h>
 #include <rocksdb/write_batch.h>
@@ -121,6 +122,12 @@ namespace {
 
   const std::string PROP_READ_RATE_LIMIT = "read_rate_limit";
   const std::string PROP_READ_RATE_LIMIT_DEFAULT = "0";
+
+  const std::string PROP_STATS_DUMP_PERIOD_S = "rocksdb.stats_dump_period_sec";
+  const std::string PROP_STATS_DUMP_PERIOD_S_DEFAULT = "300";
+
+  const std::string PROP_NUM_LEVELS = "rocksdb.num_levels";
+  const std::string PROP_NUM_LEVELS_DEFAULT = "4";
 
   static std::shared_ptr<rocksdb::Env> env_guard;
   static std::shared_ptr<rocksdb::Cache> block_cache;
@@ -353,7 +360,10 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     if (val != 0) {
       opt->level0_stop_writes_trigger = val;
     }
-
+    val = std::stoi(props.GetProperty(PROP_STATS_DUMP_PERIOD_S, PROP_STATS_DUMP_PERIOD_S_DEFAULT));
+    if (val != 0) {
+      opt->stats_dump_period_sec = val;
+    }
     if (props.GetProperty(PROP_USE_DIRECT_WRITE, PROP_USE_DIRECT_WRITE_DEFAULT) == "true") {
       opt->use_direct_io_for_flush_and_compaction = true;
     }
@@ -450,6 +460,10 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
       table_options.no_block_cache = true;  // Disable block cache
     }
     cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
+  }
+  vals = Prop2vector(props, PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i) {
+    cf_opt[i].num_levels = std::stoi(vals[i]);
   }
 }
 
@@ -689,15 +703,13 @@ void RocksdbDB::PrintDbStats() {
 
   // db_->GetCFMemTableStats();
 
-  // for (const auto handle : cf_handles_) {
-  //   rocksdb::ColumnFamilyMetaData cf_meta;
-  //   db_->GetColumnFamilyMetaData(handle, &cf_meta);
-  //   std::cout << "Column Family: " << handle->GetName() 
-  //             << ", Memtable Count: " << cf_meta.memtables.size() << std::endl;
-  // }
-
   std::string hist_data = db_->GetOptions().statistics->ToString();
   std::cout << "[TGRIGGS_LOG] Stats:\n" << hist_data << std::endl;
+
+  std::cout << "[TGRIGGS_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
+    << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L0)
+    << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L1)
+    <<db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP);
 
   // Histogram of Get() operations
   // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);
