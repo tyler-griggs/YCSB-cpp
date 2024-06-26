@@ -114,14 +114,14 @@ namespace {
   const std::string PROP_FS_URI = "rocksdb.fs_uri";
   const std::string PROP_FS_URI_DEFAULT = "";
 
-  const std::string PROP_RATE_LIMIT = "rate_limit";
-  const std::string PROP_RATE_LIMIT_DEFAULT = "0";
+  const std::string PROP_RATE_LIMITS = "rate_limits";
+  const std::string PROP_RATE_LIMITS_DEFAULT = "";
 
   const std::string PROP_REFILL_PERIOD = "refill_period";
   const std::string PROP_REFILL_PERIOD_DEFAULT = "0";
 
-  const std::string PROP_READ_RATE_LIMIT = "read_rate_limit";
-  const std::string PROP_READ_RATE_LIMIT_DEFAULT = "0";
+  const std::string PROP_READ_RATE_LIMITS = "read_rate_limits";
+  const std::string PROP_READ_RATE_LIMITS_DEFAULT = "";
 
   const std::string PROP_STATS_DUMP_PERIOD_S = "rocksdb.stats_dump_period_sec";
   const std::string PROP_STATS_DUMP_PERIOD_S_DEFAULT = "300";
@@ -142,6 +142,17 @@ std::vector<rocksdb::ColumnFamilyHandle *> RocksdbDB::cf_handles_;
 rocksdb::DB *RocksdbDB::db_ = nullptr;
 int RocksdbDB::ref_cnt_ = 0;
 std::mutex RocksdbDB::mu_;
+
+std::vector<int64_t> stringToIntVector(const std::string& input) {
+  std::vector<int64_t> result;
+  std::stringstream ss(input);
+  std::string item;
+  while (std::getline(ss, item, ',')) {
+    result.push_back(std::stoi(item));
+  }
+  return result;
+}
+
 
 void RocksdbDB::Init() {
 // merge operator disabled by default due to link error
@@ -332,7 +343,7 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     }
     val = std::stoi(props.GetProperty(PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT));
     if (val != 0) {
-      std::cout << "TGRIGGS_LOG buffer size: " << val << std::endl;
+      std::cout << "TGRIGGS_LOG write buffer size: " << val << std::endl;
       opt->write_buffer_size = val;
     }
     // val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
@@ -401,25 +412,33 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     }
   }
 
-  size_t rate_limit = std::stoi(props.GetProperty(PROP_RATE_LIMIT, PROP_RATE_LIMIT_DEFAULT));
-  size_t read_rate_limit = std::stoi(props.GetProperty(PROP_READ_RATE_LIMIT, PROP_READ_RATE_LIMIT_DEFAULT));
+  // Convert rate limits from Mbps to bps
+  std::vector<int64_t> rate_limits = stringToIntVector(props.GetProperty(PROP_RATE_LIMITS, PROP_RATE_LIMITS_DEFAULT));
+  for (int64_t& limit : rate_limits) {
+    limit *= 1024 * 1024;
+  }
+  std::vector<int64_t> read_rate_limits = stringToIntVector(props.GetProperty(PROP_READ_RATE_LIMITS, PROP_READ_RATE_LIMITS_DEFAULT));
+  for (int64_t& limit : read_rate_limits) {
+    limit *= 1024 * 1024;
+  }
+
   size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
 
   if (refill_period == 0) {
     std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
 
-  if (rate_limit > 0) {
+  if (rate_limits.size() > 0) {
     // Add rate limiter
     // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
     opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-        rate_limit * 1024 * 1024, // <rate_limit> MB/s rate limit
-        refill_period * 1000,        // Refill period (ms)
-        10,                // Fairness (default)
-        rocksdb::RateLimiter::Mode::kAllIo, // All IO
-        false,              // Disable auto-tuning
-        /* single_burst_bytes */ 0,
-        read_rate_limit * 1024 * 1024 
+      rate_limits.size(),
+      rate_limits,
+      read_rate_limits,
+      refill_period * 1000,        // Refill period (ms)
+      10,                // Fairness (default)
+      rocksdb::RateLimiter::Mode::kAllIo, // All IO
+      /* single_burst_bytes */ 0
     ));
   }
 }
@@ -454,6 +473,7 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     rocksdb::BlockBasedTableOptions table_options;
     if (std::stoul(vals[i]) > 0) {
+      std::cout << "[TGRIGGS_LOG] Creating cache of size " << vals[i] << std::endl;
       block_cache = rocksdb::NewLRUCache(std::stoul(vals[i]));
       table_options.block_cache = block_cache;
     } else {

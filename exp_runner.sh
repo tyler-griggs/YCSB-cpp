@@ -59,16 +59,18 @@ mpstat_pid=$!
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -threads 4 \
-  -p rate_limit=280 \
-  -p read_rate_limit=280 \
-  -p refill_period=10 \
+  -threads 2 \
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
   -p op_mode=real \
-  -target_rates "50,50,500,500" \
-  -p requestdistribution=uniform \
+  -target_rates "1000,1000" \
+  -p requestdistribution=zipfian \
   | tee status_thread.txt &
+#   -target_rates "2000,2000,1000,1000" \
+
+#   -p rate_limits="200,200" \
+#   -p read_rate_limits="200,200" \
+#   -p refill_period=10 \
 
 #   -target_rates "0,0,1400,500" \
 
@@ -101,8 +103,8 @@ mpstat_pid=$!
 #   -threads 2 \
 #   -p op_mode=fake \
 #   -target_rates "200,900" \
-#   -p rate_limit=60 \
-#   -p read_rate_limit=60 \
+#   -p rate_limits=60 \
+#   -p read_rate_limits=60 \
 #   -p refill_period=10 \
 #   -p requestdistribution=uniform \
 #   | tee status_thread2.txt &
@@ -124,42 +126,22 @@ wait $ycsb_pid
 #   -p scanproportion=0 \
 #   -p randominsertproportion=0 \
 #   -threads 4 \
-#   -p rate_limit=200 \
+#   -p rate_limits=200 \
 #   -p requestdistribution=uniform \
 #   | tee status_thread.txt
 
 
-# # Load to Multi-tenant column family 1
+# Load "default" and "cf2" on tgriggs-disk
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
+#   -p table=default \
 #   -threads 1 \
-#   -p table=multi-cf-1 \
+#   -p op_mode=real \
 #   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data -s | tee status_thread.txt &
+#   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &
 
-# # Load to Multi-tenant column family 2
-# nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -threads 1 \
-#   -p table=multi-cf-2 \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/multi-cf/ycsb-rocksdb-data -s | tee status_thread.txt &
-
-# # Load to Multi-tenant column family on separate SSD
-# nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -threads 1 \
-#   -p table=multi-cf-4 \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data-2 -s | tee status_thread.txt &
-
-# Load REAL multi-tenant column family on nvme0n1
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \

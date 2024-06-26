@@ -31,7 +31,7 @@ class BasicDB : public DB {
               int client_id = 0);
 
   Status Scan(const std::string &table, const std::string &key, int len,
-              const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result);
+              const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result, int client_id);
 
   Status Update(const std::string &table, const std::string &key, std::vector<Field> &values, 
                 int client_id = 0);

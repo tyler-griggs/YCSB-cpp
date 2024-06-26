@@ -50,14 +50,17 @@ class DBWrapper : public DB {
     return s;
   }
   Status Scan(const std::string &table, const std::string &key, int record_count,
-              const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result) {
+              const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result,
+              int client_id) {
     timer_.Start();
     Status s = db_->Scan(table, key, record_count, fields, result);
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(SCAN, elapsed);
+      per_client_measurements_[client_id]->Report(SCAN, elapsed);
     } else {
       measurements_->Report(SCAN_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(SCAN_FAILED, elapsed);
     }
     return s;
   }

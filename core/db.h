@@ -69,7 +69,7 @@ class DB {
   ///
   virtual Status Scan(const std::string &table, const std::string &key,
                    int record_count, const std::vector<std::string> *fields,
-                   std::vector<std::vector<Field>> &result) = 0;
+                   std::vector<std::vector<Field>> &result, int client_id = 0) = 0;
   ///
   /// Updates a record in the database.
   /// Field/value pairs in the specified vector are written to the record,

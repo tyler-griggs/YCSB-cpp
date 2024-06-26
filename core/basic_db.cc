@@ -47,7 +47,7 @@ DB::Status BasicDB::Read(const std::string &table, const std::string &key,
 
 DB::Status BasicDB::Scan(const std::string &table, const std::string &key, int len,
                          const std::vector<std::string> *fields,
-                         std::vector<std::vector<Field>> &result) {
+                         std::vector<std::vector<Field>> &result, int client_id) {
   std::lock_guard<std::mutex> lock(mutex_);
   *out_ << "SCAN " << table << ' ' << key << " " << len;
   if (fields) {

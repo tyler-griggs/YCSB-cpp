@@ -191,6 +191,7 @@ void CoreWorkload::Init(const utils::Properties &p) {
     std::cout << "[TGRIGGS_LOG] Uniform distribution." << std::endl;
     key_chooser_ = new UniformGenerator(0, record_count_ - 1);
   } else if (request_dist == "zipfian") {
+    std::cout << "[TGRIGGS_LOG] Zipfian distribution." << std::endl;
     // If the number of keys changes, we don't want to change popular keys.
     // So we construct the scrambled zipfian generator with a keyspace
     // that is larger than what exists at the beginning of the test.
@@ -293,8 +294,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 
   // std::string table_name = rocksdb::kDefaultColumnFamilyName;
   std::string table_name;
-  if (client_id == 0 || client_id == 1) {
-    // table_name = "default";
+  if (client_id == 0) {
+  // if (client_id == 0 || client_id == 1) {
     table_name = rocksdb::kDefaultColumnFamilyName;
   } else {
     table_name = "cf2";
@@ -327,21 +328,26 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 0 || client_id == 1) {
-      (void) op_chooser_.Next();
-      // status = TransactionUpdate(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionInsertBatch(db, client_id, table_name);
-    } else if (client_id == 2) {
-      (void) op_chooser_.Next();
-      status = TransactionRandomInsert(db, client_id, table_name);
-      // status = TransactionRead(db, client_id, table_name);
-    }
-    else {
-      (void) op_chooser_.Next();
-      // status = TransactionRandomInsert(db, client_id, table_name);
+    if (client_id == 0) {
       status = TransactionRead(db, client_id, table_name);
+    } else {
+      status = TransactionScan(db, client_id, table_name);
     }
+    // if (client_id == 0 || client_id == 1) {
+    //   (void) op_chooser_.Next();
+    //   // status = TransactionUpdate(db, client_id, table_name);
+    //   status = TransactionRandomInsert(db, client_id, table_name);
+    //   // status = TransactionInsertBatch(db, client_id, table_name);
+    // } else if (client_id == 2) {
+    //   (void) op_chooser_.Next();
+    //   status = TransactionRandomInsert(db, client_id, table_name);
+    //   // status = TransactionRead(db, client_id, table_name);
+    // }
+    // else {
+    //   (void) op_chooser_.Next();
+    //   status = TransactionRandomInsert(db, client_id, table_name);
+    //   // status = TransactionRead(db, client_id, table_name);
+    // }
   }
 
   return (status == DB::kOK);
@@ -401,14 +407,14 @@ DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string tabl
 
   const std::string key = BuildKeyName(client_key_num);
   // int len = scan_len_chooser_->Next();
-  int len = 1000;
+  int len = 100;
   std::vector<std::vector<DB::Field>> result;
   if (!read_all_fields()) {
     std::vector<std::string> fields;
     fields.push_back(NextFieldName());
-    return db.Scan(table_name, key, len, &fields, result);
+    return db.Scan(table_name, key, len, &fields, result, client_id);
   } else {
-    return db.Scan(table_name, key, len, NULL, result);
+    return db.Scan(table_name, key, len, NULL, result, client_id);
   }
 }
 

@@ -235,7 +235,7 @@ int main(const int argc, const char *argv[]) {
 
   // FairScheduler scheduler;
   ThreadPool threadpool;
-  // threadpool.start(/*num_threads=*/ 4);
+  // threadpool.start(/*num_threads=*/ 1);
 
   int burst_gap_s = std::stoi(props.GetProperty("burst_gap_s", "0"));
   int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));
