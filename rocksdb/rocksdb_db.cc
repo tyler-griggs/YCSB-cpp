@@ -423,7 +423,6 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   }
 
   size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
-
   if (refill_period == 0) {
     std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
