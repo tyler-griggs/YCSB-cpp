@@ -62,15 +62,13 @@ mpstat_pid=$!
   -threads 2 \
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
-  -p op_mode=real \
-  -target_rates "1000,1000" \
+  -p op_mode=fake \
+  -target_rates "300,300" \
   -p requestdistribution=zipfian \
+  -p rate_limits="200,200" \
+  -p read_rate_limits="200,200" \
+  -p refill_period=10 \
   | tee status_thread.txt &
-#   -target_rates "2000,2000,1000,1000" \
-
-#   -p rate_limits="200,200" \
-#   -p read_rate_limits="200,200" \
-#   -p refill_period=10 \
 
 #   -target_rates "0,0,1400,500" \
 
