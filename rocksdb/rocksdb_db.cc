@@ -427,11 +427,12 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
 
+  int num_clients = rate_limits.size();
+
   if (rate_limits.size() > 0) {
     // Add rate limiter
-    // opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewGenericRateLimiter(
     opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-      rate_limits.size(),
+      num_clients,
       rate_limits,
       read_rate_limits,
       refill_period * 1000,        // Refill period (ms)
@@ -570,8 +571,11 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
     return kError;
   }
 
-  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), handle, key, &data);
-  // rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
+  // Set the rate limiter priority to highest (USER request).
+  rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
+  read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
+
+  rocksdb::Status s = db_->Get(read_options, handle, key, &data);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -589,7 +593,11 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
 DB::Status RocksdbDB::ScanSingle(const std::string &table, const std::string &key, int len,
                                  const std::vector<std::string> *fields,
                                  std::vector<std::vector<Field>> &result) {
-  rocksdb::Iterator *db_iter = db_->NewIterator(rocksdb::ReadOptions());
+  // Set the rate limiter priority to highest (USER request).
+  rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
+  read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
+
+  rocksdb::Iterator *db_iter = db_->NewIterator(read_options);
   db_iter->Seek(key);
   for (int i = 0; db_iter->Valid() && i < len; i++) {
     std::string data = db_iter->value().ToString();
@@ -609,8 +617,12 @@ DB::Status RocksdbDB::ScanSingle(const std::string &table, const std::string &ke
 
 DB::Status RocksdbDB::UpdateSingle(const std::string &table, const std::string &key,
                                    std::vector<Field> &values) {
+  // Set the rate limiter priority to highest (USER request).
+  rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
+  read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
+  
   std::string data;
-  rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, &data);
+  rocksdb::Status s = db_->Get(read_options, key, &data);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
