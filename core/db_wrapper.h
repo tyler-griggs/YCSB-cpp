@@ -13,6 +13,7 @@
 
 #include "db.h"
 #include "measurements.h"
+#include "utils/resources.h"
 #include "utils/timer.h"
 #include "utils/utils.h"
 #include <rocksdb/db.h>
@@ -124,6 +125,12 @@ class DBWrapper : public DB {
   void UpdateMemtableSize(int client_id, int memtable_size_bytes) {
     db_->UpdateMemtableSize(client_id, memtable_size_bytes);
   }
+
+  void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts) {
+    db_->UpdateResourceOptions(client_id, res_opts);
+
+  }
+
 
   void PrintDbStats() {
     db_->PrintDbStats();

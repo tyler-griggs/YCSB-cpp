@@ -26,6 +26,7 @@
 #include "threadpool.h"
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
+#include "utils/resources.h"
 #include "utils/timer.h"
 #include "utils/utils.h"
 
@@ -39,6 +40,9 @@ void ResourceSchedulerThread(std::vector<ycsbc::DB *> dbs, ycsbc::utils::CountDo
   int interval = 16;
   bool done = false;
   int interval_count = 0;
+
+  ycsbc::utils::MultiTenantResourceOptions res_opts;
+
   while (1) {
     done = latch->AwaitFor(interval);
     int64_t rate_limit_mbs = 50 + interval_count * 50;
@@ -48,6 +52,12 @@ void ResourceSchedulerThread(std::vector<ycsbc::DB *> dbs, ycsbc::utils::CountDo
       dbs[i]->UpdateRateLimit(i + 1, rate_limit_mbs * 1024 * 1024);
       std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " MemtableSize to " << memtable_size_mb << " MB\n";
       dbs[i]->UpdateMemtableSize(i + 1, memtable_size_mb * 1024 * 1024);
+
+      // res_opts.read_rate_limit = rate_limit_mbs * 1024 * 1024;
+      // res_opts.write_rate_limit = rate_limit_mbs * 1024 * 1024;
+      // res_opts.write_buffer_size = memtable_size_mb * 1024 * 1024;
+      // res_opts.max_write_buffer_number = 2;
+      // dbs[i]->UpdateResourceOptions(i + 1, res_opts);
     }
     if (done) {
       break;

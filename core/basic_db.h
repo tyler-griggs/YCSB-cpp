@@ -11,6 +11,7 @@
 
 #include "db.h"
 #include "utils/properties.h"
+#include "utils/resources.h"
 
 #include <iostream>
 #include <string>
@@ -46,6 +47,8 @@ class BasicDB : public DB {
 
   void UpdateMemtableSize(int client_id, int memtable_size_bytes);
 
+  void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts);
+  
   void PrintDbStats();
 
  private:

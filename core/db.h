@@ -10,6 +10,7 @@
 #define YCSB_C_DB_H_
 
 #include "utils/properties.h"
+#include "utils/resources.h"
 
 #include <vector>
 #include <string>
@@ -106,6 +107,7 @@ class DB {
 
   virtual void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
   virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes);
+  virtual void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts);
 
   virtual void PrintDbStats() = 0;
 
