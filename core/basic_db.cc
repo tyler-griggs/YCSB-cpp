@@ -102,6 +102,11 @@ void BasicDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
   *out_ << "UPDATE_RATE_LIMIT " << client_id << ' ' << rate_limit_bytes << std::endl;
 }
 
+void BasicDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "UPDATE_MEMTABLE_SIZE " << client_id << ' ' << memtable_size_bytes << std::endl;
+}
+
 void BasicDB::PrintDbStats() {
   return;
 }

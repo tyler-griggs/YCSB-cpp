@@ -717,6 +717,13 @@ void RocksdbDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
   db_->GetOptions().rate_limiter.get()->SetBytesPerSecond(client_id, rate_limit_bytes);
 }
 
+void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
+  std::unordered_map<std::string, std::string> cf_opt_updates;
+  cf_opt_updates["write_buffer_size"] = std::to_string(memtable_size_bytes);
+  db_->SetOptions(cf_handles_[0], cf_opt_updates);
+  db_->SetOptions(cf_handles_[1], cf_opt_updates);
+}
+
 DB::Status RocksdbDB::DeleteSingle(const std::string &table, const std::string &key) {
   rocksdb::WriteOptions wopt;
   rocksdb::Status s = db_->Delete(wopt, key);

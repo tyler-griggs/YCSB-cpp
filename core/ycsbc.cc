@@ -33,18 +33,22 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
+// TODO(tgriggs): Create a config that has all resource limits so
+//                we can make a single call into the DB API. 
 void ResourceSchedulerThread(std::vector<ycsbc::DB *> dbs, ycsbc::utils::CountDownLatch *latch) {
-  int interval = 30;
+  int interval = 16;
   bool done = false;
   int interval_count = 0;
   while (1) {
     done = latch->AwaitFor(interval);
     int64_t rate_limit_mbs = 50 + interval_count * 50;
+    int64_t memtable_size_mb = (16 * (interval_count + 1));
     for (size_t i = 0; i < dbs.size(); ++i) {
-      std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " to " << rate_limit_mbs << " MB/s\n";
+      std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << rate_limit_mbs << " MB/s\n";
       dbs[i]->UpdateRateLimit(i + 1, rate_limit_mbs * 1024 * 1024);
+      std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " MemtableSize to " << memtable_size_mb << " MB\n";
+      dbs[i]->UpdateMemtableSize(i + 1, memtable_size_mb * 1024 * 1024);
     }
-
     if (done) {
       break;
     }

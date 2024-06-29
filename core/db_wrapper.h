@@ -120,7 +120,10 @@ class DBWrapper : public DB {
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
     db_->UpdateRateLimit(client_id, rate_limit_bytes);
   }
-  
+
+  void UpdateMemtableSize(int client_id, int memtable_size_bytes) {
+    db_->UpdateMemtableSize(client_id, memtable_size_bytes);
+  }
 
   void PrintDbStats() {
     db_->PrintDbStats();

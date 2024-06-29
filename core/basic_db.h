@@ -44,6 +44,8 @@ class BasicDB : public DB {
 
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
 
+  void UpdateMemtableSize(int client_id, int memtable_size_bytes);
+
   void PrintDbStats();
 
  private:
