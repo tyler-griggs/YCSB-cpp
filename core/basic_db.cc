@@ -97,6 +97,11 @@ DB::Status BasicDB::InsertBatch(const std::string &table, int start_key, std::ve
 
 }
 
+void BasicDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "UPDATE_RATE_LIMIT " << client_id << ' ' << rate_limit_bytes << std::endl;
+}
+
 void BasicDB::PrintDbStats() {
   return;
 }

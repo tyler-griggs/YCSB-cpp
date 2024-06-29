@@ -33,6 +33,25 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
+void ResourceSchedulerThread(std::vector<ycsbc::DB *> dbs, ycsbc::utils::CountDownLatch *latch) {
+  int interval = 30;
+  bool done = false;
+  int interval_count = 0;
+  while (1) {
+    done = latch->AwaitFor(interval);
+    int64_t rate_limit_mbs = 50 + interval_count * 50;
+    for (size_t i = 0; i < dbs.size(); ++i) {
+      std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " to " << rate_limit_mbs << " MB/s\n";
+      dbs[i]->UpdateRateLimit(i + 1, rate_limit_mbs * 1024 * 1024);
+    }
+
+    if (done) {
+      break;
+    }
+    interval_count++;
+  }
+}
+
 void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, 
                   ycsbc::utils::CountDownLatch *latch, int interval, std::vector<ycsbc::DB *> dbs) {
   using namespace std::chrono;
@@ -282,6 +301,9 @@ int main(const int argc, const char *argv[]) {
       rlim_future = std::async(std::launch::async, RateLimitThread, rate_file, rate_limiters, &latch);
     }
 
+    std::future<void> rsched_future;
+    rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, &latch);
+
     assert((int)client_threads.size() == num_threads);
 
     std::vector<std::tuple<long long, std::vector<int>>> client_op_progresses;
@@ -296,6 +318,7 @@ int main(const int argc, const char *argv[]) {
 
     if (show_status) {
       status_future.wait();
+      rsched_future.wait();
     }
 
     writeToCSV("client_progress.csv", client_op_progresses);

@@ -56,6 +56,8 @@ class RocksdbDB : public DB {
     return (this->*(method_delete_))(table, key);
   }
 
+  void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
+  
   void PrintDbStats();
   rocksdb::ColumnFamilyHandle* table2handle(const std::string& table);
 

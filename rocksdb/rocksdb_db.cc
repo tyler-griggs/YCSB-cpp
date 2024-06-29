@@ -20,7 +20,6 @@
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/options_util.h>
 #include <rocksdb/write_batch.h>
-// #include <rocksdb/rate_limiter.h>
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
@@ -712,6 +711,10 @@ DB::Status RocksdbDB::InsertMany(const std::string &table, int start_key,
     throw utils::Exception(std::string("RocksDB WriteBatch: ") + s.ToString());
   }
   return kOK;
+}
+
+void RocksdbDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
+  db_->GetOptions().rate_limiter.get()->SetBytesPerSecond(client_id, rate_limit_bytes);
 }
 
 DB::Status RocksdbDB::DeleteSingle(const std::string &table, const std::string &key) {

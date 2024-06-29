@@ -117,6 +117,11 @@ class DBWrapper : public DB {
     return s;
   }
 
+  void UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
+    db_->UpdateRateLimit(client_id, rate_limit_bytes);
+  }
+  
+
   void PrintDbStats() {
     db_->PrintDbStats();
   }
