@@ -11,6 +11,7 @@
 #include <limits>
 #include <numeric>
 #include <sstream>
+#include <iostream>
 
 namespace {
   const std::string MEASUREMENT_TYPE = "measurementtype";

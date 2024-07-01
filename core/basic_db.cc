@@ -112,6 +112,11 @@ void BasicDB::UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantReso
   *out_ << "UPDATE_RESOURCE_OPTIONS " << client_id << std::endl;
 }
 
+std::vector<ycsbc::utils::MultiTenantResourceUsage> BasicDB::GetResourceUsage() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "GET_RESOURCE_USAGE " << std::endl;
+  return {};
+}
 
 void BasicDB::PrintDbStats() {
   return;

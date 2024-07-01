@@ -13,9 +13,9 @@
 
 #include <atomic>
 
-#ifdef HDRMEASUREMENT
+// #ifdef HDRMEASUREMENT
 #include <hdr/hdr_histogram.h>
-#endif
+// #endif
 
 typedef unsigned int uint;
 
@@ -41,17 +41,20 @@ class BasicMeasurements : public Measurements {
   std::atomic<uint64_t> latency_max_[MAXOPTYPE];
 };
 
-#ifdef HDRMEASUREMENT
+// #ifdef HDRMEASUREMENT
 class HdrHistogramMeasurements : public Measurements {
  public:
   HdrHistogramMeasurements();
   void Report(Operation op, uint64_t latency) override;
   std::string GetStatusMsg() override;
   void Reset() override;
+  const hdr_histogram* GetHistogram(int op) {
+    return histogram_[op];
+  }
  private:
   hdr_histogram *histogram_[MAXOPTYPE];
 };
-#endif
+// #endif
 
 Measurements *CreateMeasurements(utils::Properties *props);
 std::vector<Measurements*> CreatePerClientMeasurements(utils::Properties *props, int num_clients);

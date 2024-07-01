@@ -24,6 +24,7 @@
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
 #include <rocksdb/rate_limiter.h>
+// #include <rocksdb/util/rate_limiter_multi_tenant_impl.h>
 
 namespace {
   const std::string PROP_NAME = "rocksdb.dbname";
@@ -733,9 +734,30 @@ void RocksdbDB::UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantRe
   db_->SetOptions(cf_handles_[1], cf_opt_updates);
 
   // TODO(tgriggs): separate read and write limits
-  db_->GetOptions().rate_limiter.get()->SetBytesPerSecond(client_id, res_opts.write_rate_limit);
+  db_->GetOptions().rate_limiter->SetBytesPerSecond(client_id, res_opts.write_rate_limit);
 }
 
+std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
+  std::cout << "[TGRIGGS_LOG] In rocksdb handler\n";
+  std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
+  std::cout << "[TGRIGGS_LOG] Getting reader\n";
+  rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
+  std::cout << "[TGRIGGS_LOG] Got reader\n";
+
+  int num_clients = cf_handles_.size();
+  std::vector<ycsbc::utils::MultiTenantResourceUsage> all_stats;
+  all_stats.reserve(num_clients);
+  std::cout << "[TGRIGGS_LOG] Starting client stat reading\n";
+  for (int i = 0; i < num_clients; ++i) {
+    ycsbc::utils::MultiTenantResourceUsage client_stats;
+  std::cout << "[TGRIGGS_LOG] Reading writes\n";
+    client_stats.io_bytes_written = write_rate_limiter->GetTotalBytesThroughForClient(i);
+  std::cout << "[TGRIGGS_LOG] Reading reads\n";
+    client_stats.io_bytes_read = read_rate_limiter->GetTotalBytesThroughForClient(i);
+    all_stats.push_back(client_stats);
+  }
+  return all_stats;
+}
 
 DB::Status RocksdbDB::DeleteSingle(const std::string &table, const std::string &key) {
   rocksdb::WriteOptions wopt;

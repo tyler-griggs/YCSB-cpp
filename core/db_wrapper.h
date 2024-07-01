@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "db.h"
 #include "measurements.h"
@@ -128,9 +129,12 @@ class DBWrapper : public DB {
 
   void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts) {
     db_->UpdateResourceOptions(client_id, res_opts);
-
   }
 
+  std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
+    std::cout << "[TGRIGGS_LOG] GetResource usage passed along\n";
+    return db_->GetResourceUsage();
+  }
 
   void PrintDbStats() {
     db_->PrintDbStats();
