@@ -56,16 +56,13 @@ void ResourceSchedulerThread(
       if (done) {
         break;
       }
-      std::cout << "[TGRIGGS_LOG] First interval" << std::endl;
       std::vector<MultiTenantResourceUsage> total_usage = dbs[0]->GetResourceUsage();
       std::vector<MultiTenantResourceUsage> interval_usage;
       interval_usage.reserve(dbs.size());
       for (size_t i = 0; i < total_usage.size(); ++i) {
-        std::cout << "[TGRIGGS_LOG] Computing resource diff" << std::endl;
         interval_usage.push_back(ycsbc::utils::ComputeResourceUsageDiff(prev_usage[i], total_usage[i]));
       }
       prev_usage = total_usage;
-
       std::cout << "[TGRIGGS_LOG] Usage in this interval: " << std::endl;
       for (const auto& usage : interval_usage) {
         std::cout << usage.ToString();

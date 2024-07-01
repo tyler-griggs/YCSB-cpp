@@ -22,7 +22,7 @@ struct MultiTenantResourceUsage {
         std::ostringstream oss;
         oss << "IO Bytes Read: " << io_bytes_read << "\n"
             << "IO Bytes Written: " << io_bytes_written << "\n"
-            << "Memory Bytes Written: " << mem_bytes_written;
+            << "Memory Bytes Written: " << mem_bytes_written << "\n";
         return oss.str();
     }
 };

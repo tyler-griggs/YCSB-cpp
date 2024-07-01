@@ -132,7 +132,6 @@ class DBWrapper : public DB {
   }
 
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
-    std::cout << "[TGRIGGS_LOG] GetResource usage passed along\n";
     return db_->GetResourceUsage();
   }
 
