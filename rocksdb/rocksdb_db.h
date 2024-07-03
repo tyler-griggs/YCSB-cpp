@@ -59,7 +59,7 @@ class RocksdbDB : public DB {
 
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
   void UpdateMemtableSize(int client_id, int memtable_size_bytes);
-  void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts);
+  void UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts);
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();
   
   void PrintDbStats();

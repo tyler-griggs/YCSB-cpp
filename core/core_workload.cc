@@ -295,10 +295,13 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   // std::string table_name = rocksdb::kDefaultColumnFamilyName;
   std::string table_name;
   if (client_id == 0) {
-  // if (client_id == 0 || client_id == 1) {
     table_name = rocksdb::kDefaultColumnFamilyName;
-  } else {
+  } else if (client_id == 1) {
     table_name = "cf2";
+  } else if (client_id == 2) {
+    table_name = "cf3";
+  } else if (client_id == 3) {
+    table_name = "cf4";
   }
 
   DB::Status status;
@@ -403,7 +406,7 @@ DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string tabl
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
   // For multi-cf
-  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   // int len = scan_len_chooser_->Next();
@@ -422,7 +425,7 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string ta
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
   // For multi-cf
-  uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
@@ -437,7 +440,7 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string ta
 DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
   // uint64_t client_key_num = key_num;
   // if (client_id != 0) {
   //   client_key_num += (6250000 / 4);
@@ -455,7 +458,7 @@ DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::stri
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
   int num_keys = 100;
-  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
+  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
   client_key_num = std::min(client_key_num, uint64_t(6250000 / 4 - num_keys));
   // uint64_t client_key_num = key_num;
   // if (client_id != 0) {

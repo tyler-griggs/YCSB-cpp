@@ -127,8 +127,8 @@ class DBWrapper : public DB {
     db_->UpdateMemtableSize(client_id, memtable_size_bytes);
   }
 
-  void UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts) {
-    db_->UpdateResourceOptions(client_id, res_opts);
+  void UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts) {
+    db_->UpdateResourceOptions(res_opts);
   }
 
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {

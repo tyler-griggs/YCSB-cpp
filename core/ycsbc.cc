@@ -23,6 +23,7 @@
 #include "db_factory.h"
 #include "fair_scheduler.h"
 #include "measurements.h"
+#include "resource_scheduler.h"
 #include "threadpool.h"
 #include "utils/countdown_latch.h"
 #include "utils/rate_limit.h"
@@ -41,143 +42,6 @@ using ycsbc::utils::MultiTenantResourceUsage;
 void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
-
-void ResourceSchedulerThread(
-  std::vector<ycsbc::DB *> dbs, ycsbc::Measurements *measurements, 
-  std::vector<ycsbc::Measurements*> per_client_measurements, int res_update_interval_s,
-  int stats_dump_interval_s, ycsbc::utils::CountDownLatch *latch) {
-    bool done = false;
-    // MultiTenantResourceOptions res_opts;
-    std::vector<MultiTenantResourceUsage> prev_usage(dbs.size());
-
-    // time_point<system_clock> start_time = system_clock::now();
-    while (1) {
-      done = latch->AwaitFor(res_update_interval_s);
-      if (done) {
-        break;
-      }
-      std::vector<MultiTenantResourceUsage> total_usage = dbs[0]->GetResourceUsage();
-      std::vector<MultiTenantResourceUsage> interval_usage;
-      interval_usage.reserve(dbs.size());
-      for (size_t i = 0; i < total_usage.size(); ++i) {
-        interval_usage.push_back(ycsbc::utils::ComputeResourceUsageDiff(prev_usage[i], total_usage[i]));
-      }
-      prev_usage = total_usage;
-      std::cout << "[TGRIGGS_LOG] Usage in this interval: " << std::endl;
-      for (const auto& usage : interval_usage) {
-        std::cout << usage.ToString();
-      }
-    }
-
-
-
-
-
-
-
-    // std::vector<std::tuple<int, int, hdr_histogram>> historical_stats;
-      // // Scrape per-client per-op stats.
-      // for (size_t i = 0; i < per_client_measurements.size(); ++i) {
-      //   auto* hdrMeasurement = dynamic_cast<ycsbc::HdrHistogramMeasurements*>(per_client_measurements[i]);
-      //   for (int j = 0; j < ycsbc::MAXOPTYPE; ++j) {
-      //     const hdr_histogram* op_stats = hdrMeasurement->GetHistogram(j);
-      //     if (op_stats->total_count > 0) {
-      //       // Record stats (for later dumping).
-      //       historical_stats.push_back(std::tuple(i, j, *op_stats));
-      //     }
-      //   }
-      //   // Reset this client's stats.
-      //   per_client_measurements[i]->Reset();
-      // }
-
-      // TODO(tgriggs): Scrape flush and compaction stats.
-
-      // Compute usage stats.
-
-      // If dump interval:
-        // Print total counts
-        // Write stats to file
-
-
-  // bool done = false;
-  // while (1) {
-  //   time_point<system_clock> now = system_clock::now();
-  //   std::time_t now_c = system_clock::to_time_t(now);
-  //   duration<double> elapsed_time = now - start;
-
-  //   std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' '
-  //             << static_cast<long long>(elapsed_time.count()) << " sec: ";
-
-  //   std::cout << measurements->GetStatusMsg() << std::endl;
-  //   for (size_t i = 0; i < per_client_measurements.size(); ++i) {
-  //     std::cout << "client" << i << " stats:\n";
-  //     std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
-  //     per_client_measurements[i]->Reset();
-  //   }
-  //   // Print DB-wide and CF-wide stats -- only need to use a single client
-  //   // std::cout << "DB stats:\n";
-  //   // dbs[0]->PrintDbStats();
-
-  //   // for (size_t i = 0; i < dbs.size(); ++i) {
-  //   //   // dbs[i]->GetCFMemTableStats();
-
-  //   //   // if (i == 0) {
-  //   //   //   continue;
-  //   //   // }
-  //   //   // std::cout << "db_get: client" << i << ": ";
-  //   //   std::cout << "DB " << i << " stats:\n";
-  //   //   dbs[i]->PrintDbStats();
-  //   // }
-
-  //   if (done) {
-  //     break;
-  //   }
-  //   done = latch->AwaitFor(interval);
-  // };
-}
-
-
-
-// void ResourceSchedulerThread(std::vector<ycsbc::DB *> dbs, ycsbc::utils::CountDownLatch *latch) {
-//   int interval = 1;
-//   bool done = false;
-//   int interval_count = 0;
-
-//   ycsbc::utils::MultiTenantResourceOptions res_opts;
-
-//   while (1) {
-//     done = latch->AwaitFor(interval);
-
-//     // TODO(tgriggs): Get previous 1s resource usage
-//     // Read IO - per-client reads, compaction reads
-//     // Write IO - compaction writes
-//     // Memtable - per-client writes (how to compute the cap?)
-
-//     // TODO(tgriggs): compute per-tenant resource utilization (assume some cap)
-
-//     // TODO(tgriggs): compute DRF-based allocations
-
-//     // TODO(tgriggs): update resource limits for memtable and IO schedulers
-
-//     int64_t rate_limit_mbs = 50 + interval_count * 50;
-//     int64_t memtable_size_mb = (16 * (interval_count + 1));
-//     for (size_t i = 0; i < dbs.size(); ++i) {
-//       std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << rate_limit_mbs << " MB/s\n";
-//       dbs[i]->UpdateRateLimit(i + 1, rate_limit_mbs * 1024 * 1024);
-//       std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " MemtableSize to " << memtable_size_mb << " MB\n";
-//       dbs[i]->UpdateMemtableSize(i + 1, memtable_size_mb * 1024 * 1024);
-//       // res_opts.read_rate_limit = rate_limit_mbs * 1024 * 1024;
-//       // res_opts.write_rate_limit = rate_limit_mbs * 1024 * 1024;
-//       // res_opts.write_buffer_size = memtable_size_mb * 1024 * 1024;
-//       // res_opts.max_write_buffer_number = 2;
-//       // dbs[i]->UpdateResourceOptions(i + 1, res_opts);
-//     }
-//     if (done) {
-//       break;
-//     }
-//     interval_count++;
-//   }
-// }
 
 void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, 
                   ycsbc::utils::CountDownLatch *latch, int interval, std::vector<ycsbc::DB *> dbs) {
@@ -352,7 +216,7 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0, 0, 0));
+                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0, 0, 0));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -428,8 +292,11 @@ int main(const int argc, const char *argv[]) {
     }
 
     std::future<void> rsched_future;
-    rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, 
-                               measurements, per_client_measurements, 1, 5, &latch);
+    // rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, &latch);
+    std::cout << "[TGRIGGS_LOG] Launching ResourceSchedulerThread\n";
+    rsched_future = std::async(std::launch::async, CentralResourceSchedulerThread, dbs, 
+                               measurements, per_client_measurements, 
+                               /*res_update_interval_s=*/1, 5, &latch);
 
     assert((int)client_threads.size() == num_threads);
 

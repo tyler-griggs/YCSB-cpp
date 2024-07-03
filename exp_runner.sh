@@ -56,17 +56,17 @@ mpstat_pid=$!
   -p recordcount=1562500 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=0 \
+  -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -threads 2 \
+  -threads 4 \
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
-  -p op_mode=fake \
-  -target_rates "700,700" \
+  -p op_mode=real \
+  -target_rates "1000,100,0,1000" \
   -p requestdistribution=zipfian \
-  -p rate_limits="50,50" \
-  -p read_rate_limits="50,50" \
+  -p rate_limits="150,150,150,150" \
+  -p read_rate_limits="150,150,150,150" \
   -p refill_period=5 \
   | tee status_thread.txt &
 
@@ -145,6 +145,26 @@ wait $ycsb_pid
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
 #   -p table=cf2 \
+#   -threads 1 \
+#   -p op_mode=real \
+#   -p requestdistribution=uniform \
+#   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &
+
+#   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p recordcount=3125000 \
+#   -p fieldcount=16 \
+#   -p fieldlength=1024 \
+#   -p table=cf3 \
+#   -threads 1 \
+#   -p op_mode=real \
+#   -p requestdistribution=uniform \
+#   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data -s | tee status_thread.txt &
+
+#   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p recordcount=3125000 \
+#   -p fieldcount=16 \
+#   -p fieldlength=1024 \
+#   -p table=cf4 \
 #   -threads 1 \
 #   -p op_mode=real \
 #   -p requestdistribution=uniform \

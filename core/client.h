@@ -52,6 +52,12 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
 
   int num_bursts = 1;
   int adjusted_num_ops = num_ops;
+
+
+  // TODO(tgriggs): remove this post-experiment
+  // int total_exp_duration_s = 150;
+  // std::this_thread::sleep_for(std::chrono::seconds(client_id * 30));
+
   // if (burst_gap_s > 0 && (client_id == 0 || client_id == 1)) {
   //   std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
   //   // adjusted_num_ops = 123; 
@@ -113,8 +119,13 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
             op_progress.push_back(ops);
             interval_start_time = std::chrono::steady_clock::now();
           }
+          // auto current_time_sys = std::chrono::system_clock::now();
+          // auto total_exp_time = std::chrono::duration_cast<std::chrono::seconds>(current_time_sys - client_start);
+          // if (total_exp_time.count() >= total_exp_duration_s) {
+          //   break;
+          // }
         }
-
+        
         EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
       }
       std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));

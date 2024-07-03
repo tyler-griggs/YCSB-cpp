@@ -236,13 +236,17 @@ void RocksdbDB::Init() {
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   GetOptions(props, &opt, &cf_descs);
 
-  std::cout << "[TGRIGGS_LOG] init column families: default, cf2\n";
+  std::cout << "[TGRIGGS_LOG] init column families: default, cf2, cf3, cf4\n";
   std::vector<rocksdb::ColumnFamilyOptions> cf_opts;
+  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
+  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
   cf_opts.push_back(rocksdb::ColumnFamilyOptions());
   cf_opts.push_back(rocksdb::ColumnFamilyOptions());
   GetCfOptions(props, cf_opts);
   cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opts[0]);
   cf_descs.emplace_back("cf2", cf_opts[1]);
+  cf_descs.emplace_back("cf3", cf_opts[2]);
+  cf_descs.emplace_back("cf4", cf_opts[3]);
 
   std::cout << "[TGRIGGS_LOG] creating stats object\n";
   opt.statistics = rocksdb::CreateDBStatistics();
@@ -553,6 +557,10 @@ rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
     cf_idx = 0;
   } else if (table == "cf2") {
     cf_idx = 1;
+  } else if (table == "cf3") {
+    cf_idx = 2;
+  } else if (table == "cf4") {
+    cf_idx = 3;
   } else {
     return nullptr;
   }
@@ -593,11 +601,17 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
 DB::Status RocksdbDB::ScanSingle(const std::string &table, const std::string &key, int len,
                                  const std::vector<std::string> *fields,
                                  std::vector<std::vector<Field>> &result) {
+  auto* handle = table2handle(table);
+  if (handle == nullptr) {
+    std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+    return kError;
+  }
+
   // Set the rate limiter priority to highest (USER request).
   rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
   read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
 
-  rocksdb::Iterator *db_iter = db_->NewIterator(read_options);
+  rocksdb::Iterator *db_iter = db_->NewIterator(read_options, handle);
   db_iter->Seek(key);
   for (int i = 0; db_iter->Valid() && i < len; i++) {
     std::string data = db_iter->value().ToString();
@@ -714,10 +728,14 @@ DB::Status RocksdbDB::InsertMany(const std::string &table, int start_key,
   return kOK;
 }
 
+// TODO(tgriggs): remove this
 void RocksdbDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {
-  db_->GetOptions().rate_limiter.get()->SetBytesPerSecond(client_id, rate_limit_bytes);
+  // db_->GetOptions().rate_limiter.get()->SetBytesPerSecond(client_id, rate_limit_bytes);
+  (void) client_id;
+  (void) rate_limit_bytes;
 }
 
+// TODO(tgriggs): remove this
 void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
   std::unordered_map<std::string, std::string> cf_opt_updates;
   cf_opt_updates["write_buffer_size"] = std::to_string(memtable_size_bytes);
@@ -726,34 +744,39 @@ void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
   db_->SetOptions(cf_handles_[1], cf_opt_updates);
 }
 
-void RocksdbDB::UpdateResourceOptions(int client_id, ycsbc::utils::MultiTenantResourceOptions res_opts) {
+void RocksdbDB::UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts) {
   std::unordered_map<std::string, std::string> cf_opt_updates;
-  cf_opt_updates["write_buffer_size"] = std::to_string(res_opts.write_buffer_size);
-  cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts.max_write_buffer_number);
-  db_->SetOptions(cf_handles_[0], cf_opt_updates);
-  db_->SetOptions(cf_handles_[1], cf_opt_updates);
-
-  // TODO(tgriggs): separate read and write limits
-  db_->GetOptions().rate_limiter->SetBytesPerSecond(client_id, res_opts.write_rate_limit);
+  for (size_t i = 0; i < res_opts.size(); ++i) {
+    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size);
+    cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
+    db_->SetOptions(cf_handles_[i], cf_opt_updates);
+  }
+  
+  std::vector<int64_t> write_rate_limits(res_opts.size());
+  std::vector<int64_t> read_rate_limits(res_opts.size());
+  for (size_t i = 0; i < res_opts.size(); ++i) {
+    write_rate_limits[i] = res_opts[i].write_rate_limit;
+    read_rate_limits[i] = res_opts[i].read_rate_limit;
+  }
+  std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
+  rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
+  write_rate_limiter->SetBytesPerSecond(write_rate_limits);
+  read_rate_limiter->SetBytesPerSecond(read_rate_limits);
 }
 
+
 std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
-  std::cout << "[TGRIGGS_LOG] In rocksdb handler\n";
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
-  std::cout << "[TGRIGGS_LOG] Getting reader\n";
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
-  std::cout << "[TGRIGGS_LOG] Got reader\n";
 
   int num_clients = cf_handles_.size();
   std::vector<ycsbc::utils::MultiTenantResourceUsage> all_stats;
   all_stats.reserve(num_clients);
-  std::cout << "[TGRIGGS_LOG] Starting client stat reading\n";
   for (int i = 0; i < num_clients; ++i) {
+    int client_id = i + 1;
     ycsbc::utils::MultiTenantResourceUsage client_stats;
-  std::cout << "[TGRIGGS_LOG] Reading writes\n";
-    client_stats.io_bytes_written = write_rate_limiter->GetTotalBytesThroughForClient(i);
-  std::cout << "[TGRIGGS_LOG] Reading reads\n";
-    client_stats.io_bytes_read = read_rate_limiter->GetTotalBytesThroughForClient(i);
+    client_stats.io_bytes_written = write_rate_limiter->GetTotalBytesThroughForClient(client_id);
+    client_stats.io_bytes_read = read_rate_limiter->GetTotalBytesThroughForClient(client_id);
     all_stats.push_back(client_stats);
   }
   return all_stats;
