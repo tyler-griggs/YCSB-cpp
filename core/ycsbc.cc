@@ -293,8 +293,9 @@ int main(const int argc, const char *argv[]) {
 
     std::future<void> rsched_future;
     // rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, &latch);
-    std::cout << "[TGRIGGS_LOG] Launching ResourceSchedulerThread\n";
-    rsched_future = std::async(std::launch::async, CentralResourceSchedulerThread, dbs, 
+
+    // std::cout << "[TGRIGGS_LOG] Launching CentralResourceSchedulerThread\n";
+    rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
                                measurements, per_client_measurements, 
                                /*res_update_interval_s=*/1, 5, &latch);
 

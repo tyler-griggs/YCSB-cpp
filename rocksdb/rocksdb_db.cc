@@ -760,7 +760,18 @@ void RocksdbDB::UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResou
   }
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
+  std::cout << "[TGRIGGS_LOG] Writes updated to: ";
+  for (int64_t limit : write_rate_limits) {
+    std::cout << (limit / 1024 / 1024) << ", ";
+  }
+  std::cout << std::endl;
   write_rate_limiter->SetBytesPerSecond(write_rate_limits);
+
+  std::cout << "[TGRIGGS_LOG] Reads updated to: ";
+  for (int64_t limit : read_rate_limits) {
+    std::cout << (limit / 1024 / 1024) << ", ";
+  }
+  std::cout << std::endl;
   read_rate_limiter->SetBytesPerSecond(read_rate_limits);
 }
 

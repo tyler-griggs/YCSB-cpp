@@ -65,8 +65,8 @@ mpstat_pid=$!
   -p op_mode=real \
   -target_rates "1000,100,0,1000" \
   -p requestdistribution=zipfian \
-  -p rate_limits="150,150,150,150" \
-  -p read_rate_limits="150,150,150,150" \
+  -p rate_limits="100,100,100,100" \
+  -p read_rate_limits="1500,1500,1500,1500" \
   -p refill_period=5 \
   | tee status_thread.txt &
 
