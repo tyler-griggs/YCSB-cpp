@@ -12,6 +12,7 @@
 #include "db.h"
 #include "measurements.h"
 #include "utils/properties.h"
+#include "utils/resources.h"
 
 #include <string>
 #include <map>
@@ -23,7 +24,9 @@ class DBFactory {
   using DBCreator = DB *(*)();
   static bool RegisterDB(std::string db_name, DBCreator db_creator);
   static DB *CreateDB(utils::Properties *props, Measurements *measurements);
-  static DB *CreateDBWithPerClientStats(utils::Properties *props, Measurements *measurements, std::vector<Measurements*> per_client_measurements);
+  static DB *CreateDBWithPerClientStats(utils::Properties *props, Measurements *measurements, 
+                                        std::vector<Measurements*> per_client_measurements,
+                                        std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written);
  private:
   static std::map<std::string, DBCreator> &Registry();
 };

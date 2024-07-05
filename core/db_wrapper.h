@@ -25,7 +25,9 @@ namespace ycsbc {
 class DBWrapper : public DB {
  public:
   DBWrapper(DB *db, Measurements *measurements) : db_(db), measurements_(measurements) {}
-  DBWrapper(DB *db, Measurements *measurements, std::vector<Measurements*> per_client_measurements) : db_(db), measurements_(measurements), per_client_measurements_(per_client_measurements) {}
+  DBWrapper(DB *db, Measurements *measurements, 
+            std::vector<Measurements*> per_client_measurements,
+            std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written) : db_(db), measurements_(measurements), per_client_measurements_(per_client_measurements), per_client_bytes_written_(per_client_bytes_written) {}
   ~DBWrapper() {
     delete db_;
   }
@@ -38,7 +40,6 @@ class DBWrapper : public DB {
   Status Read(const std::string &table, const std::string &key,
               const std::vector<std::string> *fields, std::vector<Field> &result,
               int client_id) {
-    // std::cout << "[TGRIGGS_LOG] " << client_id << " read from " << table << std::endl;
     timer_.Start();
     Status s = db_->Read(table, key, fields, result);
     uint64_t elapsed = timer_.End();
@@ -74,6 +75,7 @@ class DBWrapper : public DB {
     if (s == kOK) {
       measurements_->Report(UPDATE, elapsed);
       per_client_measurements_[client_id]->Report(UPDATE, elapsed);
+      per_client_bytes_written_->update(client_id, values.size() * values[0].value.size());
     } else {
       measurements_->Report(UPDATE_FAILED, elapsed);
       per_client_measurements_[client_id]->Report(UPDATE_FAILED, elapsed);
@@ -87,6 +89,7 @@ class DBWrapper : public DB {
     if (s == kOK) {
       measurements_->Report(INSERT, elapsed);
       per_client_measurements_[client_id]->Report(INSERT, elapsed);
+      per_client_bytes_written_->update(client_id, values.size() * values[0].value.size());
     } else {
       measurements_->Report(INSERT_FAILED, elapsed);
       per_client_measurements_[client_id]->Report(INSERT_FAILED, elapsed);
@@ -132,7 +135,11 @@ class DBWrapper : public DB {
   }
 
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
-    return db_->GetResourceUsage();
+    auto res = db_->GetResourceUsage();
+    for (size_t i = 0; i < res.size(); ++i) {
+      res[i].mem_bytes_written = per_client_bytes_written_->get_value(i);
+    }
+    return res;
   }
 
   void PrintDbStats() {
@@ -143,6 +150,7 @@ class DBWrapper : public DB {
   DB *db_;
   Measurements *measurements_;
   std::vector<Measurements*> per_client_measurements_;
+  std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written_;
   utils::Timer<uint64_t, std::nano> timer_;
 };
 

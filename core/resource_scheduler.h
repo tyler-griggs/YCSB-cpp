@@ -17,6 +17,34 @@ namespace ycsbc {
 using ycsbc::utils::MultiTenantResourceOptions;
 using ycsbc::utils::MultiTenantResourceUsage;
 
+// TODO(tgriggs): Need to ensure:
+//  1) idle clients don't take much (or any?) memtable space, 
+//  2) clients are able to quickly gain memtable capacity (e.g., bursty clients)
+// `write_buffer_sizes` and `max_write_buffer_numbers` are output parameters.
+void MemtableAllocationToRocksDbParams(
+    std::vector<int64_t> memtable_allocation, int64_t capacity_bytes, 
+    std::vector<int>& write_buffer_sizes, std::vector<int>& max_write_buffer_numbers) {
+
+  const int kMaxMemtableSize = 128 * 1024 * 1024;
+  // TODO(tgriggs): Tune this. Idle clients will take 16 MB of memtable space.
+  const int kMinMemtableSize = 16 * 1024 * 1024;
+
+  for (size_t i = 0; i < memtable_allocation.size(); ++i) {
+    if (memtable_allocation[i] > kMaxMemtableSize) {
+      // Get the integer ceiling of "Allocation / MaxMemtableSize" to get number of memtables
+      max_write_buffer_numbers[i] = (memtable_allocation[i] + kMaxMemtableSize - 1) / kMaxMemtableSize;
+      // Divide the total allocation by number of memtables to get memtable size
+      write_buffer_sizes[i] = memtable_allocation[i] / max_write_buffer_numbers[i];
+    } else if (memtable_allocation[i] <= kMinMemtableSize) {
+      write_buffer_sizes[i] = kMinMemtableSize;
+      max_write_buffer_numbers[i] = 1;
+    } else {
+      write_buffer_sizes[i] = memtable_allocation[i];
+      max_write_buffer_numbers[i] = 1;
+    }
+  } 
+}
+
 std::vector<int64_t> ComputePRFAllocation(
   const int64_t resource_capacity, std::vector<int64_t> interval_usage) {
 
@@ -37,7 +65,7 @@ std::vector<int64_t> ComputePRFAllocation(
     for (size_t i = 0; i < num_clients; ++i) {
       if (!assigned[i] && interval_usage[i] < fair_share) {
         // TODO(tgriggs): Only allow clients to increase by XX% per interval
-        allocation[i] = std::max(1024.0 * 1024.0, 2.0 * interval_usage[i]);
+        allocation[i] = std::max(10 * 1024.0 * 1024.0, 2.0 * interval_usage[i]);
         // allocation[i] = std::max(1024.0 * 1024.0, 1.1 * interval_usage[i]);
         // std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << (allocation[i] / 1024 / 1024) << " MB/s\n";
 
@@ -87,6 +115,7 @@ void CentralResourceSchedulerThread(
     // TODO(tgriggs): artificially dropping this to 200MB/s for testing
     const int64_t kIOReadCapBps = 200 * 1024 * 1024;
     const int64_t kIOWriteCapBps = 200 * 1024 * 1024;
+    const int64_t kMemtableCapBytes = 1 * 1024 * 1024 * 1024;
     std::vector<MultiTenantResourceOptions> res_opts(num_clients);
     for (auto& res_opt : res_opts) {
       res_opt.read_rate_limit = kIOReadCapBps;
@@ -119,16 +148,28 @@ void CentralResourceSchedulerThread(
         std::cout << usage.ToString();
       }
 
+      // TODO(tgriggs): just update the resource usage struct to vectors so i don't have
+      //                have to do this restructuring 
       std::vector<int64_t> io_read_usage;
       std::vector<int64_t> io_write_usage;
+      std::vector<int64_t> memtable_usage;
       for (const auto& usage : interval_usage) {
         io_read_usage.push_back(usage.io_bytes_read);
         io_write_usage.push_back(usage.io_bytes_written);
+        memtable_usage.push_back(usage.mem_bytes_written);
       }
       std::vector<int64_t> io_read_allocation = ComputePRFAllocation(kIOReadCapBps, io_read_usage);
       std::vector<int64_t> io_write_allocation = ComputePRFAllocation(kIOWriteCapBps, io_write_usage);
 
+      std::vector<int64_t> memtable_allocation = ComputePRFAllocation(kMemtableCapBytes, memtable_usage);
+      std::vector<int> write_buffer_sizes(num_clients);
+      std::vector<int> max_write_buffer_numbers(num_clients);
+      MemtableAllocationToRocksDbParams(memtable_allocation, kMemtableCapBytes, write_buffer_sizes, max_write_buffer_numbers);
+
       for (size_t i = 0; i < num_clients; ++i) {
+        std::cout << "[TGRIGGS_LOG] Num memtables: " << max_write_buffer_numbers[i] << ", memtable size: " << write_buffer_sizes[i] << std::endl;
+        res_opts[i].max_write_buffer_number = max_write_buffer_numbers[i];
+        res_opts[i].write_buffer_size = write_buffer_sizes[i];
         res_opts[i].read_rate_limit = io_read_allocation[i];
         res_opts[i].write_rate_limit = io_write_allocation[i];
       }

@@ -35,14 +35,17 @@ DB *DBFactory::CreateDB(utils::Properties *props, Measurements *measurements) {
   return db;
 }
 
-DB *DBFactory::CreateDBWithPerClientStats(utils::Properties *props, Measurements *measurements, std::vector<Measurements*> per_client_measurements) {
+DB *DBFactory::CreateDBWithPerClientStats(
+    utils::Properties *props, Measurements *measurements, 
+    std::vector<Measurements*> per_client_measurements,
+    std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written) {
   std::string db_name = props->GetProperty("dbname", "basic");
   DB *db = nullptr;
   std::map<std::string, DBCreator> &registry = Registry();
   if (registry.find(db_name) != registry.end()) {
     DB *new_db = (*registry[db_name])();
     new_db->SetProps(props);
-    db = new DBWrapper(new_db, measurements, per_client_measurements);
+    db = new DBWrapper(new_db, measurements, per_client_measurements, per_client_bytes_written);
   }
   return db;
 }

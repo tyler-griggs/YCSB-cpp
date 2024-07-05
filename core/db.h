@@ -109,7 +109,6 @@ class DB {
   virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes);
   virtual void UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts);
   virtual std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();
-
   virtual void PrintDbStats() = 0;
 
   virtual ~DB() { }

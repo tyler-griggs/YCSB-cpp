@@ -177,11 +177,12 @@ int main(const int argc, const char *argv[]) {
       exit(1);
     }
   }
+  std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written = std::make_shared<ycsbc::utils::MultiTenantCounter>(num_threads);
 
   std::vector<ycsbc::DB *> dbs;
   for (int i = 0; i < num_threads; i++) {
     // ycsbc::DB *db = ycsbc::DBFactory::CreateDB(&props, measurements);
-    ycsbc::DB *db = ycsbc::DBFactory::CreateDBWithPerClientStats(&props, measurements, per_client_measurements);
+    ycsbc::DB *db = ycsbc::DBFactory::CreateDBWithPerClientStats(&props, measurements, per_client_measurements, per_client_bytes_written);
     if (db == nullptr) {
       std::cerr << "Unknown database name " << props["dbname"] << std::endl;
       exit(1);

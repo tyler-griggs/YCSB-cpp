@@ -1,10 +1,31 @@
 #ifndef YCSB_C_RESOURCES_H_
 #define YCSB_C_RESOURCES_H_
 
+#include <atomic>
 #include <sstream>
 #include <cstdint>
 
 namespace ycsbc::utils {
+
+class MultiTenantCounter {
+  public:
+    MultiTenantCounter(size_t size) : counts(size) {
+      for (size_t i = 0; i < size; ++i) {
+        counts[i] = 0;
+      }
+    }
+
+    void update(size_t index, int64_t value) {
+      counts[index].fetch_add(value, std::memory_order_relaxed);
+    }
+
+    int64_t get_value(size_t index) {
+      return counts[index].load(std::memory_order_relaxed);
+    }
+
+  private:
+    std::vector<std::atomic<int64_t>> counts;
+};
 
 struct MultiTenantResourceOptions {
   int64_t write_rate_limit;
@@ -22,7 +43,7 @@ struct MultiTenantResourceUsage {
         std::ostringstream oss;
         oss << "IO Read: " << (io_bytes_read / 1024 / 1024) << " MB\n"
             << "IO Written: " << (io_bytes_written / 1024 / 1024) << " MB\n"
-            << "Memory Written: " << mem_bytes_written << " MB\n";
+            << "Memory Written: " << (mem_bytes_written / 1024 / 1024) << " MB\n";
         return oss.str();
     }
 };
