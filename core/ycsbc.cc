@@ -296,9 +296,18 @@ int main(const int argc, const char *argv[]) {
     // rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, &latch);
 
     // std::cout << "[TGRIGGS_LOG] Launching CentralResourceSchedulerThread\n";
+    ycsbc::ResourceSchedulerOptions rsched_options;
+    rsched_options.res_update_interval_s = std::stoi(props.GetProperty("rsched_interval"));
+    rsched_options.stats_dump_interval_s = 5;
+    rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_interval"));
+    rsched_options.io_read_capacity_bps = std::stoi(props.GetProperty("io_read_capacity"));
+    rsched_options.io_write_capacity_bps = std::stoi(props.GetProperty("io_write_capacity"));
+    rsched_options.memtable_capacity_byes = std::stoi(props.GetProperty("memtable_capacity"));
+    rsched_options.max_memtable_size = std::stoi(props.GetProperty("max_memtable_size"));
+    rsched_options.min_memtable_size = std::stoi(props.GetProperty("min_memtable_size"));
+
     rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
-                               measurements, per_client_measurements, 
-                               /*res_update_interval_s=*/1, 5, &latch);
+                               measurements, per_client_measurements, rsched_options, &latch);
 
     assert((int)client_threads.size() == num_threads);
 
