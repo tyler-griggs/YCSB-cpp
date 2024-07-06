@@ -195,6 +195,7 @@ int main(const int argc, const char *argv[]) {
 
   // print status periodically
   const bool show_status = (props.GetProperty("status", "false") == "true");
+  const bool use_rsched = (props.GetProperty("rsched", "false") == "true");
   const int status_interval = std::stoi(props.GetProperty("status.interval", "2"));
 
   // load phase
@@ -293,21 +294,21 @@ int main(const int argc, const char *argv[]) {
     }
 
     std::future<void> rsched_future;
-    // rsched_future = std::async(std::launch::async, ResourceSchedulerThread, dbs, &latch);
+    if (use_rsched) {
+      ycsbc::ResourceSchedulerOptions rsched_options;
+      rsched_options.res_update_interval_s = std::stoi(props.GetProperty("rsched_interval"));
+      rsched_options.stats_dump_interval_s = 5;
+      rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_rampup_multiplier"));
+      rsched_options.io_read_capacity_bps = std::stoi(props.GetProperty("io_read_capacity"));
+      rsched_options.io_write_capacity_bps = std::stoi(props.GetProperty("io_write_capacity"));
+      rsched_options.memtable_capacity_byes = std::stoi(props.GetProperty("memtable_capacity"));
+      rsched_options.max_memtable_size = std::stoi(props.GetProperty("max_memtable_size"));
+      rsched_options.min_memtable_size = std::stoi(props.GetProperty("min_memtable_size"));
+      rsched_options.min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
 
-    // std::cout << "[TGRIGGS_LOG] Launching CentralResourceSchedulerThread\n";
-    ycsbc::ResourceSchedulerOptions rsched_options;
-    rsched_options.res_update_interval_s = std::stoi(props.GetProperty("rsched_interval"));
-    rsched_options.stats_dump_interval_s = 5;
-    rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_interval"));
-    rsched_options.io_read_capacity_bps = std::stoi(props.GetProperty("io_read_capacity"));
-    rsched_options.io_write_capacity_bps = std::stoi(props.GetProperty("io_write_capacity"));
-    rsched_options.memtable_capacity_byes = std::stoi(props.GetProperty("memtable_capacity"));
-    rsched_options.max_memtable_size = std::stoi(props.GetProperty("max_memtable_size"));
-    rsched_options.min_memtable_size = std::stoi(props.GetProperty("min_memtable_size"));
-
-    rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
-                               measurements, per_client_measurements, rsched_options, &latch);
+      rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
+                                measurements, per_client_measurements, rsched_options, &latch);
+    }
 
     assert((int)client_threads.size() == num_threads);
 
@@ -323,9 +324,10 @@ int main(const int argc, const char *argv[]) {
 
     if (show_status) {
       status_future.wait();
+    }
+    if (use_rsched) {
       rsched_future.wait();
     }
-
     writeToCSV("client_progress.csv", client_op_progresses);
 
     std::cout << "Run runtime(sec): " << runtime << std::endl;

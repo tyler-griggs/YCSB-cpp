@@ -331,7 +331,7 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 3 || client_id == 1) {
+    if (client_id == 1 || client_id == 3) {
       status = TransactionRandomInsert(db, client_id, table_name);
     } else {
       status = TransactionScan(db, client_id, table_name);

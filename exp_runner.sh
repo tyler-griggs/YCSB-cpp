@@ -56,21 +56,31 @@ mpstat_pid=$!
   -p recordcount=1562500 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=1 \
-  -p scanproportion=0 \
+  -p readproportion=0 \
+  -p scanproportion=1 \
   -p randominsertproportion=0 \
   -threads 4 \
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
-  -p op_mode=real \
-  -target_rates "1000,100,0,1000" \
+  -p op_mode=fake \
+  -target_rates "0,1000,0,1000" \
   -p requestdistribution=zipfian \
-  -p rate_limits="100,100,100,100" \
-  -p read_rate_limits="1500,1500,1500,1500" \
+  -p rate_limits="1000,1000,1000,1000" \
+  -p read_rate_limits="1000,1000,1000,1000" \
   -p refill_period=5 \
+  -p rsched=true \
+  -p rsched_interval=1 \
+  -p rsched_rampup_multiplier=2.0 \
+  -p io_read_capacity=$((200*1024*1024)) \
+  -p io_write_capacity=$((200*1024*1024)) \
+  -p memtable_capacity=$((1*1024*1024*1024)) \
+  -p min_memtable_count=2 \
+  -p max_memtable_size=$((128*1024*1024)) \
+  -p min_memtable_size=$((64*1024*1024)) \
   | tee status_thread.txt &
 
-#   -target_rates "0,0,1400,500" \
+# To add:
+# rocksdb parameters for memtable size, etc.
 
 # Multi column family
 # ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \

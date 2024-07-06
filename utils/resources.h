@@ -41,9 +41,9 @@ struct MultiTenantResourceUsage {
 
   std::string ToString() const {
         std::ostringstream oss;
-        oss << "IO Read: " << (io_bytes_read / 1024 / 1024) << " MB\n"
-            << "IO Written: " << (io_bytes_written / 1024 / 1024) << " MB\n"
-            << "Memory Written: " << (mem_bytes_written / 1024 / 1024) << " MB\n";
+        oss << (io_bytes_read / 1024 / 1024) << " MB / "
+            << (io_bytes_written / 1024 / 1024) << " MB / "
+             << (mem_bytes_written / 1024 / 1024) << " MB (IO read / IO write / Mem write)\n";
         return oss.str();
     }
 };

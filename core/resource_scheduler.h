@@ -26,6 +26,7 @@ struct ResourceSchedulerOptions {
   int64_t memtable_capacity_byes;
   int max_memtable_size;
   int min_memtable_size;
+  int min_memtable_count;
 };
 
 // TODO(tgriggs): Need to ensure:
@@ -34,24 +35,28 @@ struct ResourceSchedulerOptions {
 // `write_buffer_sizes` and `max_write_buffer_numbers` are output parameters.
 void MemtableAllocationToRocksDbParams(
     std::vector<int64_t> memtable_allocation, int64_t capacity_bytes, 
-    int max_memtable_size, int min_memtable_size,
+    int max_memtable_size, int min_memtable_size, int min_memtable_count,
     std::vector<int>& write_buffer_sizes, std::vector<int>& max_write_buffer_numbers) {
 
-  // TODO(tgriggs): Tune kMinMemtableSize.
+  // TODO(tgriggs): Lot of tuning necessary here.
 
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
     if (memtable_allocation[i] > max_memtable_size) {
       // Get the integer ceiling of "Allocation / MaxMemtableSize" to get number of memtables
-      max_write_buffer_numbers[i] = (memtable_allocation[i] + max_memtable_size - 1) / max_memtable_size;
+      max_write_buffer_numbers[i] = std::max(min_memtable_count, int((memtable_allocation[i] + max_memtable_size - 1) / max_memtable_size));
       // Divide the total allocation by number of memtables to get memtable size
       write_buffer_sizes[i] = memtable_allocation[i] / max_write_buffer_numbers[i];
-    } else if (memtable_allocation[i] <= min_memtable_size) {
-      write_buffer_sizes[i] = min_memtable_size;
-      max_write_buffer_numbers[i] = 1;
     } else {
-      write_buffer_sizes[i] = memtable_allocation[i];
-      max_write_buffer_numbers[i] = 1;
+      write_buffer_sizes[i] = std::max(min_memtable_size, int(memtable_allocation[i]));
+      max_write_buffer_numbers[i] = min_memtable_count;
     }
+    // else if (memtable_allocation[i] <= min_memtable_size) {
+    //   write_buffer_sizes[i] = min_memtable_size;
+    //   max_write_buffer_numbers[i] = min_memtable_count;
+    // } else {
+    //   write_buffer_sizes[i] = memtable_allocation[i];
+    //   max_write_buffer_numbers[i] = min_memtable_count;
+    // }
   } 
 }
 
@@ -75,7 +80,7 @@ std::vector<int64_t> ComputePRFAllocation(
     for (size_t i = 0; i < num_clients; ++i) {
       if (!assigned[i] && interval_usage[i] < fair_share) {
         // TODO(tgriggs): Only allow clients to increase by XX% per interval
-        allocation[i] = std::max(10 * 1024.0 * 1024.0, ramp_up_multiplier * interval_usage[i]);
+        allocation[i] = std::min(1.0 * fair_share, std::max(10.0 * 1024 * 1024, ramp_up_multiplier * interval_usage[i]));
         // allocation[i] = std::max(1024.0 * 1024.0, 1.1 * interval_usage[i]);
         // std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << (allocation[i] / 1024 / 1024) << " MB/s\n";
 
@@ -171,10 +176,10 @@ void CentralResourceSchedulerThread(
       MemtableAllocationToRocksDbParams(
         memtable_allocation, options.memtable_capacity_byes, 
         options.max_memtable_size, options.min_memtable_size,
+        options.min_memtable_count,
         write_buffer_sizes, max_write_buffer_numbers);
 
       for (size_t i = 0; i < num_clients; ++i) {
-        std::cout << "[TGRIGGS_LOG] Num memtables: " << max_write_buffer_numbers[i] << ", memtable size: " << write_buffer_sizes[i] << std::endl;
         res_opts[i].max_write_buffer_number = max_write_buffer_numbers[i];
         res_opts[i].write_buffer_size = write_buffer_sizes[i];
         res_opts[i].read_rate_limit = io_read_allocation[i];
