@@ -20,7 +20,7 @@ using ycsbc::utils::MultiTenantResourceUsage;
 struct ResourceSchedulerOptions {
   int res_update_interval_s;
   int stats_dump_interval_s;
-  int lookback_intervals;
+  size_t lookback_intervals;
   double ramp_up_multiplier;
   int64_t io_read_capacity_bps;
   int64_t io_write_capacity_bps;
@@ -69,50 +69,42 @@ std::vector<int64_t> ComputePRFAllocation(
   std::vector<bool> assigned(num_clients);
   
   int64_t capacity_remaining = resource_capacity;
-  int64_t fair_share;
 
   std::vector<int64_t> allocation(num_clients);
 
-  // TODO(tgriggs): Rewrite. This scheduling logic is very bad and hacky. 
 
-  // Iteratively grant resources to clients until all capacity is spent.
-  while (num_clients_assigned < num_clients) {
-    // The fair share for each round is an even split of remaining capacity.
+  // Idea: Just always give XX% more than usage.
+  // Allocate resources from least used to most used. 
+  // Keep going until:
+    // 1) Remaining usage exceeds remaining capacity --> evenly divide capacity
+    // 2) All resources are assigned. 
+
+  // Sort clients by usage.
+  std::vector<std::pair<int64_t, int>> usage_by_client;
+  for (size_t i = 0; i < num_clients; ++i) {
+    usage_by_client.push_back(std::make_pair(interval_usage[i], i));
+  }
+  std::sort(usage_by_client.begin(), usage_by_client.end());
+
+  // Assign from lowest to highest.
+  int64_t fair_share;
+  for (size_t i = 0; i < num_clients; ++i) {
+    int64_t client_usage = usage_by_client[i].first;
+    int client_id = usage_by_client[i].second;
     fair_share = capacity_remaining / (num_clients - num_clients_assigned);
-    int assigned_this_round = 0;
-    for (size_t i = 0; i < num_clients; ++i) {
-      if (!assigned[i] && interval_usage[i] < fair_share) {
-        // TODO(tgriggs): Only allow clients to increase by XX% per interval
-        allocation[i] = std::min(1.1 * fair_share, std::max(10.0 * 1024 * 1024, ramp_up_multiplier * interval_usage[i]));
-        // allocation[i] = std::max(1024.0 * 1024.0, 1.1 * interval_usage[i]);
-        // std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << (allocation[i] / 1024 / 1024) << " MB/s\n";
 
-        // TODO(tgriggs): Alternative: allow clients to always use at least fair share.
-        // res_opts[i].read_rate_limit = fair_share;
-
-        ++num_clients_assigned;
-        ++assigned_this_round;
-        assigned[i] = true;
-
-        // TODO(tgriggs): Only count the amount actually used. This over-subscribes, which
-        // is helpful for observing when a client wants to increase usage.
-        capacity_remaining -= interval_usage[i];
+    if (client_usage < fair_share) {
+      // TODO(tgriggs): Replace this second value with resource-specific parameters
+      allocation[client_id] = std::max(ramp_up_multiplier * client_usage, 10.0 * 1024 * 1024);
+      capacity_remaining -= client_usage;
+      ++num_clients_assigned;
+    } else {
+      // Evenly divide remaining capacity.
+      for (size_t j = i; j < num_clients; ++j) {
+        allocation[usage_by_client[j].second] = fair_share;
       }
-    }
-    if (assigned_this_round == 0) {
-      // If no clients were assigned this round, then evenly assign remaining capacity.
-      std::cout << "[TGRIGGS_LOG] No clients assigned this round. Remaining: " << (num_clients - num_clients_assigned) << ", capacity: " << capacity_remaining << "\n";
-      for (size_t i = 0; i < num_clients; ++i) {
-        if (assigned[i]) {
-          continue;
-        }
-
-        // TODO(tgriggs): change this
-        allocation[i] = fair_share;
-        // std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << (allocation[i] / 1024 / 1024) << " MB/s\n";
-        assigned[i] = true;
-        ++num_clients_assigned;
-      }
+      // All done!
+      break;
     }
   }
   return allocation;

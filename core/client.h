@@ -53,12 +53,11 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   int num_bursts = 1;
   int adjusted_num_ops = num_ops;
 
-
   // TODO(tgriggs): remove this post-experiment
   // int total_exp_duration_s = 150;
-  if (client_id == 1) {
-    std::this_thread::sleep_for(std::chrono::seconds(30));
-  }
+  // if (client_id == 1) {
+  //   std::this_thread::sleep_for(std::chrono::seconds(30));
+  // }
 
   // if (burst_gap_s > 0 && (client_id == 0 || client_id == 1)) {
   //   std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));

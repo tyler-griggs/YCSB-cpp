@@ -63,15 +63,15 @@ mpstat_pid=$!
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
   -p op_mode=real \
-  -target_rates "10,20,10,10" \
+  -target_rates "10,2,10,10" \
   -p requestdistribution=zipfian \
   -p rate_limits="1000,1000,1000,1000" \
   -p read_rate_limits="1000,1000,1000,1000" \
   -p refill_period=5 \
   -p rsched=false \
   -p rsched_interval=1 \
-  -p lookback_intervals=3 \
-  -p rsched_rampup_multiplier=2.0 \
+  -p lookback_intervals=5 \
+  -p rsched_rampup_multiplier=1.2 \
   -p io_read_capacity=$((200*1024*1024)) \
   -p io_write_capacity=$((200*1024*1024)) \
   -p memtable_capacity=$((1*1024*1024*1024)) \
