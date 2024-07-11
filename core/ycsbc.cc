@@ -298,6 +298,7 @@ int main(const int argc, const char *argv[]) {
       ycsbc::ResourceSchedulerOptions rsched_options;
       rsched_options.res_update_interval_s = std::stoi(props.GetProperty("rsched_interval"));
       rsched_options.stats_dump_interval_s = 5;
+      rsched_options.lookback_intervals = std::stoi(props.GetProperty("lookback_intervals"));
       rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_rampup_multiplier"));
       rsched_options.io_read_capacity_bps = std::stoi(props.GetProperty("io_read_capacity"));
       rsched_options.io_write_capacity_bps = std::stoi(props.GetProperty("io_write_capacity"));

@@ -20,6 +20,7 @@ using ycsbc::utils::MultiTenantResourceUsage;
 struct ResourceSchedulerOptions {
   int res_update_interval_s;
   int stats_dump_interval_s;
+  int lookback_intervals;
   double ramp_up_multiplier;
   int64_t io_read_capacity_bps;
   int64_t io_write_capacity_bps;
@@ -72,6 +73,8 @@ std::vector<int64_t> ComputePRFAllocation(
 
   std::vector<int64_t> allocation(num_clients);
 
+  // TODO(tgriggs): Rewrite. This scheduling logic is very bad and hacky. 
+
   // Iteratively grant resources to clients until all capacity is spent.
   while (num_clients_assigned < num_clients) {
     // The fair share for each round is an even split of remaining capacity.
@@ -80,7 +83,7 @@ std::vector<int64_t> ComputePRFAllocation(
     for (size_t i = 0; i < num_clients; ++i) {
       if (!assigned[i] && interval_usage[i] < fair_share) {
         // TODO(tgriggs): Only allow clients to increase by XX% per interval
-        allocation[i] = std::min(1.0 * fair_share, std::max(10.0 * 1024 * 1024, ramp_up_multiplier * interval_usage[i]));
+        allocation[i] = std::min(1.1 * fair_share, std::max(10.0 * 1024 * 1024, ramp_up_multiplier * interval_usage[i]));
         // allocation[i] = std::max(1024.0 * 1024.0, 1.1 * interval_usage[i]);
         // std::cout << "[TGRIGGS_LOG] Setting Client " << (i + 1) << " RateLimit to " << (allocation[i] / 1024 / 1024) << " MB/s\n";
 
@@ -138,16 +141,26 @@ void CentralResourceSchedulerThread(
     bool done = false;
     bool first_time = true;
 
-    std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
+    // std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
+    std::deque<std::vector<MultiTenantResourceUsage>> interval_usages;
+
     while (1) {
       done = latch->AwaitFor(options.res_update_interval_s);
       if (done) {
         break;
       }
       std::vector<MultiTenantResourceUsage> total_usage = dbs[0]->GetResourceUsage();
+      std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
         interval_usage[i] = ycsbc::utils::ComputeResourceUsageDiff(prev_usage[i], total_usage[i]);
       }
+
+      // Push the current interval usage to the back of the deque
+      interval_usages.push_back(interval_usage);
+      if (interval_usages.size() > options.lookback_intervals) {
+        interval_usages.pop_front();
+      }
+
       prev_usage = total_usage;
       if (first_time) {
         first_time = false;
@@ -160,10 +173,18 @@ void CentralResourceSchedulerThread(
 
       // TODO(tgriggs): just update the resource usage struct to vectors so i don't have
       //                have to do this restructuring 
+      std::vector<MultiTenantResourceUsage> max_interval_usage(num_clients);
+      for (size_t i = 0; i < num_clients; ++i) {
+        for (const auto& usage : interval_usages) {
+            max_interval_usage[i].io_bytes_read = std::max(max_interval_usage[i].io_bytes_read, usage[i].io_bytes_read);
+            max_interval_usage[i].io_bytes_written = std::max(max_interval_usage[i].io_bytes_written, usage[i].io_bytes_written);
+            max_interval_usage[i].mem_bytes_written = std::max(max_interval_usage[i].mem_bytes_written, usage[i].mem_bytes_written);
+        }
+      }
       std::vector<int64_t> io_read_usage;
       std::vector<int64_t> io_write_usage;
       std::vector<int64_t> memtable_usage;
-      for (const auto& usage : interval_usage) {
+      for (const auto& usage : max_interval_usage) {
         io_read_usage.push_back(usage.io_bytes_read);
         io_write_usage.push_back(usage.io_bytes_written);
         memtable_usage.push_back(usage.mem_bytes_written);
