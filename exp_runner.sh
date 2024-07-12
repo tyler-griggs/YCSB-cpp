@@ -52,6 +52,7 @@ mpstat_pid=$!
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
+  -p requestdistribution=zipfian \
   -s -p operationcount=35000000 \
   -p recordcount=1562500 \
   -p updateproportion=0 \
@@ -62,22 +63,21 @@ mpstat_pid=$!
   -threads 4 \
   -p burst_gap_s=0 \
   -p burst_size_ops=0 \
-  -p op_mode=real \
-  -target_rates "10,500,10,10" \
-  -p requestdistribution=zipfian \
-  -p rate_limits="1000,1000,1000,1000" \
-  -p read_rate_limits="1000,1000,1000,1000" \
-  -p refill_period=5 \
-  -p rsched=false \
-  -p rsched_interval_ms=500 \
-  -p lookback_intervals=6 \
+  -p real_op_mode=false \
+  -target_rates "0,0,600,0" \
+  -p rsched=true \
+  -p rsched_interval_ms=100 \
+  -p lookback_intervals=1 \
   -p rsched_rampup_multiplier=1.2 \
-  -p io_read_capacity=$((352*1024*1024)) \
-  -p io_write_capacity=$((352*1024*1024)) \
+  -p refill_period=5 \
+  -p io_read_capacity=$((600*1024*1024)) \
+  -p io_write_capacity=$((350*1024*1024)) \
   -p memtable_capacity=$((1*1024*1024*1024)) \
   -p min_memtable_count=4 \
   -p max_memtable_size=$((128*1024*1024)) \
   -p min_memtable_size=$((128*1024*1024)) \
+  -p rate_limits="350,350,350,350" \
+  -p read_rate_limits="600,600,600,600" \
   | tee status_thread.txt &
 
 # To add:

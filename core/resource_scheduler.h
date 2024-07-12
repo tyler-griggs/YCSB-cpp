@@ -198,8 +198,8 @@ void CentralResourceSchedulerThread(
         res_opts[i].read_rate_limit = io_read_allocation[i];
         res_opts[i].write_rate_limit = io_write_allocation[i];
         // if (i == 1) {
-        //   res_opts[i].write_rate_limit = 200 * 1024 * 1024;
-        //   res_opts[i].read_rate_limit = 88 * 1024 * 1024;
+        //   res_opts[i].write_rate_limit = 252 * 1024 * 1024;
+        //   res_opts[i].read_rate_limit = 352 / 4 * 1024 * 1024;
         // }
       }
 

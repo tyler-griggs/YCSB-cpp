@@ -106,8 +106,8 @@ const std::string CoreWorkload::FIELD_NAME_PREFIX_DEFAULT = "field";
 
 const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
 
-const std::string CoreWorkload::OP_MODE_PROPERTY = "op_mode";
-const std::string CoreWorkload::OP_MODE_DEFAULT = "real"; // real, fake
+const std::string CoreWorkload::OP_MODE_PROPERTY = "real_op_mode";
+const std::string CoreWorkload::OP_MODE_DEFAULT = "true";
 
 const std::string CoreWorkload::BURST_GAP_S = "burst_gap_s";
 const std::string CoreWorkload::BURST_GAP_S_DEFAULT = "0";
@@ -119,7 +119,7 @@ namespace ycsbc {
 
 void CoreWorkload::Init(const utils::Properties &p) {
   table_name_ = p.GetProperty(TABLENAME_PROPERTY,TABLENAME_DEFAULT);
-  op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "real";
+  op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "true";
 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
   field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
@@ -331,10 +331,10 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    // if (client_id == 1 || client_id == 3) {
-    if (client_id == 1) {
+    if (client_id == 2) {
       status = TransactionRandomInsert(db, client_id, table_name);
     } else {
+      // status = TransactionRead(db, client_id, table_name);
       status = TransactionScan(db, client_id, table_name);
     }
   }
