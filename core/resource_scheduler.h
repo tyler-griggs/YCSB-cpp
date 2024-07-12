@@ -18,7 +18,7 @@ using ycsbc::utils::MultiTenantResourceOptions;
 using ycsbc::utils::MultiTenantResourceUsage;
 
 struct ResourceSchedulerOptions {
-  int res_update_interval_s;
+  int rsched_interval_ms;
   int stats_dump_interval_s;
   size_t lookback_intervals;
   double ramp_up_multiplier;
@@ -137,14 +137,14 @@ void CentralResourceSchedulerThread(
     std::deque<std::vector<MultiTenantResourceUsage>> interval_usages;
 
     while (1) {
-      done = latch->AwaitFor(options.res_update_interval_s);
+      done = latch->AwaitForMs(options.rsched_interval_ms);
       if (done) {
         break;
       }
       std::vector<MultiTenantResourceUsage> total_usage = dbs[0]->GetResourceUsage();
       std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
-        interval_usage[i] = ycsbc::utils::ComputeResourceUsageDiff(prev_usage[i], total_usage[i]);
+        interval_usage[i] = ycsbc::utils::ComputeResourceUsageRateInInterval(prev_usage[i], total_usage[i], options.rsched_interval_ms);
       }
 
       // Push the current interval usage to the back of the deque
@@ -197,6 +197,10 @@ void CentralResourceSchedulerThread(
         res_opts[i].write_buffer_size = write_buffer_sizes[i];
         res_opts[i].read_rate_limit = io_read_allocation[i];
         res_opts[i].write_rate_limit = io_write_allocation[i];
+        // if (i == 1) {
+        //   res_opts[i].write_rate_limit = 200 * 1024 * 1024;
+        //   res_opts[i].read_rate_limit = 88 * 1024 * 1024;
+        // }
       }
 
       // TODO(tgriggs): Access a single "Resource" object instead of going through a single DB

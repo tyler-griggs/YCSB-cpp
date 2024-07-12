@@ -26,6 +26,10 @@ class CountDownLatch {
     std::unique_lock<std::mutex> lock(mu_);
     return cv_.wait_for(lock, std::chrono::seconds(timeout_sec), [this]{return count_ <= 0;});
   }
+  bool AwaitForMs(long timeout_ms) {
+    std::unique_lock<std::mutex> lock(mu_);
+    return cv_.wait_for(lock, std::chrono::milliseconds(timeout_ms), [this]{return count_ <= 0;});
+  }
   void CountDown() {
     std::unique_lock<std::mutex> lock(mu_);
     if (--count_ <= 0) {

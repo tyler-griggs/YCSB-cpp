@@ -48,11 +48,13 @@ struct MultiTenantResourceUsage {
     }
 };
 
-inline MultiTenantResourceUsage ComputeResourceUsageDiff(MultiTenantResourceUsage prev, MultiTenantResourceUsage cur) {
+inline MultiTenantResourceUsage ComputeResourceUsageRateInInterval(
+  MultiTenantResourceUsage prev, MultiTenantResourceUsage cur, int interval_ms) {
   MultiTenantResourceUsage diff;
-  diff.io_bytes_read = cur.io_bytes_read - prev.io_bytes_read;
-  diff.io_bytes_written = cur.io_bytes_written - prev.io_bytes_written;
-  diff.mem_bytes_written = cur.mem_bytes_written - prev.mem_bytes_written;
+  double interval_s = interval_ms / 1000.0;
+  diff.io_bytes_read = (cur.io_bytes_read - prev.io_bytes_read) / interval_s;
+  diff.io_bytes_written = (cur.io_bytes_written - prev.io_bytes_written) / interval_s;
+  diff.mem_bytes_written = (cur.mem_bytes_written - prev.mem_bytes_written ) / interval_s;
   return diff;
 }
 
