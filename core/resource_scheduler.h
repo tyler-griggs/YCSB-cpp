@@ -41,24 +41,46 @@ void MemtableAllocationToRocksDbParams(
 
   // TODO(tgriggs): Lot of tuning necessary here.
 
+  // for (size_t i = 0; i < memtable_allocation.size(); ++i) {
+  //   if (memtable_allocation[i] > max_memtable_size) {
+  //     // Get the integer ceiling of "Allocation / MaxMemtableSize" to get number of memtables
+  //     max_write_buffer_numbers[i] = std::max(min_memtable_count, int((memtable_allocation[i] + max_memtable_size - 1) / max_memtable_size));
+  //     // Divide the total allocation by number of memtables to get memtable size
+  //     write_buffer_sizes[i] = memtable_allocation[i] / max_write_buffer_numbers[i];
+  //   } else {
+  //     write_buffer_sizes[i] = std::max(min_memtable_size, int(memtable_allocation[i]));
+  //     max_write_buffer_numbers[i] = min_memtable_count;
+  //   }
+  //   // else if (memtable_allocation[i] <= min_memtable_size) {
+  //   //   write_buffer_sizes[i] = min_memtable_size;
+  //   //   max_write_buffer_numbers[i] = min_memtable_count;
+  //   // } else {
+  //   //   write_buffer_sizes[i] = memtable_allocation[i];
+  //   //   max_write_buffer_numbers[i] = min_memtable_count;
+  //   // }
+  // } 
+
+
+  // TODO(tgriggs): idea is to always assign all memtable space based on 1) min, 2) ratios 
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
-    if (memtable_allocation[i] > max_memtable_size) {
-      // Get the integer ceiling of "Allocation / MaxMemtableSize" to get number of memtables
-      max_write_buffer_numbers[i] = std::max(min_memtable_count, int((memtable_allocation[i] + max_memtable_size - 1) / max_memtable_size));
-      // Divide the total allocation by number of memtables to get memtable size
-      write_buffer_sizes[i] = memtable_allocation[i] / max_write_buffer_numbers[i];
-    } else {
-      write_buffer_sizes[i] = std::max(min_memtable_size, int(memtable_allocation[i]));
-      max_write_buffer_numbers[i] = min_memtable_count;
-    }
-    // else if (memtable_allocation[i] <= min_memtable_size) {
-    //   write_buffer_sizes[i] = min_memtable_size;
-    //   max_write_buffer_numbers[i] = min_memtable_count;
-    // } else {
-    //   write_buffer_sizes[i] = memtable_allocation[i];
-    //   max_write_buffer_numbers[i] = min_memtable_count;
-    // }
+    write_buffer_sizes[i] = min_memtable_size;
+    max_write_buffer_numbers[i] = min_memtable_count;
   } 
+
+  // Change memtable_allocation into proportions
+  std::vector<double> proportions(memtable_allocation.size());
+  double total_allocation = 0;
+  for (size_t i = 0; i < memtable_allocation.size(); ++i) {
+    total_allocation += memtable_allocation[i];
+  }
+  for (size_t i = 0; i < memtable_allocation.size(); ++i) {
+    proportions[i] = memtable_allocation[i] / total_allocation;
+  }
+  int remaining_memtables = (capacity_bytes - (memtable_allocation.size() * min_memtable_count * min_memtable_size)) / min_memtable_size;
+  for (size_t i = 0; i < memtable_allocation.size(); ++i) {
+    max_write_buffer_numbers[i] += int(proportions[i] * remaining_memtables);
+  }
+
 }
 
 std::vector<int64_t> ComputePRFAllocation(
@@ -197,10 +219,10 @@ void CentralResourceSchedulerThread(
         res_opts[i].write_buffer_size = write_buffer_sizes[i];
         res_opts[i].read_rate_limit = io_read_allocation[i];
         res_opts[i].write_rate_limit = io_write_allocation[i];
-        // if (i == 1) {
-        //   res_opts[i].write_rate_limit = 252 * 1024 * 1024;
-        //   res_opts[i].read_rate_limit = 352 / 4 * 1024 * 1024;
-        // }
+        if (i == 0) {
+          res_opts[i].write_rate_limit = std::max(res_opts[i].write_rate_limit, int64_t(100 * 1024 * 1024));
+          // res_opts[i].read_rate_limit = 500 / 4 * 1024 * 1024;
+        }
       }
 
       // TODO(tgriggs): Access a single "Resource" object instead of going through a single DB

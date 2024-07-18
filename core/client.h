@@ -59,14 +59,14 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   //   std::this_thread::sleep_for(std::chrono::seconds(30));
   // }
 
-  // if (burst_gap_s > 0 && (client_id == 0 || client_id == 1)) {
-  //   std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
-  //   // adjusted_num_ops = 123; 
-  //   // adjusted_num_ops = 145; 
-  //   // adjusted_num_ops = 180; 
-  //   adjusted_num_ops = burst_size_ops;
-  //   num_bursts = 100;
-  // }
+  if (burst_gap_s > 0 && client_id == 0) {
+    std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
+    // adjusted_num_ops = 123; 
+    // adjusted_num_ops = 145; 
+    // adjusted_num_ops = 180; 
+    adjusted_num_ops = burst_size_ops;
+    num_bursts = 100;
+  }
  
   std::vector<int> op_progress;       
   int client_log_interval_s = 1;                 

@@ -331,8 +331,12 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 2) {
-      status = TransactionRandomInsert(db, client_id, table_name);
+    if (client_id == 0) {
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionInsertBatch(db, client_id, table_name);
+    } else if (client_id == 2) {
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionScan(db, client_id, table_name);
     } else {
       // status = TransactionRead(db, client_id, table_name);
       status = TransactionScan(db, client_id, table_name);
@@ -345,14 +349,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
 
-  // uint64_t client_key_num = key_num;
-  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
-  // uint64_t client_key_num = key_num;
-  // if (client_id != 0) {
-  //   client_key_num += (6250000 / 4);
-  // } 
-  // For multi-cf
-  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  uint64_t client_key_num = key_num;
+  // uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
 
 
   const std::string key = BuildKeyName(client_key_num);
@@ -390,13 +388,12 @@ DB::Status CoreWorkload::TransactionReadModifyWrite(DB &db) {
 
 DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
-  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
-  // For multi-cf
-  uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
+  int len = 100;
+  uint64_t client_key_num = std::min(key_num, uint64_t(3125000 - len));
+  // uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   // int len = scan_len_chooser_->Next();
-  int len = 100;
   std::vector<std::vector<DB::Field>> result;
   if (!read_all_fields()) {
     std::vector<std::string> fields;
@@ -409,9 +406,9 @@ DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string tabl
 
 DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
-  // uint64_t client_key_num = key_num + client_id * (6250000 / 4);
   // For multi-cf
-  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
+  uint64_t client_key_num = key_num;
+  // uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
@@ -425,14 +422,8 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string ta
 
 DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
-  // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
-  // uint64_t client_key_num = key_num;
-  // if (client_id != 0) {
-  //   client_key_num += (6250000 / 4);
-  // } 
-  // For multi-cf
-  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  uint64_t client_key_num = key_num;
+  // uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
 
   const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
@@ -443,20 +434,14 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int num_keys = 100;
-  uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
-  client_key_num = std::min(client_key_num, uint64_t(6250000 / 4 - num_keys));
-  // uint64_t client_key_num = key_num;
-  // if (client_id != 0) {
-  //   client_key_num += (6250000 / 4);
-  // } 
-  // For multi-cf
-  // uint64_t client_key_num = key_num + (client_id % 2) * (6250000 / 4);
+  int batch_size = 1000;
+  uint64_t client_key_num = key_num;
+  client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 
   // const std::string key = BuildKeyName(client_key_num);
   std::vector<DB::Field> values;
   BuildValues(values);
-  return db.InsertBatch(table_name, client_key_num, values, num_keys, client_id);
+  return db.InsertBatch(table_name, client_key_num, values, batch_size, client_id);
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {
