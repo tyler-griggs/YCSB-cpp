@@ -180,10 +180,10 @@ void CentralResourceSchedulerThread(
         first_time = false;
         continue;
       }
-      std::cout << "[TGRIGGS_LOG] Usage in this interval: " << std::endl;
-      for (const auto& usage : interval_usage) {
-        std::cout << usage.ToString();
-      }
+      // std::cout << "[TGRIGGS_LOG] Usage in this interval: " << std::endl;
+      // for (const auto& usage : interval_usage) {
+      //   std::cout << usage.ToString();
+      // }
 
       // TODO(tgriggs): just update the resource usage struct to vectors so i don't have
       //                have to do this restructuring 

@@ -778,7 +778,6 @@ void RocksdbDB::UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResou
   read_rate_limiter->SetBytesPerSecond(read_rate_limits);
 }
 
-
 std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();

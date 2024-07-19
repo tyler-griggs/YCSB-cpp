@@ -115,6 +115,7 @@ class DBWrapper : public DB {
     if (s == kOK) {
       measurements_->Report(INSERT_BATCH, elapsed);
       per_client_measurements_[client_id]->Report(INSERT_BATCH, elapsed);
+      per_client_bytes_written_->update(client_id, num_keys * values.size() * values[0].value.size());
     } else {
       measurements_->Report(INSERT_BATCH_FAILED, elapsed);
       per_client_measurements_[client_id]->Report(INSERT_BATCH_FAILED, elapsed);

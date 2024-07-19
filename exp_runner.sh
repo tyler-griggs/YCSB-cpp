@@ -63,19 +63,19 @@ mpstat_pid=$!
   -threads 4 \
   -p burst_gap_s=30 \
   -p burst_size_ops=12 \
-  -p real_op_mode=false \
   -target_rates "0,92,92,92" \
-  -p rsched=true \
   -p rate_limits="1000,1000,1000,1000" \
   -p read_rate_limits="1000,1000,1000,1000" \
-  -p rsched_interval_ms=100 \
+  -p real_op_mode=false \
+  -p rsched=false \
+  -p rsched_interval_ms=50 \
   -p lookback_intervals=50 \
   -p rsched_rampup_multiplier=1.2 \
   -p refill_period=5 \
   -p io_read_capacity=$((520*1024*1024)) \
   -p io_write_capacity=$((300*1024*1024)) \
-  -p memtable_capacity=$((1*1024*1024*1024)) \
-  -p min_memtable_count=1 \
+  -p memtable_capacity=$((512*1024*1024)) \
+  -p min_memtable_count=2 \
   -p max_memtable_size=$((64*1024*1024)) \
   -p min_memtable_size=$((64*1024*1024)) \
   | tee status_thread.txt &
