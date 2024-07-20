@@ -107,10 +107,11 @@ void BasicDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
   *out_ << "UPDATE_MEMTABLE_SIZE " << client_id << ' ' << memtable_size_bytes << std::endl;
 }
 
-void BasicDB::UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts) {
+
+void BasicDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) {
   std::lock_guard<std::mutex> lock(mutex_);
   (void) res_opts;
-  *out_ << "UPDATE_RESOURCE_OPTIONS " << std::endl;
+  *out_ << "UPDATE_RESOURCE_SHARES " << std::endl;
 }
 
 std::vector<ycsbc::utils::MultiTenantResourceUsage> BasicDB::GetResourceUsage() {

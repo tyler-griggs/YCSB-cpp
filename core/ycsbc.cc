@@ -36,7 +36,7 @@
 // #endif
 
 using namespace std::chrono;
-using ycsbc::utils::MultiTenantResourceOptions;
+using ycsbc::utils::MultiTenantResourceShares;
 using ycsbc::utils::MultiTenantResourceUsage;
 
 void UsageMessage(const char *command);
@@ -300,12 +300,19 @@ int main(const int argc, const char *argv[]) {
       rsched_options.stats_dump_interval_s = 5;
       rsched_options.lookback_intervals = std::stoi(props.GetProperty("lookback_intervals"));
       rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_rampup_multiplier"));
-      rsched_options.io_read_capacity_bps = std::stoi(props.GetProperty("io_read_capacity"));
-      rsched_options.io_write_capacity_bps = std::stoi(props.GetProperty("io_write_capacity"));
-      rsched_options.memtable_capacity_byes = std::stoi(props.GetProperty("memtable_capacity"));
-      rsched_options.max_memtable_size = std::stoi(props.GetProperty("max_memtable_size"));
-      rsched_options.min_memtable_size = std::stoi(props.GetProperty("min_memtable_size"));
-      rsched_options.min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
+      rsched_options.io_read_capacity_mbps = std::stoi(props.GetProperty("io_read_capacity_mbps"));
+      rsched_options.io_write_capacity_mbps = std::stoi(props.GetProperty("io_write_capacity_mbps"));
+      rsched_options.memtable_capacity_mb = std::stoi(props.GetProperty("memtable_capacity_mb"));
+      rsched_options.max_memtable_size_mb = std::stoi(props.GetProperty("max_memtable_size_mb"));
+      rsched_options.min_memtable_size_mb = std::stoi(props.GetProperty("min_memtable_size_mb"));
+      // TODO(tgriggs): bounds check needed
+      rsched_options.min_memtable_count = 0;
+      int min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
+      while (min_memtable_count > 0) {
+        ++rsched_options.min_memtable_count;
+        --min_memtable_count;
+      }
+      std::cout << "[TGRIGGS_LOG] min memtable count: " << rsched_options.min_memtable_count << std::endl;
 
       rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
                                 measurements, per_client_measurements, rsched_options, &latch);

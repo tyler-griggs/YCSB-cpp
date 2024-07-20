@@ -744,37 +744,25 @@ void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
   db_->SetOptions(cf_handles_[1], cf_opt_updates);
 }
 
-void RocksdbDB::UpdateResourceOptions(std::vector<ycsbc::utils::MultiTenantResourceOptions> res_opts) {
+// TODO(tgriggs): is there a way to perform the memtable updates without converting to string?
+void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) {
   std::unordered_map<std::string, std::string> cf_opt_updates;
-  std::cout << "[TGRIGGS_LOG] Memtables updated to: ";
   for (size_t i = 0; i < res_opts.size(); ++i) {
-    std::cout << res_opts[i].max_write_buffer_number << "-" << res_opts[i].write_buffer_size << " / ";
-    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size);
+    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_mb * 1024 * 1024);
     cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
     db_->SetOptions(cf_handles_[i], cf_opt_updates);
   }
-  std::cout << std::endl;
   
+  // TODO(tgriggs): restructure this so that we don't have to rearrange on every update
   std::vector<int64_t> write_rate_limits(res_opts.size());
   std::vector<int64_t> read_rate_limits(res_opts.size());
   for (size_t i = 0; i < res_opts.size(); ++i) {
-    write_rate_limits[i] = res_opts[i].write_rate_limit;
-    read_rate_limits[i] = res_opts[i].read_rate_limit;
+    write_rate_limits[i] = res_opts[i].write_rate_limit_mbs * 1024 * 1024;
+    read_rate_limits[i] = res_opts[i].read_rate_limit_mbs * 1024 * 1024;
   }
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
-  std::cout << "[TGRIGGS_LOG] Writes updated to: ";
-  for (int64_t limit : write_rate_limits) {
-    std::cout << (limit / 1024 / 1024) << " / ";
-  }
-  std::cout << std::endl;
   write_rate_limiter->SetBytesPerSecond(write_rate_limits);
-
-  std::cout << "[TGRIGGS_LOG] Reads updated to: ";
-  for (int64_t limit : read_rate_limits) {
-    std::cout << (limit / 1024 / 1024) << " / ";
-  }
-  std::cout << std::endl;
   read_rate_limiter->SetBytesPerSecond(read_rate_limits);
 }
 

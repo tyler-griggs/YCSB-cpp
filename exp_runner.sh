@@ -61,23 +61,23 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
-  -p burst_gap_s=30 \
+  -p burst_gap_s=10 \
   -p burst_size_ops=12 \
   -target_rates "0,92,92,92" \
   -p rate_limits="1000,1000,1000,1000" \
   -p read_rate_limits="1000,1000,1000,1000" \
   -p real_op_mode=false \
-  -p rsched=false \
+  -p rsched=true \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=50 \
   -p rsched_rampup_multiplier=1.2 \
   -p refill_period=5 \
-  -p io_read_capacity=$((520*1024*1024)) \
-  -p io_write_capacity=$((300*1024*1024)) \
-  -p memtable_capacity=$((512*1024*1024)) \
-  -p min_memtable_count=2 \
-  -p max_memtable_size=$((64*1024*1024)) \
-  -p min_memtable_size=$((64*1024*1024)) \
+  -p io_read_capacity_mbps=$((520)) \
+  -p io_write_capacity_mbps=$((300)) \
+  -p memtable_capacity_mb=$((512)) \
+  -p min_memtable_count=$((2)) \
+  -p max_memtable_size_mb=$((64)) \
+  -p min_memtable_size_mb=$((64)) \
   | tee status_thread.txt &
 
 # To add:

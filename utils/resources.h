@@ -27,11 +27,29 @@ class MultiTenantCounter {
     std::vector<std::atomic<int64_t>> counts;
 };
 
-struct MultiTenantResourceOptions {
-  int64_t write_rate_limit;
-  int64_t read_rate_limit;
-  int write_buffer_size;
-  int max_write_buffer_number;
+struct MultiTenantResourceShares {
+  uint32_t write_rate_limit_mbs;
+  uint32_t read_rate_limit_mbs;
+  uint16_t write_buffer_size_mb;
+  uint8_t max_write_buffer_number;
+
+  std::string ToString() const {
+    std::ostringstream oss;
+    oss << "Resource Shares: " << (write_rate_limit_mbs) << " MB/s / "
+        << (read_rate_limit_mbs) << " MB/s / "
+        << (write_buffer_size_mb) << " MB / "
+        << (max_write_buffer_number) << " (Write IO / Read IO / Memtable Size / Memtable Count)\n";
+    return oss.str();
+  }
+
+  std::string ToCSV() const {
+    std::ostringstream oss;
+    oss << (write_rate_limit_mbs) << ","
+        << (read_rate_limit_mbs) << ","
+        << (max_write_buffer_number) << ","
+        << (write_rate_limit_mbs);
+    return oss.str();
+  }
 };
 
 struct MultiTenantResourceUsage {
