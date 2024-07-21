@@ -31,7 +31,7 @@ struct MultiTenantResourceShares {
   uint32_t write_rate_limit_mbs;
   uint32_t read_rate_limit_mbs;
   uint16_t write_buffer_size_mb;
-  uint8_t max_write_buffer_number;
+  int max_write_buffer_number;
 
   std::string ToString() const {
     std::ostringstream oss;
@@ -46,8 +46,8 @@ struct MultiTenantResourceShares {
     std::ostringstream oss;
     oss << (write_rate_limit_mbs) << ","
         << (read_rate_limit_mbs) << ","
-        << (max_write_buffer_number) << ","
-        << (write_rate_limit_mbs);
+        << (write_rate_limit_mbs) << ","
+        << (max_write_buffer_number);
     return oss.str();
   }
 };

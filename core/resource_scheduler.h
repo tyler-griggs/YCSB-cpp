@@ -27,7 +27,7 @@ struct ResourceSchedulerOptions {
   int64_t memtable_capacity_mb; // TODO(tgriggs): decrease this size
   int max_memtable_size_mb;
   int min_memtable_size_mb;
-  uint8_t min_memtable_count;
+  int min_memtable_count;
 };
 
 struct ResourceShareReport {
@@ -53,8 +53,8 @@ struct ResourceShareReport {
 // `write_buffer_sizes` and `max_write_buffer_numbers` are output parameters.
 void MemtableAllocationToRocksDbParams(
     std::vector<int64_t> memtable_allocation, int64_t capacity_mb, 
-    int max_memtable_size_mb, int min_memtable_size_mb, uint8_t min_memtable_count,
-    std::vector<int>& write_buffer_sizes_mb, std::vector<uint8_t>& max_write_buffer_numbers) {
+    int max_memtable_size_mb, int min_memtable_size_mb, int min_memtable_count,
+    std::vector<int>& write_buffer_sizes_mb, std::vector<int>& max_write_buffer_numbers) {
 
   // TODO(tgriggs): Lot of tuning necessary here.
 
@@ -82,7 +82,6 @@ void MemtableAllocationToRocksDbParams(
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
     write_buffer_sizes_mb[i] = min_memtable_size_mb;
     max_write_buffer_numbers[i] = min_memtable_count;
-    std::cout << "[TGRIGGS_LOG] Client " << i << " has " << max_write_buffer_numbers[i] << " memtable count\n";
   } 
 
   // Change memtable_allocation into proportions
@@ -96,11 +95,8 @@ void MemtableAllocationToRocksDbParams(
   }
   int remaining_memtables = (capacity_mb - (memtable_allocation.size() * min_memtable_count * min_memtable_size_mb)) / min_memtable_size_mb;
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
-    std::cout << "[TGRIGGS_LOG] Client " << i << " has " << int(proportions[i] * remaining_memtables) << " memtable count increase\n";
     max_write_buffer_numbers[i] += int(proportions[i] * remaining_memtables);
-    std::cout << "[TGRIGGS_LOG] Client " << i << " has " << max_write_buffer_numbers[i] << " memtable count\n";
   }
-
 }
 
 std::vector<int64_t> ComputePRFAllocation(
@@ -241,7 +237,7 @@ void CentralResourceSchedulerThread(
       std::vector<int64_t> io_write_allocation = ComputePRFAllocation(options.io_write_capacity_mbps, io_write_usage, options.ramp_up_multiplier);
       std::vector<int64_t> memtable_allocation = ComputePRFAllocation(options.memtable_capacity_mb, memtable_usage, options.ramp_up_multiplier);
       std::vector<int> write_buffer_sizes(num_clients);
-      std::vector<uint8_t> max_write_buffer_numbers(num_clients);
+      std::vector<int> max_write_buffer_numbers(num_clients);
       MemtableAllocationToRocksDbParams(
         memtable_allocation, options.memtable_capacity_mb, 
         options.max_memtable_size_mb, options.min_memtable_size_mb,

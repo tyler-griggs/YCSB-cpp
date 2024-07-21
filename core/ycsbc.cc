@@ -305,15 +305,7 @@ int main(const int argc, const char *argv[]) {
       rsched_options.memtable_capacity_mb = std::stoi(props.GetProperty("memtable_capacity_mb"));
       rsched_options.max_memtable_size_mb = std::stoi(props.GetProperty("max_memtable_size_mb"));
       rsched_options.min_memtable_size_mb = std::stoi(props.GetProperty("min_memtable_size_mb"));
-      // TODO(tgriggs): bounds check needed
-      rsched_options.min_memtable_count = 0;
-      int min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
-      while (min_memtable_count > 0) {
-        ++rsched_options.min_memtable_count;
-        --min_memtable_count;
-      }
-      std::cout << "[TGRIGGS_LOG] min memtable count: " << rsched_options.min_memtable_count << std::endl;
-
+      rsched_options.min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
       rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
                                 measurements, per_client_measurements, rsched_options, &latch);
     }
