@@ -109,6 +109,30 @@ std::string HdrHistogramMeasurements::GetStatusMsg() {
   return std::to_string(total_cnt) + msg_stream.str();
 }
 
+std::vector<std::string> HdrHistogramMeasurements::GetCSVStatusMsg() {
+  std::vector<std::string> op_csv_stats;
+  for (int i = 0; i < MAXOPTYPE; i++) {
+    std::ostringstream msg_stream;
+    msg_stream.precision(2);
+    msg_stream << std::fixed;
+    Operation op = static_cast<Operation>(i);
+    uint64_t cnt = histogram_[op]->total_count;
+    if (cnt == 0)
+      continue;
+    msg_stream << kOperationString[op]
+               << "," << cnt  
+               << "," << hdr_max(histogram_[op]) / 1000.0
+               << "," << hdr_min(histogram_[op]) / 1000.0
+               << "," << hdr_mean(histogram_[op]) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 50) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 90) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 99) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 99.9) / 1000.0;
+    op_csv_stats.push_back(msg_stream.str());
+  }
+  return op_csv_stats;
+}
+
 void HdrHistogramMeasurements::Reset() {
   for (int op = 0; op < MAXOPTYPE; op++) {
     hdr_reset(histogram_[op]);

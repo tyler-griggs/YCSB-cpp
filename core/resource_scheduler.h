@@ -176,7 +176,7 @@ void CentralResourceSchedulerThread(
     // TODO(tgriggs): Wait for DB init before querying for stats. This is a hack.
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    int buffer_dump_threshold = 10 * 100;
+    size_t buffer_dump_threshold = 10 * 100;
     std::vector<ResourceShareReport> share_report_buffer;
     share_report_buffer.reserve(buffer_dump_threshold);
     

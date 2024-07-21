@@ -44,22 +44,48 @@ bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
 void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements*> per_client_measurements, 
-                  ycsbc::utils::CountDownLatch *latch, int interval, std::vector<ycsbc::DB *> dbs) {
-  using namespace std::chrono;
+                  ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs) {
+  std::string client_stats_filename = "logs/client_stats.log";
+  std::ofstream client_stats_logfile;
+  client_stats_logfile.open(client_stats_filename, std::ios::out | std::ios::trunc);
+  if (!client_stats_logfile.is_open()) {
+    // TODO(tgriggs):  Handle file open failure, propagate exception
+    // throw std::ios_base::failure("Failed to open the file.");
+  }
+  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p" << std::endl;
+
   time_point<system_clock> start = system_clock::now();
   bool done = false;
+
+  int print_intervals = 10;
+  int cur_interval = 0;
+  bool should_print = false;
   while (1) {
+    if (++cur_interval == print_intervals) {
+      cur_interval = 0;
+      should_print = true;
+    }
+
+    // Print experiment duration so far
     time_point<system_clock> now = system_clock::now();
-    std::time_t now_c = system_clock::to_time_t(now);
-    duration<double> elapsed_time = now - start;
+    auto elapsed_time_s = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+    if (elapsed_time_s % 5 == 0) {
+      std::cout << "[TGRIGGS_LOG] Exp time: " << elapsed_time_s << "s" << std::endl;
+    }
 
-    std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' '
-              << static_cast<long long>(elapsed_time.count()) << " sec: ";
+    auto duration_since_epoch = now.time_since_epoch();
+    auto duration_since_epoch_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
 
-    std::cout << measurements->GetStatusMsg() << std::endl;
+    // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i) {
-      std::cout << "client" << i << " stats:\n";
-      std::cout << std::put_time(std::localtime(&now_c), "%F %T") << ' ' << per_client_measurements[i]->GetStatusMsg() << std::endl;
+      std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
+      for (const auto& csv : op_csv_stats) {
+        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
+        if (should_print) {
+          std::cout << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p" << std::endl;
+          std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
+        }
+      }
       per_client_measurements[i]->Reset();
     }
     // Print DB-wide and CF-wide stats -- only need to use a single client
@@ -80,7 +106,8 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     if (done) {
       break;
     }
-    done = latch->AwaitFor(interval);
+    should_print = false;
+    done = latch->AwaitForMs(interval_ms);
   };
 }
 
@@ -196,7 +223,7 @@ int main(const int argc, const char *argv[]) {
   // print status periodically
   const bool show_status = (props.GetProperty("status", "false") == "true");
   const bool use_rsched = (props.GetProperty("rsched", "false") == "true");
-  const int status_interval = std::stoi(props.GetProperty("status.interval", "2"));
+  const double status_interval_ms = std::stod(props.GetProperty("status.interval_ms", "500"));
 
   // load phase
   if (do_load) {
@@ -209,7 +236,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval, dbs);
+                                 measurements, per_client_measurements, &latch, status_interval_ms, dbs);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     for (int i = 0; i < num_threads; ++i) {
@@ -267,7 +294,7 @@ int main(const int argc, const char *argv[]) {
     std::future<void> status_future;
     if (show_status) {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval, dbs);
+                                 measurements, per_client_measurements, &latch, status_interval_ms, dbs);
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;

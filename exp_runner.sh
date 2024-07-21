@@ -57,16 +57,17 @@ mpstat_pid=$!
   -p recordcount=3125000 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=1 \
-  -p scanproportion=0 \
+  -p readproportion=0 \
+  -p scanproportion=1 \
   -p randominsertproportion=0 \
   -threads 4 \
-  -p burst_gap_s=10 \
-  -p burst_size_ops=12 \
-  -target_rates "0,92,92,92" \
+  -p status.interval_ms=500 \
+  -p burst_gap_s=0 \
+  -p burst_size_ops=0 \
+  -target_rates "1,92,92,92" \
   -p rate_limits="1000,1000,1000,1000" \
   -p read_rate_limits="1000,1000,1000,1000" \
-  -p real_op_mode=false \
+  -p real_op_mode=true \
   -p rsched=true \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=50 \
