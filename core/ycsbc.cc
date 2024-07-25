@@ -82,7 +82,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       for (const auto& csv : op_csv_stats) {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         if (should_print) {
-          std::cout << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p" << std::endl;
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
       }
@@ -327,11 +326,11 @@ int main(const int argc, const char *argv[]) {
       rsched_options.stats_dump_interval_s = 5;
       rsched_options.lookback_intervals = std::stoi(props.GetProperty("lookback_intervals"));
       rsched_options.ramp_up_multiplier = std::stod(props.GetProperty("rsched_rampup_multiplier"));
-      rsched_options.io_read_capacity_mbps = std::stoi(props.GetProperty("io_read_capacity_mbps"));
-      rsched_options.io_write_capacity_mbps = std::stoi(props.GetProperty("io_write_capacity_mbps"));
-      rsched_options.memtable_capacity_mb = std::stoi(props.GetProperty("memtable_capacity_mb"));
-      rsched_options.max_memtable_size_mb = std::stoi(props.GetProperty("max_memtable_size_mb"));
-      rsched_options.min_memtable_size_mb = std::stoi(props.GetProperty("min_memtable_size_mb"));
+      rsched_options.io_read_capacity_kbps = std::stoi(props.GetProperty("io_read_capacity_kbps"));
+      rsched_options.io_write_capacity_kbps = std::stoi(props.GetProperty("io_write_capacity_kbps"));
+      rsched_options.memtable_capacity_kb = std::stoi(props.GetProperty("memtable_capacity_kb"));
+      rsched_options.max_memtable_size_kb = std::stoi(props.GetProperty("max_memtable_size_kb"));
+      rsched_options.min_memtable_size_kb = std::stoi(props.GetProperty("min_memtable_size_kb"));
       rsched_options.min_memtable_count = std::stoi(props.GetProperty("min_memtable_count"));
       rsched_future = std::async(std::launch::async, ycsbc::CentralResourceSchedulerThread, dbs, 
                                 measurements, per_client_measurements, rsched_options, &latch);

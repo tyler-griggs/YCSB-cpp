@@ -138,7 +138,7 @@ class DBWrapper : public DB {
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
     auto res = db_->GetResourceUsage();
     for (size_t i = 0; i < res.size(); ++i) {
-      res[i].mem_bytes_written = per_client_bytes_written_->get_value(i);
+      res[i].mem_bytes_written_kb = per_client_bytes_written_->get_value(i) / 1024;
     }
     return res;
   }

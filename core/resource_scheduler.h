@@ -6,6 +6,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <sstream>
+#include <fstream>
 
 #include "measurements.h"
 #include "utils/countdown_latch.h"
@@ -22,11 +24,11 @@ struct ResourceSchedulerOptions {
   int stats_dump_interval_s;
   size_t lookback_intervals;
   double ramp_up_multiplier; 
-  int64_t io_read_capacity_mbps;
-  int64_t io_write_capacity_mbps;
-  int64_t memtable_capacity_mb; // TODO(tgriggs): decrease this size
-  int max_memtable_size_mb;
-  int min_memtable_size_mb;
+  int64_t io_read_capacity_kbps;
+  int64_t io_write_capacity_kbps;
+  int64_t memtable_capacity_kb; // TODO(tgriggs): decrease this size
+  int max_memtable_size_kb;
+  int min_memtable_size_kb;
   int min_memtable_count;
 };
 
@@ -47,14 +49,31 @@ struct ResourceShareReport {
   }
 };
 
+struct ResourceUsageReport {
+  ResourceUsageReport(long timestamp, uint16_t client_id, MultiTenantResourceUsage usage) 
+    : timestamp(timestamp), client_id(client_id), usage(usage) {}
+
+  long timestamp;
+  uint16_t client_id;
+  MultiTenantResourceUsage usage;
+
+  std::string ToCSV() const {
+    std::ostringstream oss;
+    oss << (timestamp) << ","
+        << (client_id) << ","
+        << usage.ToCSV();
+    return oss.str();
+  }
+};
+
 // TODO(tgriggs): Need to ensure:
 //  1) idle clients don't take much (or any?) memtable space, 
 //  2) clients are able to quickly gain memtable capacity (e.g., bursty clients)
 // `write_buffer_sizes` and `max_write_buffer_numbers` are output parameters.
 void MemtableAllocationToRocksDbParams(
-    std::vector<int64_t> memtable_allocation, int64_t capacity_mb, 
-    int max_memtable_size_mb, int min_memtable_size_mb, int min_memtable_count,
-    std::vector<int>& write_buffer_sizes_mb, std::vector<int>& max_write_buffer_numbers) {
+    std::vector<int64_t> memtable_allocation, int64_t capacity_kb, 
+    int max_memtable_size_kb, int min_memtable_size_kb, int min_memtable_count,
+    std::vector<int>& write_buffer_sizes_kb, std::vector<int>& max_write_buffer_numbers) {
 
   // TODO(tgriggs): Lot of tuning necessary here.
 
@@ -80,7 +99,7 @@ void MemtableAllocationToRocksDbParams(
 
   // TODO(tgriggs): idea is to always assign all memtable space based on 1) min, 2) ratios 
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
-    write_buffer_sizes_mb[i] = min_memtable_size_mb;
+    write_buffer_sizes_kb[i] = min_memtable_size_kb;
     max_write_buffer_numbers[i] = min_memtable_count;
   } 
 
@@ -93,7 +112,7 @@ void MemtableAllocationToRocksDbParams(
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
     proportions[i] = memtable_allocation[i] / total_allocation;
   }
-  int remaining_memtables = (capacity_mb - (memtable_allocation.size() * min_memtable_count * min_memtable_size_mb)) / min_memtable_size_mb;
+  int remaining_memtables = (capacity_kb - (memtable_allocation.size() * min_memtable_count * min_memtable_size_kb)) / min_memtable_size_kb;
   for (size_t i = 0; i < memtable_allocation.size(); ++i) {
     max_write_buffer_numbers[i] += int(proportions[i] * remaining_memtables);
   }
@@ -144,19 +163,35 @@ std::vector<int64_t> ComputePRFAllocation(
       break;
     }
   }
+
+  // for (size_t i = 0; i < num_clients; ++i) {
+  //   if (allocation[i] > int64_t(513)) {
+  //     std::cout << "[TGRIGGS_LOG] Allocation for client " << i << " is " << allocation[i] << std::endl;
+  //   }
+  // }
+
   return allocation;
 }
 
-void DumpResourceShares(
+void DumpResourceReports(
+  std::vector<ResourceUsageReport>& usage_report_buffer,
+  std::ofstream& usage_logfile,
   std::vector<ResourceShareReport>& share_report_buffer,
-  std::ofstream& logfile) {
+  std::ofstream& share_logfile) {
+  for (const auto& report : usage_report_buffer) {
+    usage_logfile << report.ToCSV() << std::endl;
+  }
   for (const auto& report : share_report_buffer) {
-    logfile << report.ToCSV() << std::endl;
+    share_logfile << report.ToCSV() << std::endl;
   }
 }
 
 void WriteResourceShareHeader(std::ofstream& logfile) {
-  logfile << "timestamp,client_id,write_rate_limit_mbs,read_rate_limit_mbs,write_buffer_size_mb,max_write_buffer_number" << std::endl;
+  logfile << "timestamp,client_id,write_rate_limit_kbs,read_rate_limit_kbs,write_buffer_size_kb,max_write_buffer_number" << std::endl;
+}
+
+void WriteResourceUsageHeader(std::ofstream& logfile) {
+  logfile << "timestamp,client_id,io_write_kbs,io_read_kbs,mem_write_kbs" << std::endl;
 }
 
 void CentralResourceSchedulerThread(
@@ -173,12 +208,23 @@ void CentralResourceSchedulerThread(
     }
     WriteResourceShareHeader(resource_share_logfile);
 
+    std::string resource_usage_filename = "logs/resource_usage.log";
+    std::ofstream resource_usage_logfile;
+    resource_usage_logfile.open(resource_usage_filename, std::ios::out | std::ios::trunc);
+    if (!resource_usage_logfile.is_open()) {
+      // TODO(tgriggs):  Handle file open failure, propagate exception
+      // throw std::ios_base::failure("Failed to open the file.");
+    }
+    WriteResourceUsageHeader(resource_usage_logfile);
+
     // TODO(tgriggs): Wait for DB init before querying for stats. This is a hack.
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
     size_t buffer_dump_threshold = 10 * 100;
     std::vector<ResourceShareReport> share_report_buffer;
     share_report_buffer.reserve(buffer_dump_threshold);
+    std::vector<ResourceUsageReport> usage_report_buffer;
+    usage_report_buffer.reserve(buffer_dump_threshold);
     
     // TODO(tgriggs): fix this, which pulls from dbs, but if num threads i
     // less, then it breaks
@@ -197,6 +243,8 @@ void CentralResourceSchedulerThread(
       std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
         interval_usage[i] = ycsbc::utils::ComputeResourceUsageRateInInterval(prev_usage[i], total_usage[i], options.rsched_interval_ms);
+        
+        // TODO(tgriggs): correct this!!! switch to kb/s??
       }
 
       // Push the current interval usage to the back of the deque
@@ -220,39 +268,39 @@ void CentralResourceSchedulerThread(
       std::vector<MultiTenantResourceUsage> max_interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
         for (const auto& usage : interval_usages) {
-            max_interval_usage[i].io_bytes_read = std::max(max_interval_usage[i].io_bytes_read, usage[i].io_bytes_read);
-            max_interval_usage[i].io_bytes_written = std::max(max_interval_usage[i].io_bytes_written, usage[i].io_bytes_written);
-            max_interval_usage[i].mem_bytes_written = std::max(max_interval_usage[i].mem_bytes_written, usage[i].mem_bytes_written);
+            max_interval_usage[i].io_bytes_read_kb = std::max(max_interval_usage[i].io_bytes_read_kb, usage[i].io_bytes_read_kb);
+            max_interval_usage[i].io_bytes_written_kb = std::max(max_interval_usage[i].io_bytes_written_kb, usage[i].io_bytes_written_kb);
+            max_interval_usage[i].mem_bytes_written_kb = std::max(max_interval_usage[i].mem_bytes_written_kb, usage[i].mem_bytes_written_kb);
         }
       }
       std::vector<int64_t> io_read_usage;
       std::vector<int64_t> io_write_usage;
       std::vector<int64_t> memtable_usage;
       for (const auto& usage : max_interval_usage) {
-        io_read_usage.push_back(usage.io_bytes_read);
-        io_write_usage.push_back(usage.io_bytes_written);
-        memtable_usage.push_back(usage.mem_bytes_written);
+        io_read_usage.push_back(usage.io_bytes_read_kb);
+        io_write_usage.push_back(usage.io_bytes_written_kb);
+        memtable_usage.push_back(usage.mem_bytes_written_kb);
       }
-      std::vector<int64_t> io_read_allocation = ComputePRFAllocation(options.io_read_capacity_mbps, io_read_usage, options.ramp_up_multiplier);
-      std::vector<int64_t> io_write_allocation = ComputePRFAllocation(options.io_write_capacity_mbps, io_write_usage, options.ramp_up_multiplier);
-      std::vector<int64_t> memtable_allocation = ComputePRFAllocation(options.memtable_capacity_mb, memtable_usage, options.ramp_up_multiplier);
+      std::vector<int64_t> io_read_allocation = ComputePRFAllocation(options.io_read_capacity_kbps, io_read_usage, options.ramp_up_multiplier);
+      std::vector<int64_t> io_write_allocation = ComputePRFAllocation(options.io_write_capacity_kbps, io_write_usage, options.ramp_up_multiplier);
+      std::vector<int64_t> memtable_allocation = ComputePRFAllocation(options.memtable_capacity_kb, memtable_usage, options.ramp_up_multiplier);
       std::vector<int> write_buffer_sizes(num_clients);
       std::vector<int> max_write_buffer_numbers(num_clients);
       MemtableAllocationToRocksDbParams(
-        memtable_allocation, options.memtable_capacity_mb, 
-        options.max_memtable_size_mb, options.min_memtable_size_mb,
+        memtable_allocation, options.memtable_capacity_kb, 
+        options.max_memtable_size_kb, options.min_memtable_size_kb,
         options.min_memtable_count,
         write_buffer_sizes, max_write_buffer_numbers);
 
       for (size_t i = 0; i < num_clients; ++i) {
         res_opts[i].max_write_buffer_number = max_write_buffer_numbers[i];
-        res_opts[i].write_buffer_size_mb = write_buffer_sizes[i];
-        res_opts[i].read_rate_limit_mbs = io_read_allocation[i];
-        res_opts[i].write_rate_limit_mbs = io_write_allocation[i];
-        if (i == 0) {
-          res_opts[i].write_rate_limit_mbs = std::max(res_opts[i].write_rate_limit_mbs, uint32_t(100));
-          // res_opts[i].read_rate_limit = 500 / 4;
-        }
+        res_opts[i].write_buffer_size_kb = write_buffer_sizes[i];
+        res_opts[i].read_rate_limit_kbs = io_read_allocation[i];
+        res_opts[i].write_rate_limit_kbs = io_write_allocation[i];
+        // if (i == 0) {
+        //   res_opts[i].write_rate_limit_kbs = std::max(res_opts[i].write_rate_limit_kbs, uint32_t(100));
+        //   // res_opts[i].read_rate_limit = 500 / 4;
+        // }
       }
 
       // TODO(tgriggs): Access a single "Resource" object instead of going through a single DB
@@ -262,15 +310,17 @@ void CentralResourceSchedulerThread(
       auto now_us = std::chrono::time_point_cast<std::chrono::microseconds>( std::chrono::high_resolution_clock::now());
       long now = now_us.time_since_epoch().count();
       for (size_t i = 0; i < res_opts.size(); ++i) {
+        usage_report_buffer.push_back(ResourceUsageReport(now, i, interval_usage[i]));
         share_report_buffer.push_back(ResourceShareReport(now, i, res_opts[i]));
       }
-      if (share_report_buffer.size() > buffer_dump_threshold) {
-        std::cout << "[TGRIGGS_LOG] Dumping resource shares to file\n\n\n";
-        DumpResourceShares(share_report_buffer, resource_share_logfile);
+      if (share_report_buffer.size() > buffer_dump_threshold || usage_report_buffer.size() > buffer_dump_threshold) {
+        DumpResourceReports(usage_report_buffer, resource_usage_logfile, share_report_buffer, resource_share_logfile);
+        usage_report_buffer.clear();
         share_report_buffer.clear();
       }
 
       // TODO(tgriggs): also optionally record and dump usage
+      //                this will be very useful for debugging scheduler
     }
 }
 

@@ -333,13 +333,16 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   } else {
     if (client_id == 0) {
       // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionInsertBatch(db, client_id, table_name);
+      // status = TransactionInsertBatch(db, client_id, table_name);
+      status = TransactionScan(db, client_id, table_name);
     } else if (client_id == 2) {
       // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionScan(db, client_id, table_name);
+      // status = TransactionScan(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
     } else {
       // status = TransactionRead(db, client_id, table_name);
-      status = TransactionScan(db, client_id, table_name);
+      // status = TransactionScan(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
     }
   }
 

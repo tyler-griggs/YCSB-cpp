@@ -748,7 +748,7 @@ void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
 void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) {
   std::unordered_map<std::string, std::string> cf_opt_updates;
   for (size_t i = 0; i < res_opts.size(); ++i) {
-    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_mb * 1024 * 1024);
+    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
     cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
     db_->SetOptions(cf_handles_[i], cf_opt_updates);
   }
@@ -757,8 +757,8 @@ void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResour
   std::vector<int64_t> write_rate_limits(res_opts.size());
   std::vector<int64_t> read_rate_limits(res_opts.size());
   for (size_t i = 0; i < res_opts.size(); ++i) {
-    write_rate_limits[i] = res_opts[i].write_rate_limit_mbs * 1024 * 1024;
-    read_rate_limits[i] = res_opts[i].read_rate_limit_mbs * 1024 * 1024;
+    write_rate_limits[i] = res_opts[i].write_rate_limit_kbs * 1024;
+    read_rate_limits[i] = res_opts[i].read_rate_limit_kbs * 1024;
   }
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
@@ -776,8 +776,8 @@ std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage(
   for (int i = 0; i < num_clients; ++i) {
     int client_id = i + 1;
     ycsbc::utils::MultiTenantResourceUsage client_stats;
-    client_stats.io_bytes_written = write_rate_limiter->GetTotalBytesThroughForClient(client_id);
-    client_stats.io_bytes_read = read_rate_limiter->GetTotalBytesThroughForClient(client_id);
+    client_stats.io_bytes_written_kb = write_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;
+    client_stats.io_bytes_read_kb = read_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;
     all_stats.push_back(client_stats);
   }
   return all_stats;

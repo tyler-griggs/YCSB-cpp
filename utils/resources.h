@@ -28,51 +28,59 @@ class MultiTenantCounter {
 };
 
 struct MultiTenantResourceShares {
-  uint32_t write_rate_limit_mbs;
-  uint32_t read_rate_limit_mbs;
-  uint16_t write_buffer_size_mb;
+  uint32_t write_rate_limit_kbs;
+  uint32_t read_rate_limit_kbs;
+  uint16_t write_buffer_size_kb;
   int max_write_buffer_number;
 
   std::string ToString() const {
     std::ostringstream oss;
-    oss << "Resource Shares: " << (write_rate_limit_mbs) << " MB/s / "
-        << (read_rate_limit_mbs) << " MB/s / "
-        << (write_buffer_size_mb) << " MB / "
+    oss << "Resource Shares: " << (write_rate_limit_kbs/1024) << " MB/s / "
+        << (read_rate_limit_kbs/1024) << " MB/s / "
+        << (write_buffer_size_kb/1024) << " MB / "
         << (max_write_buffer_number) << " (Write IO / Read IO / Memtable Size / Memtable Count)\n";
     return oss.str();
   }
 
   std::string ToCSV() const {
     std::ostringstream oss;
-    oss << (write_rate_limit_mbs) << ","
-        << (read_rate_limit_mbs) << ","
-        << (write_rate_limit_mbs) << ","
+    oss << (write_rate_limit_kbs) << ","
+        << (read_rate_limit_kbs) << ","
+        << (write_rate_limit_kbs) << ","
         << (max_write_buffer_number);
     return oss.str();
   }
 };
 
 struct MultiTenantResourceUsage {
-  int64_t io_bytes_read;
-  int64_t io_bytes_written;
-  int64_t mem_bytes_written;
+  int64_t io_bytes_written_kb;
+  int64_t io_bytes_read_kb;
+  int64_t mem_bytes_written_kb;
 
   std::string ToString() const {
         std::ostringstream oss;
-        oss << (io_bytes_read / 1024 / 1024) << " MB / "
-            << (io_bytes_written / 1024 / 1024) << " MB / "
-             << (mem_bytes_written / 1024 / 1024) << " MB (IO read / IO write / Mem write)\n";
+        oss << (io_bytes_written_kb / 1024) << " MB / "
+            << (io_bytes_read_kb / 1024) << " MB / "
+             << (mem_bytes_written_kb / 1024) << " MB (IO write / IO read / Mem write)\n";
         return oss.str();
     }
+
+  std::string ToCSV() const {
+    std::ostringstream oss;
+    oss << (io_bytes_written_kb) << ","
+        << (io_bytes_read_kb) << ","
+        << (mem_bytes_written_kb);
+    return oss.str();
+  }
 };
 
 inline MultiTenantResourceUsage ComputeResourceUsageRateInInterval(
   MultiTenantResourceUsage prev, MultiTenantResourceUsage cur, int interval_ms) {
   MultiTenantResourceUsage diff;
   double interval_s = interval_ms / 1000.0;
-  diff.io_bytes_read = (cur.io_bytes_read - prev.io_bytes_read) / interval_s;
-  diff.io_bytes_written = (cur.io_bytes_written - prev.io_bytes_written) / interval_s;
-  diff.mem_bytes_written = (cur.mem_bytes_written - prev.mem_bytes_written ) / interval_s;
+  diff.io_bytes_written_kb = (cur.io_bytes_written_kb - prev.io_bytes_written_kb) / interval_s;
+  diff.io_bytes_read_kb = (cur.io_bytes_read_kb - prev.io_bytes_read_kb) / interval_s;
+  diff.mem_bytes_written_kb = (cur.mem_bytes_written_kb - prev.mem_bytes_written_kb ) / interval_s;
   return diff;
 }
 
