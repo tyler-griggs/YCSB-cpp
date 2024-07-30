@@ -57,19 +57,19 @@ mpstat_pid=$!
   -p recordcount=3125000 \
   -p updateproportion=0 \
   -p insertproportion=0 \
-  -p readproportion=0 \
-  -p scanproportion=1 \
+  -p readproportion=1 \
+  -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
   -p status.interval_ms=500 \
-  -p burst_gap_s=0 \
-  -p burst_size_ops=0 \
-  -target_rates "100,100,100,100" \
-  -p rate_limits="200,200,200,200" \
-  -p read_rate_limits="200,200,200,200" \
+  -p burst_gap_s=30 \
+  -p burst_size_ops=1 \
+  -target_rates "1000,1000,750,128" \
+  -p rate_limits="1000,1000,1000,1000" \
+  -p read_rate_limits="1000,1000,1000,1000" \
   -p refill_period=5 \
-  -p real_op_mode=true \
-  -p rsched=true \
+  -p real_op_mode=false \
+  -p rsched=false \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=1 \
   -p rsched_rampup_multiplier=1.2 \
@@ -80,6 +80,7 @@ mpstat_pid=$!
   -p max_memtable_size_kb=$((64 * 1024)) \
   -p min_memtable_size_kb=$((64 * 1024)) \
   | tee status_thread.txt &
+
 
 # To add:
 # rocksdb parameters for memtable size, etc.

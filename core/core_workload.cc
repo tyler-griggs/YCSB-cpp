@@ -333,16 +333,20 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
   } else {
     if (client_id == 0) {
       // status = TransactionRandomInsert(db, client_id, table_name);
-      // status = TransactionInsertBatch(db, client_id, table_name);
-      status = TransactionScan(db, client_id, table_name);
-    } else if (client_id == 2) {
-      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionInsertBatch(db, client_id, table_name);
       // status = TransactionScan(db, client_id, table_name);
+    } else if (client_id == 1) {
+      status = TransactionInsertBatch(db, client_id, table_name);
+    } else if (client_id == 2) {
+      // status = TransactionRead(db, client_id, table_name);
       status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionScan(db, /*client_id =*/ 0, rocksdb::kDefaultColumnFamilyName);
+      // status = TransactionScan(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
     } else {
       // status = TransactionRead(db, client_id, table_name);
-      // status = TransactionScan(db, client_id, table_name);
-      status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionScan(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
     }
   }
 
@@ -437,7 +441,7 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int batch_size = 1000;
+  int batch_size = 600;
   uint64_t client_key_num = key_num;
   client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 

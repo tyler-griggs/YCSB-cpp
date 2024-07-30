@@ -151,7 +151,7 @@ std::vector<int64_t> ComputePRFAllocation(
 
     if (client_usage < fair_share) {
       // TODO(tgriggs): Replace this second value with resource-specific parameters
-      allocation[client_id] = std::max(ramp_up_multiplier * client_usage, 10.0);
+      allocation[client_id] = std::max(ramp_up_multiplier * client_usage, 10.0 * 1024);
       capacity_remaining -= client_usage;
       ++num_clients_assigned;
     } else {
