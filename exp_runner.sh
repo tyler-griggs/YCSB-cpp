@@ -64,17 +64,17 @@ mpstat_pid=$!
   -p status.interval_ms=500 \
   -p burst_gap_s=30 \
   -p burst_size_ops=1 \
-  -target_rates "1000,1000,750,128" \
-  -p rate_limits="1000,1000,1000,1000" \
-  -p read_rate_limits="1000,1000,1000,1000" \
+  -target_rates "1000,1000,850,128" \
+  -p rate_limits="55,55,55,55" \
+  -p read_rate_limits="105,105,105,105" \
   -p refill_period=5 \
   -p real_op_mode=false \
   -p rsched=false \
   -p rsched_interval_ms=50 \
-  -p lookback_intervals=1 \
+  -p lookback_intervals=30 \
   -p rsched_rampup_multiplier=1.2 \
-  -p io_read_capacity_kbps=$((520 * 1024)) \
-  -p io_write_capacity_kbps=$((300 * 1024)) \
+  -p io_read_capacity_kbps=$((420 * 1024)) \
+  -p io_write_capacity_kbps=$((220 * 1024)) \
   -p memtable_capacity_kb=$((512 * 1024)) \
   -p min_memtable_count=$((2)) \
   -p max_memtable_size_kb=$((64 * 1024)) \
