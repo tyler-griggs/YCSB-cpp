@@ -155,6 +155,7 @@ std::vector<int64_t> stringToIntVector(const std::string& input) {
 
 
 void RocksdbDB::Init() {
+  std::cout << "[TGRIGGS_LOG] RocksdbDB::Init\n";
 // merge operator disabled by default due to link error
 #ifdef USE_MERGEUPDATE
   class YCSBUpdateMerge : public rocksdb::AssociativeMergeOperator {
@@ -259,9 +260,17 @@ void RocksdbDB::Init() {
     }
   }
   if (cf_descs.empty()) {
+    std::cout << "[TGRIGGS_LOG] opening db with default column family\n";
     s = rocksdb::DB::Open(opt, db_path, &db_);
   } else {
+    std::cout << "[TGRIGGS_LOG] opening db with multiple column families\n";
     s = rocksdb::DB::Open(opt, db_path, cf_descs, &cf_handles_, &db_);
+    // for (size_t i = 0; i < cf_handles_.size(); i++) {
+    //   std::cout << "[TGRIGGS_LOG] cf_handles_[" << i << "]: " << cf_handles_[i] << std::endl;
+    //   if (cf_handles_[i] == nullptr) {
+    //     throw utils::Exception("RocksDB Open: failed to open column family");
+    //   }
+    // }
   }
   if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Open: ") + s.ToString());
@@ -273,20 +282,24 @@ void RocksdbDB::Cleanup() {
   if (--ref_cnt_) {
     return;
   }
+  std::cout << "[TGRIGGS_LOG] RocksdbDB::Cleanup\n";
   for (size_t i = 0; i < cf_handles_.size(); i++) {
     if (cf_handles_[i] != nullptr) {
+      std::cout << "[TGRIGGS_LOG] closing cf_handles_[" << i << "]\n";
       delete cf_handles_[i];
       cf_handles_[i] = nullptr;
     }
   }
+  std::cout << "[TGRIGGS_LOG] deleting db_\n";
   delete db_;
 }
 
 void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt,
-                           std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs) {
+                           std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs) {                        
   std::string env_uri = props.GetProperty(PROP_ENV_URI, PROP_ENV_URI_DEFAULT);
   std::string fs_uri = props.GetProperty(PROP_FS_URI, PROP_FS_URI_DEFAULT);
   rocksdb::Env* env =  rocksdb::Env::Default();;
+  std::cout << "Entering GetOptions\n";
   if (!env_uri.empty() || !fs_uri.empty()) {
     rocksdb::Status s = rocksdb::Env::CreateFromUri(rocksdb::ConfigOptions(),
                                                     env_uri, fs_uri, &env, &env_guard);
@@ -445,6 +458,7 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
       /* single_burst_bytes */ 0
     ));
   }
+  std::cout << "[TGRIGGS_LOG] GetOptions done\n";
 }
 
 std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string& prop, const std::string& default_val) {
@@ -553,6 +567,8 @@ void RocksdbDB::DeserializeRow(std::vector<Field> &values, const std::string &da
 
 rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   int cf_idx;
+  // std::cout << "[TGRIGGS_LOG] table2handle: " << table << std::endl;
+  // std::cout << "Default column family name: " << rocksdb::kDefaultColumnFamilyName << std::endl;
   if (table == rocksdb::kDefaultColumnFamilyName) {
     cf_idx = 0;
   } else if (table == "cf2") {
@@ -578,13 +594,14 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
     std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
-
+  // std::cout << "[TGRIGGS_LOG] ReadSingle: " << key << std::endl;
   // Set the rate limiter priority to highest (USER request).
   rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
   read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
 
   rocksdb::Status s = db_->Get(read_options, handle, key, &data);
   if (s.IsNotFound()) {
+    // std::cout << "Key not found: " << key << std::endl;
     return kNotFound;
   } else if (!s.ok()) {
     throw utils::Exception(std::string("RocksDB Get: ") + s.ToString());
@@ -595,6 +612,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
     DeserializeRow(result, data);
     assert(result.size() == static_cast<size_t>(fieldcount_));
   }
+  // std::cout << "Key found: " << key << std::endl;
   return kOK;
 }
 
@@ -750,7 +768,9 @@ void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResour
   for (size_t i = 0; i < res_opts.size(); ++i) {
     cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
     cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
+    // std::cout << "[TGRIGGS_LOG] setting options for cf " << i << " write_buffer_size: " << res_opts[i].write_buffer_size_kb * 1024 << " max_write_buffer_number: " << res_opts[i].max_write_buffer_number << std::endl;
     db_->SetOptions(cf_handles_[i], cf_opt_updates);
+    // std::cout << "[TGRIGGS_LOG] setting options for cf " << i << ": " << cf_handles_[i] << std::endl;
   }
   
   // TODO(tgriggs): restructure this so that we don't have to rearrange on every update
@@ -767,7 +787,12 @@ void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResour
 }
 
 std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
+  std::cout << "[TGRIGGS_LOG] GetResourceUsage\n";
+  if (db_ == nullptr) {
+    std::cout << "[TGRIGGS_LOG] db_ is null\n";
+  }
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
+  std::cout << "[TGRIGGS_LOG] Write rate limiter: " << write_rate_limiter << std::endl;
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
 
   int num_clients = cf_handles_.size();
@@ -801,15 +826,30 @@ void RocksdbDB::PrintDbStats() {
     return;
   }
 
+  rocksdb::Options db_options = db_->GetOptions();
+
+  if (db_options.rate_limiter) {
+      std::cout << "[TGRIGGS_LOG] Rate limiter write limit = "
+                << db_options.rate_limiter->GetBytesPerSecond() << " bytes/second" << std::endl;
+      
+      rocksdb::RateLimiter* read_rate_limiter = db_options.rate_limiter->GetReadRateLimiter();
+      if (read_rate_limiter) {
+          std::cout << "[TGRIGGS_LOG] Rate limiter read limit = "
+                    << read_rate_limiter->GetBytesPerSecond() << " bytes/second" << std::endl;
+      }
+  } else {
+      std::cout << "[TGRIGGS_LOG] No rate limiter assigned." << std::endl;
+  }
+
   // db_->GetCFMemTableStats();
 
-  std::string hist_data = db_->GetOptions().statistics->ToString();
-  std::cout << "[TGRIGGS_LOG] Stats:\n" << hist_data << std::endl;
+  // std::string hist_data = db_->GetOptions().statistics->ToString();
+  // std::cout << "[TGRIGGS_LOG] Stats:\n" << hist_data << std::endl;
 
-  std::cout << "[TGRIGGS_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
-    << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L0)
-    << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L1)
-    <<db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP);
+  // std::cout << "[TGRIGGS_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
+  //   << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L0)
+  //   << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L1)
+  //   <<db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP);
 
   // Histogram of Get() operations
   // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);

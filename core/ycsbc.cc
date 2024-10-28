@@ -302,6 +302,7 @@ int main(const int argc, const char *argv[]) {
       if (i < total_ops % num_threads) {
         thread_ops++;
       }
+      std::cout << "Thread ops for client " << i << ": " << thread_ops << std::endl;
       ycsbc::utils::RateLimiter *rlim = nullptr;
       if (ops_limit > 0 || rate_file != "") {
         int64_t per_thread_ops = ops_limit / num_threads;

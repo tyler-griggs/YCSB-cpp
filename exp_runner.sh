@@ -51,16 +51,16 @@ mpstat_pid=$!
 
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-  -p rocksdb.dbname=/mnt/tgriggs-disk/ycsb-rocksdb-data \
+  -p rocksdb.dbname=/home/tgriggs/ycsb-rocksdb-data \
   -p requestdistribution=zipfian \
   -s -p operationcount=35000000 \
-  -p recordcount=3125000 \
+  -p recordcount=10000 \
   -p updateproportion=0 \
   -p insertproportion=0 \
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -threads 4 \
+  -threads 1 \
   -p status.interval_ms=500 \
   -p burst_gap_s=30 \
   -p burst_size_ops=1 \
@@ -69,7 +69,8 @@ mpstat_pid=$!
   -p read_rate_limits="105,105,105,105" \
   -p refill_period=5 \
   -p real_op_mode=false \
-  -p rsched=false \
+  -p status=true \
+  -p rsched=true \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=30 \
   -p rsched_rampup_multiplier=1.2 \

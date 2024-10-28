@@ -1,0 +1,124 @@
+client-2:metric-Tput
+time_points:[0.0, 0.505000114440918]
+data_points:[13.0, 13.375]
+client-3:metric-Tput
+time_points:[0.0, 0.505000114440918]
+data_points:[1.96875, 2.0]
+client-2:metric-50
+time_points:[0.0, 0.505000114440918]
+data_points:[0.32717, 0.31539]
+client-3:metric-50
+time_points:[0.0, 0.505000114440918]
+data_points:[0.009349999999999999, 0.00967]
+client-2:metric-99
+time_points:[0.0, 0.505000114440918]
+data_points:[0.57702, 0.4713]
+client-3:metric-99
+time_points:[0.0, 0.505000114440918]
+data_points:[0.02502, 0.02673]
+metric-L0_stalls
+time_points:[]
+data_points:[]
+metric-memtable_stalls
+time_points:[]
+data_points:[]
+metric-pending_compaction_stalls
+time_points:[]
+data_points:[]
+metric-flush
+cf_names:[]
+reates:[]
+start_points:[]
+end_points:[]
+metric-compaction
+cf_names:[]
+read_rates:[]
+write_rates:[]
+start_points:[]
+end_points:[]
+metric-memtable_stops
+time_points:[]
+metric-rMB_rate
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-wMB_rate
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-rMB_util
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-wMB_util
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-rIOP_rate
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-wIOP_rate
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-rIOP_util
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-wIOP_util
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-r_await
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.09, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-r_await_per_kb
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.004172461752433936, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-r_size
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[21.57, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-w_size
+time_points:[0, 1, 2, 3, 4, 5]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-0
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-1
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-10
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.9899999999999949, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-11
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-12
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-13
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-14
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-15
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-2
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-3
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-4
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-5
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-6
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-7
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-8
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]
+metric-cpu_util:core-9
+time_points:[0, 1, 2, 3, 4]
+data_points:[0.0, 0.0, 0.0, 0.0, 0.0]

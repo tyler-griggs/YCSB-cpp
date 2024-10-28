@@ -113,7 +113,6 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // // Submit operation to thread pool and wait for it. 
           // std::future<void*> result = threadpool->dispatch(txn_lambda);
           // result.wait();
-
           wl->DoTransaction(*db, client_id);
         }
         ops++;

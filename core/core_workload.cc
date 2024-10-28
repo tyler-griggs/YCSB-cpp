@@ -304,6 +304,8 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
     table_name = "cf4";
   }
 
+  // std::cout << "[TGRIGGS_LOG] Table name: " << table_name << std::endl;
+
   DB::Status status;
   if (op_mode_real_) {
     auto op_choice = op_chooser_.Next();
@@ -332,20 +334,25 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
     }
   } else {
     if (client_id == 0) {
-      // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionInsertBatch(db, client_id, table_name);
-      // status = TransactionScan(db, client_id, table_name);
-    } else if (client_id == 1) {
-      status = TransactionInsertBatch(db, client_id, table_name);
-    } else if (client_id == 2) {
-      // status = TransactionRead(db, client_id, table_name);
       status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionRead(db, client_id, table_name);
+      // status = TransactionInsert(db);
+    } else if (client_id == 1) {
+      status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionScan(db, client_id, table_name);
+      // status = TransactionInsert(db);
+    } else if (client_id == 2) {
+      // status = TransactionInsert(db);
+      status = TransactionRead(db, client_id, table_name);
+      // status = TransactionRandomInsert(db, client_id, table_name);
       // status = TransactionScan(db, /*client_id =*/ 0, rocksdb::kDefaultColumnFamilyName);
       // status = TransactionScan(db, client_id, table_name);
       // status = TransactionRandomInsert(db, client_id, table_name);
     } else {
-      // status = TransactionRead(db, client_id, table_name);
-      status = TransactionScan(db, client_id, table_name);
+      // status = TransactionInsert(db);
+      status = TransactionRead(db, client_id, table_name);
+      // status = TransactionScan(db, client_id, table_name);
       // status = TransactionRandomInsert(db, client_id, table_name);
     }
   }
