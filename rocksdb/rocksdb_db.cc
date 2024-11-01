@@ -363,10 +363,10 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
       std::cout << "TGRIGGS_LOG write buffer size: " << val << std::endl;
       opt->write_buffer_size = val;
     }
-    // val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
-    // if (val != 0) {
-    //   opt->max_write_buffer_number = val;
-    // }
+    val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
+    if (val != 0) {
+      opt->max_write_buffer_number = val;
+    }
     val = std::stoi(props.GetProperty(PROP_COMPACTION_PRI, PROP_COMPACTION_PRI_DEFAULT));
     if (val != -1) {
       opt->compaction_pri = static_cast<rocksdb::CompactionPri>(val);

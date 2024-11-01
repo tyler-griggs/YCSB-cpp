@@ -344,16 +344,16 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
       // status = TransactionInsert(db);
     } else if (client_id == 2) {
       // status = TransactionInsert(db);
-      status = TransactionRead(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
+      // status = TransactionRead(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
       // status = TransactionScan(db, /*client_id =*/ 0, rocksdb::kDefaultColumnFamilyName);
       // status = TransactionScan(db, client_id, table_name);
       // status = TransactionRandomInsert(db, client_id, table_name);
     } else {
       // status = TransactionInsert(db);
-      status = TransactionRead(db, client_id, table_name);
+      // status = TransactionRead(db, client_id, table_name);
       // status = TransactionScan(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
+      status = TransactionRandomInsert(db, client_id, table_name);
     }
   }
 
