@@ -8,6 +8,6 @@ tags
 compile_commands.json
 .clangd/
 .cache/
-log/
+logs/
 .out
 .txt
