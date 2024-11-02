@@ -70,7 +70,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     time_point<system_clock> now = system_clock::now();
     auto elapsed_time_s = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
     if (elapsed_time_s % 5 == 0) {
-      std::cout << "[TGRIGGS_LOG] Exp time: " << elapsed_time_s << "s" << std::endl;
+      std::cout << "[YCSB] Exp time: " << elapsed_time_s << "s" << std::endl;
     }
 
     auto duration_since_epoch = now.time_since_epoch();
@@ -87,20 +87,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       }
       per_client_measurements[i]->Reset();
     }
-    // Print DB-wide and CF-wide stats -- only need to use a single client
-    // std::cout << "DB stats:\n";
-    // dbs[0]->PrintDbStats();
-
-    // for (size_t i = 0; i < dbs.size(); ++i) {
-    //   // dbs[i]->GetCFMemTableStats();
-
-    //   // if (i == 0) {
-    //   //   continue;
-    //   // }
-    //   // std::cout << "db_get: client" << i << ": ";
-    //   std::cout << "DB " << i << " stats:\n";
-    //   dbs[i]->PrintDbStats();
-    // }
 
     if (done) {
       break;

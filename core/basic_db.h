@@ -19,49 +19,50 @@
 #include <mutex>
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
-namespace ycsbc {
+namespace ycsbc
+{
 
-class BasicDB : public DB {
- public:
-  BasicDB() : out_(nullptr) {}
+  class BasicDB : public DB
+  {
+  public:
+    BasicDB() : out_(nullptr) {}
 
-  void Init();
+    void Init();
 
-  Status Read(const std::string &table, const std::string &key,
-              const std::vector<std::string> *fields, std::vector<Field> &result,
-              int client_id = 0);
-
-  Status Scan(const std::string &table, const std::string &key, int len,
-              const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result, int client_id);
-
-  Status Update(const std::string &table, const std::string &key, std::vector<Field> &values, 
+    Status Read(const std::string &table, const std::string &key,
+                const std::vector<std::string> *fields, std::vector<Field> &result,
                 int client_id = 0);
 
-  Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id = 0);
+    Status Scan(const std::string &table, const std::string &key, int len,
+                const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result, int client_id);
 
-  Status Delete(const std::string &table, const std::string &key);
+    Status Update(const std::string &table, const std::string &key, std::vector<Field> &values,
+                  int client_id = 0);
 
-  Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0);
+    Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, long long start_time_ns = 0, int client_id = 0);
 
-  void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
+    Status Delete(const std::string &table, const std::string &key);
 
-  void UpdateMemtableSize(int client_id, int memtable_size_bytes);
+    Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0);
 
-  void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts);
+    void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
 
-  std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();
-  
-  void PrintDbStats();
+    void UpdateMemtableSize(int client_id, int memtable_size_bytes);
 
- private:
-  static std::mutex mutex_;
+    void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts);
 
-  std::ostream *out_;
-};
+    std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();
 
-DB *NewBasicDB();
+    void PrintDbStats();
+
+  private:
+    static std::mutex mutex_;
+
+    std::ostream *out_;
+  };
+
+  DB *NewBasicDB();
 
 } // ycsbc
 
 #endif // YCSB_C_BASIC_DB_H_
-

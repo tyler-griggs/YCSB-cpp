@@ -53,7 +53,7 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/home/windsey/ycsb-rocksdb-data \
   -p requestdistribution=zipfian \
-  -s -p operationcount=3500000 \
+  -s -p operationcount=60000 \
   -p recordcount=3500000 \
   -p updateproportion=0 \
   -p insertproportion=0 \
@@ -63,7 +63,7 @@ mpstat_pid=$!
   -threads 2 \
   -p status.interval_ms=500 \
   -p burst_size_ops=1 \
-  -target_rates "1000,1000" \
+  -target_rates "100,100" \
   -p rate_limits="55,55,55,55" \
   -p read_rate_limits="105,105,105,105" \
   -p refill_period=5 \
