@@ -9,5 +9,6 @@ compile_commands.json
 .clangd/
 .cache/
 logs/
-.out
-.txt
+*.out
+*.txt
+nohup.out
