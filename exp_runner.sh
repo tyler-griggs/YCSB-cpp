@@ -18,7 +18,7 @@ process_iostat_output() {
         if [[ $line == *"Time:"* ]]; then
             # Extract timestamp
             current_timestamp=$(echo $line | awk '{print $2, $3}')
-        elif [[ $line == *nvme0n1* ]]; then
+        elif [[ $line == *sda1* ]]; then
             # Write the current timestamp along with the iostat metrics
             echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
         fi
@@ -43,7 +43,7 @@ process_mpstat_output() {
 trap cleanup EXIT
 
 # Start iostat in the background, appending a timestamp to each interval, and redirecting output to a file
-(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n1 1;) > iostat_output.txt &
+(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/sda1 1;) > iostat_output.txt &
 iostat_pid=$!
 
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
@@ -53,7 +53,7 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/home/windsey/ycsb-rocksdb-data \
   -p requestdistribution=zipfian \
-  -s -p operationcount=60000 \
+  -s -p operationcount=600000 \
   -p recordcount=3500000 \
   -p updateproportion=0 \
   -p insertproportion=0 \
@@ -62,16 +62,13 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -threads 2 \
   -p status.interval_ms=500 \
-  -p burst_size_ops=1 \
-  -target_rates "100,100" \
-  -p rate_limits="55,55,55,55" \
+  -target_rates "500,100" \
   -p read_rate_limits="105,105,105,105" \
   -p refill_period=5 \
   -p real_op_mode=false \
   -p status=true \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=30 \
-  -p rsched_rampup_multiplier=1.2 \
   -p io_read_capacity_kbps=$((420 * 1024)) \
   -p io_write_capacity_kbps=$((220 * 1024)) \
   -p memtable_capacity_kb=$((512 * 1024)) \
