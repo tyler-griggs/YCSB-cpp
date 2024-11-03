@@ -12,3 +12,4 @@ logs/
 *.out
 *.txt
 nohup.out
+build/
