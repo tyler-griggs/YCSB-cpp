@@ -57,7 +57,7 @@ mpstat_pid=$!
   -p recordcount=31250000 \
   -threads 1 \
   -p status.interval_ms=500 \
-  -target_rates "3000,100" \
+  -target_rates "4000,100" \
   -p refill_period=5 \
   -p real_op_mode=false \
   -p status=true \

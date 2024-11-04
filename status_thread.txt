@@ -1,10 +1,10 @@
 [YCSB] Zipfian distribution.
 Thread ops for client 0: 6000000
 [YCSB] Pinning client to 8
-[34m[YCSB] Target Operation Rate (ops/s): 3000[0m
-[34m[YCSB] Target Operation Tick (ns): 333333[0m
-[YCSB] RocksdbDB::Init
 [YCSB] Exp time: 0s
+[34m[YCSB] Target Operation Rate (ops/s): 4000[0m
+[34m[YCSB] Target Operation Tick (ns): 250000[0m
+[YCSB] RocksdbDB::Init
 Entering GetOptions
 TGRIGGS_LOG write buffer size: 67108864
 [YCSB] GetOptions done
@@ -20,1048 +20,489 @@ TGRIGGS_LOG write buffer size: 67108864
 [31m[RocksDB] Tryin to start scheduler[0m
 [31m[RocksDB] Tryin to register[0m
 [YCSB] Exp time: 0s
-1730708359371,0,INSERT,1384,1000.96,53.34,71.03,64.93,81.47,117.44,858.11
+[TGRIGGS_LOG] Compaction on level: 3
+1730754502601,0,INSERT,1762,1096.70,50.56,62.36,58.24,73.53,101.82,198.66
 [YCSB] Exp time: 5s
-[34m[YCSB] Requests sent for client 0: 14555 at 5s[0m
+[34m[YCSB] Requests sent for client 0: 19205 at 5s[0m
 [YCSB] Exp time: 5s
 [TGRIGGS_LOG] Compaction on level: 3
-1730708364381,0,INSERT,1485,199.29,50.34,59.68,58.11,65.41,91.14,115.20
+1730754507611,0,INSERT,1859,875.01,44.61,54.35,52.09,62.08,85.06,194.18
 [YCSB] Exp time: 10s
-[34m[YCSB] Requests sent for client 0: 29022 at 10s[0m
+[34m[YCSB] Requests sent for client 0: 38371 at 10s[0m
 [YCSB] Exp time: 10s
-[TGRIGGS_LOG] Compaction on level: 3
-1730708369390,0,INSERT,1494,2828.29,49.22,57.41,55.04,58.91,64.77,107.26
-[34m[YCSB] Requests sent for client 0: 43602 at 15s[0m
+[TGRIGGS_LOG] Compaction on level: 2
+1730754512620,0,INSERT,1936,360.45,49.02,55.97,54.59,60.51,78.97,121.02
 [YCSB] Exp time: 15s
+[34m[YCSB] Requests sent for client 0: 57491 at 15s[0m
 [YCSB] Exp time: 15s
 [TGRIGGS_LOG] Compaction on level: 2
-1730708374400,0,INSERT,1380,995.33,50.75,64.71,57.98,75.20,102.72,904.19
-[34m[YCSB] Requests sent for client 0: 58134 at 20s[0m
+[TGRIGGS_LOG] Compaction on level: 3
+1730754517630,0,INSERT,2002,178.05,44.16,55.43,54.81,60.58,77.95,120.19
+[TGRIGGS_LOG] Compaction on level: 3
+[34m[YCSB] Requests sent for client 0: 76642 at 20s[0m
 [YCSB] Exp time: 20s
 [YCSB] Exp time: 20s
-[TGRIGGS_LOG] Compaction on level: 2
 [TGRIGGS_LOG] Compaction on level: 3
-1730708379409,0,INSERT,1469,252.03,47.68,55.80,54.94,59.17,73.66,88.51
-[TGRIGGS_LOG] Compaction on level: 3
-[34m[YCSB] Requests sent for client 0: 72662 at 25s[0m
-[YCSB] Exp time: 25s
-[TGRIGGS_LOG] Compaction on level: 3
-[YCSB] Exp time: 25s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 2
+1730754522640,0,INSERT,2002,136.45,43.97,50.94,49.66,56.77,64.54,102.08
 [TGRIGGS_LOG] Compaction on level: 3
-1730708384419,0,INSERT,1481,7217.15,44.26,58.72,52.22,62.21,79.10,111.36
-[34m[YCSB] Requests sent for client 0: 87243 at 30s[0m
+[34m[YCSB] Requests sent for client 0: 95800 at 25s[0m
+[YCSB] Exp time: 25s
+[YCSB] Exp time: 25s
+[TGRIGGS_LOG] Compaction on level: 3
+[TGRIGGS_LOG] Compaction on level: 3
+[TGRIGGS_LOG] Compaction on level: 2
+1730754527649,0,INSERT,1938,180.35,44.86,56.79,55.42,64.67,86.53,113.66
+[34m[YCSB] Requests sent for client 0: 114973 at 30s[0m
 [YCSB] Exp time: 30s
 [TGRIGGS_LOG] Compaction on level: 3
 [YCSB] Exp time: 30s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 2
-1730708389428,0,INSERT,1417,866.30,47.07,61.38,59.17,70.85,94.40,121.34
-[TGRIGGS_LOG] Compaction on level: 3
-[34m[YCSB] Requests sent for client 0: 101779 at 35s[0m
+1730754532659,0,INSERT,1835,845.31,44.93,56.88,54.17,67.97,86.53,129.41
+[34m[YCSB] Requests sent for client 0: 134171 at 35s[0m
+[YCSB] Exp time: 35s
 [YCSB] Exp time: 35s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 3
-[YCSB] Exp time: 35s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 2
-1730708394438,0,INSERT,1443,218.11,43.90,50.84,49.44,55.62,70.66,91.39
-[34m[YCSB] Requests sent for client 0: 116313 at 40s[0m
+1730754537668,0,INSERT,1825,911.36,45.34,61.62,59.04,70.33,91.78,262.14
+[34m[YCSB] Requests sent for client 0: 153267 at 40s[0m
 [YCSB] Exp time: 40s
-[TGRIGGS_LOG] Compaction on level: 3
 [YCSB] Exp time: 40s
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 2
-1730708399447,0,INSERT,1501,160.51,44.64,53.89,54.08,57.79,63.81,69.50
-[34m[YCSB] Requests sent for client 0: 130850 at 45s[0m
+1730754542676,0,INSERT,1843,225.28,45.89,58.10,53.09,71.87,96.96,154.37
+[34m[YCSB] Requests sent for client 0: 172373 at 45s[0m
 [YCSB] Exp time: 45s
 [YCSB] Exp time: 45s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
+1730754547688,0,INSERT,1984,411.90,45.57,57.53,56.83,65.06,94.21,128.45
 [TGRIGGS_LOG] Compaction on level: 2
-1730708404455,0,INSERT,1448,98.94,45.38,54.77,52.99,62.02,81.47,96.51
-[34m[YCSB] Requests sent for client 0: 145438 at 50s[0m
+[34m[YCSB] Requests sent for client 0: 191437 at 50s[0m
 [YCSB] Exp time: 50s
 [YCSB] Exp time: 50s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708409465,0,INSERT,1408,864.25,45.47,58.93,53.92,71.17,92.93,843.77
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 159934 at 55s[0m
+1730754552697,0,INSERT,2002,125.25,45.02,55.02,54.43,61.31,77.82,111.94
+[34m[YCSB] Requests sent for client 0: 210540 at 55s[0m
 [YCSB] Exp time: 55s
 [YCSB] Exp time: 55s
 [TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708414473,0,INSERT,1454,20955.13,45.57,70.58,55.65,61.79,73.60,395.01
-[34m[YCSB] Requests sent for client 0: 174407 at 60s[0m
-[YCSB] Exp time: 60s
-[TGRIGGS_LOG] Compaction on level: 3
-[YCSB] Exp time: 60s
 [TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-1730708419482,0,INSERT,1451,110.27,45.86,55.76,53.79,64.09,83.26,100.03
-[34m[YCSB] Requests sent for client 0: 188992 at 65s[0m
-[TGRIGGS_LOG] Compaction on level: 3
+1730754557705,0,INSERT,1950,149.38,44.74,53.89,53.02,60.38,78.46,108.09
+[34m[YCSB] Requests sent for client 0: 229725 at 60s[0m
+[YCSB] Exp time: 60s
+[YCSB] Exp time: 60s
+1730754562714,0,INSERT,1895,915.46,44.64,54.32,50.98,62.34,80.89,127.23
+[34m[YCSB] Requests sent for client 0: 248960 at 65s[0m
 [YCSB] Exp time: 65s
 [YCSB] Exp time: 65s
 [TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 2
-1730708424491,0,INSERT,1396,274.43,45.60,58.39,56.83,67.33,88.25,145.66
-[34m[YCSB] Requests sent for client 0: 203493 at 70s[0m
+1730754567724,0,INSERT,1836,914.94,44.86,54.83,51.81,64.09,80.70,202.37
+[34m[YCSB] Requests sent for client 0: 268126 at 70s[0m
 [YCSB] Exp time: 70s
 [YCSB] Exp time: 70s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708429501,0,INSERT,1502,77.82,44.13,49.44,49.09,52.45,56.80,68.73
-[TGRIGGS_LOG] Compaction on level: 3
-[34m[YCSB] Requests sent for client 0: 218049 at 75s[0m
+1730754572732,0,INSERT,1806,1096.70,44.96,56.16,53.47,65.86,88.13,115.52
+[34m[YCSB] Requests sent for client 0: 287274 at 75s[0m
 [YCSB] Exp time: 75s
 [YCSB] Exp time: 75s
-[TGRIGGS_LOG] Compaction on level: 1
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708434509,0,INSERT,1501,134.78,44.70,52.07,51.13,56.48,69.18,95.74
-[34m[YCSB] Requests sent for client 0: 232686 at 80s[0m
+[TGRIGGS_LOG] Compaction on level: 2
+1730754577740,0,INSERT,1905,753.66,45.25,54.71,52.64,62.40,83.52,149.50
+[34m[YCSB] Requests sent for client 0: 306461 at 80s[0m
 [YCSB] Exp time: 80s
 [YCSB] Exp time: 80s
-[TGRIGGS_LOG] Compaction on level: 1
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708439518,0,INSERT,1366,769.53,45.28,57.79,55.84,65.28,85.95,257.79
-[34m[YCSB] Requests sent for client 0: 247173 at 85s[0m
+1730754582749,0,INSERT,1987,224.64,45.06,54.03,53.09,59.90,78.46,109.31
+[34m[YCSB] Requests sent for client 0: 325628 at 85s[0m
 [YCSB] Exp time: 85s
-[TGRIGGS_LOG] Compaction on level: 3
 [YCSB] Exp time: 85s
-[TGRIGGS_LOG] Compaction on level: 3
-1730708444526,0,INSERT,1501,167.68,45.60,54.08,54.08,59.58,65.66,78.27
-[34m[YCSB] Requests sent for client 0: 261730 at 90s[0m
+1730754587757,0,INSERT,2001,105.73,44.16,50.60,49.53,54.59,69.18,100.16
+[34m[YCSB] Requests sent for client 0: 344856 at 90s[0m
+[YCSB] Exp time: 90s
 [YCSB] Exp time: 90s
 [TGRIGGS_LOG] Compaction on level: 1
-[YCSB] Exp time: 90s
-[TGRIGGS_LOG] Compaction on level: 2
-1730708449536,0,INSERT,1501,170.50,47.17,55.88,53.47,63.90,107.26,159.74
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 276349 at 95s[0m
+1730754592766,0,INSERT,1977,184.83,44.64,57.60,56.32,64.89,83.97,106.11
+[34m[YCSB] Requests sent for client 0: 363947 at 95s[0m
 [YCSB] Exp time: 95s
 [YCSB] Exp time: 95s
 [TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708454546,0,INSERT,1390,866.82,44.13,52.56,50.43,58.78,72.64,201.85
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 290871 at 100s[0m
+[TGRIGGS_LOG] Compaction on level: 3
+[TGRIGGS_LOG] Compaction on level: 3
+1730754597775,0,INSERT,1891,793.09,45.12,53.69,51.20,60.77,81.73,117.50
+[34m[YCSB] Requests sent for client 0: 383143 at 100s[0m
 [YCSB] Exp time: 100s
-[YCSB] Exp time: 100s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 1
-1730708459554,0,INSERT,1486,237.95,44.42,51.09,49.92,56.22,68.73,120.13
-[34m[YCSB] Requests sent for client 0: 305417 at 105s[0m
+[YCSB] Exp time: 100s
+1730754602783,0,INSERT,1831,940.03,45.15,58.44,55.62,69.50,91.14,379.39
+[34m[YCSB] Requests sent for client 0: 402260 at 105s[0m
 [YCSB] Exp time: 105s
 [YCSB] Exp time: 105s
 [TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708464563,0,INSERT,1502,177.92,46.24,59.38,58.11,66.88,93.57,140.41
-[34m[YCSB] Requests sent for client 0: 320015 at 110s[0m
-[TGRIGGS_LOG] Compaction on level: 3
+[TGRIGGS_LOG] Compaction on level: 1
+1730754607792,0,INSERT,1859,864.77,44.38,53.34,50.34,60.77,79.04,225.02
+[34m[YCSB] Requests sent for client 0: 421408 at 110s[0m
 [YCSB] Exp time: 110s
 [YCSB] Exp time: 110s
-[TGRIGGS_LOG] Compaction on level: 1
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-1730708469572,0,INSERT,1387,902.14,47.33,60.71,55.81,69.38,88.51,896.00
-[34m[YCSB] Requests sent for client 0: 334514 at 115s[0m
+1730754612800,0,INSERT,1904,760.32,45.06,54.77,53.38,61.02,77.06,120.64
+[34m[YCSB] Requests sent for client 0: 440590 at 115s[0m
 [YCSB] Exp time: 115s
 [YCSB] Exp time: 115s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 1
-1730708474581,0,INSERT,1447,850.43,45.25,54.93,51.90,62.69,89.73,247.29
-[34m[YCSB] Requests sent for client 0: 349035 at 120s[0m
+1730754617808,0,INSERT,1993,225.92,43.97,49.51,48.41,52.83,67.39,98.69
+[34m[YCSB] Requests sent for client 0: 459808 at 120s[0m
 [YCSB] Exp time: 120s
 [YCSB] Exp time: 120s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708479590,0,INSERT,1502,98.05,46.88,58.07,58.27,64.09,73.92,94.72
-[34m[YCSB] Requests sent for client 0: 363521 at 125s[0m
+1730754622817,0,INSERT,2002,77.63,44.13,48.91,48.54,51.84,57.73,65.34
+[34m[YCSB] Requests sent for client 0: 479013 at 125s[0m
 [YCSB] Exp time: 125s
 [YCSB] Exp time: 125s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-1730708484599,0,INSERT,1420,880.64,45.63,57.60,53.82,64.83,92.09,877.05
-[34m[YCSB] Requests sent for client 0: 378035 at 130s[0m
-[YCSB] Exp time: 130s
-[TGRIGGS_LOG] Compaction on level: 3
-[YCSB] Exp time: 130s
 [TGRIGGS_LOG] Compaction on level: 1
-1730708489607,0,INSERT,1441,817.66,45.06,52.03,50.17,55.65,73.22,222.46
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 392580 at 135s[0m
+1730754627825,0,INSERT,1987,124.42,44.29,50.21,48.90,54.78,70.78,102.66
+[34m[YCSB] Requests sent for client 0: 498287 at 130s[0m
+[YCSB] Exp time: 130s
+[YCSB] Exp time: 130s
+1730754632834,0,INSERT,1915,798.72,44.10,51.38,48.96,57.66,75.20,151.81
+[34m[YCSB] Requests sent for client 0: 517511 at 135s[0m
 [YCSB] Exp time: 135s
-[TGRIGGS_LOG] Compaction on level: 2
 [YCSB] Exp time: 135s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708494617,0,INSERT,1501,109.38,47.74,54.20,53.41,58.59,71.42,94.85
-[34m[YCSB] Requests sent for client 0: 407211 at 140s[0m
+1730754637843,0,INSERT,1845,821.76,44.42,55.15,50.78,60.77,81.53,773.63
+[34m[YCSB] Requests sent for client 0: 536709 at 140s[0m
 [YCSB] Exp time: 140s
 [YCSB] Exp time: 140s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 1
-1730708499626,0,INSERT,1454,140.93,45.66,57.18,54.43,67.52,104.64,138.50
-[34m[YCSB] Requests sent for client 0: 421717 at 145s[0m
+1730754642852,0,INSERT,1845,208.25,44.03,52.81,50.62,61.60,76.67,102.97
+[34m[YCSB] Requests sent for client 0: 555898 at 145s[0m
 [YCSB] Exp time: 145s
 [YCSB] Exp time: 145s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-1730708504635,0,INSERT,1380,272.64,45.41,55.23,52.70,65.12,82.56,105.92
-[34m[YCSB] Requests sent for client 0: 436204 at 150s[0m
+1730754647860,0,INSERT,1891,271.87,45.44,56.48,54.30,67.14,90.24,111.74
+[34m[YCSB] Requests sent for client 0: 575056 at 150s[0m
 [YCSB] Exp time: 150s
-[TGRIGGS_LOG] Compaction on level: 3
 [YCSB] Exp time: 150s
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708509643,0,INSERT,1502,129.09,47.49,59.03,57.70,66.94,86.97,117.76
-[34m[YCSB] Requests sent for client 0: 450818 at 155s[0m
+1730754652869,0,INSERT,1945,737.79,44.83,51.72,49.57,57.60,76.99,190.85
+[34m[YCSB] Requests sent for client 0: 594246 at 155s[0m
 [YCSB] Exp time: 155s
 [YCSB] Exp time: 155s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708514652,0,INSERT,1474,103.04,43.94,49.89,48.77,54.59,67.71,88.77
-[34m[YCSB] Requests sent for client 0: 465334 at 160s[0m
+1730754657877,0,INSERT,2002,102.53,44.86,52.40,51.68,57.41,72.64,88.58
+[34m[YCSB] Requests sent for client 0: 613441 at 160s[0m
 [YCSB] Exp time: 160s
-[YCSB] Exp time: 160s
-[TGRIGGS_LOG] Compaction on level: 2
-1730708519661,0,INSERT,1384,265.47,46.53,57.69,56.41,65.44,85.57,102.40
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 479850 at 165s[0m
-[YCSB] Exp time: 165s
-[TGRIGGS_LOG] Compaction on level: 2
-[YCSB] Exp time: 165s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 1
-1730708524670,0,INSERT,1502,95.94,46.62,53.11,52.54,57.15,62.85,70.27
-[34m[YCSB] Requests sent for client 0: 494430 at 170s[0m
+[YCSB] Exp time: 160s
+1730754662886,0,INSERT,2001,113.22,45.28,51.08,50.05,54.88,71.23,93.50
+[34m[YCSB] Requests sent for client 0: 632706 at 165s[0m
+[YCSB] Exp time: 165s
+[YCSB] Exp time: 165s
+1730754667894,0,INSERT,1943,107.39,44.80,53.71,52.58,61.18,75.90,100.99
+[34m[YCSB] Requests sent for client 0: 651888 at 170s[0m
 [YCSB] Exp time: 170s
 [YCSB] Exp time: 170s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-1730708529679,0,INSERT,1502,129.15,45.02,52.19,51.13,56.64,67.33,108.61
-[34m[YCSB] Requests sent for client 0: 508987 at 175s[0m
-[TGRIGGS_LOG] Compaction on level: 3
+1730754672903,0,INSERT,1868,925.70,44.86,54.75,51.84,62.40,82.24,183.29
+[34m[YCSB] Requests sent for client 0: 671073 at 175s[0m
 [YCSB] Exp time: 175s
 [YCSB] Exp time: 175s
-[TGRIGGS_LOG] Compaction on level: 1
-1730708534688,0,INSERT,1385,853.50,45.06,54.56,51.87,63.20,80.13,206.34
-[34m[YCSB] Requests sent for client 0: 523524 at 180s[0m
+1730754677911,0,INSERT,1846,877.57,43.49,53.74,50.98,62.02,80.96,152.19
+[34m[YCSB] Requests sent for client 0: 690263 at 180s[0m
 [YCSB] Exp time: 180s
 [YCSB] Exp time: 180s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708539697,0,INSERT,1501,125.69,46.59,58.80,58.30,65.25,80.13,94.33
-[34m[YCSB] Requests sent for client 0: 538079 at 185s[0m
+1730754682921,0,INSERT,1852,803.84,45.06,54.67,51.52,61.57,78.02,776.19
+[34m[YCSB] Requests sent for client 0: 709446 at 185s[0m
 [YCSB] Exp time: 185s
 [YCSB] Exp time: 185s
-[TGRIGGS_LOG] Compaction on level: 2
-1730708544705,0,INSERT,1489,128.25,46.02,57.91,56.99,65.06,81.98,116.86
-[34m[YCSB] Requests sent for client 0: 552626 at 190s[0m
-[TGRIGGS_LOG] Compaction on level: 2
+[TGRIGGS_LOG] Compaction on level: 1
+1730754687929,0,INSERT,2002,184.19,45.34,53.85,52.73,59.97,76.67,122.56
+[34m[YCSB] Requests sent for client 0: 728199 at 190s[0m
 [YCSB] Exp time: 190s
 [YCSB] Exp time: 190s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708549714,0,INSERT,1395,804.35,44.42,52.41,50.30,58.40,73.98,210.30
-[34m[YCSB] Requests sent for client 0: 567176 at 195s[0m
+1730754692937,0,INSERT,2001,82.50,44.93,53.60,53.57,58.14,72.77,80.51
+[34m[YCSB] Requests sent for client 0: 747405 at 195s[0m
 [YCSB] Exp time: 195s
 [YCSB] Exp time: 195s
-1730708554723,0,INSERT,1483,269.31,46.78,54.41,53.12,58.88,76.35,159.74
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 581726 at 200s[0m
+1730754697946,0,INSERT,1957,95.87,44.80,50.35,49.41,54.72,66.37,82.50
+[34m[YCSB] Requests sent for client 0: 766611 at 200s[0m
 [YCSB] Exp time: 200s
 [YCSB] Exp time: 200s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
-[TGRIGGS_LOG] Compaction on level: 1
-1730708559731,0,INSERT,1502,79.23,44.35,52.28,52.03,57.28,64.61,69.69
-[34m[YCSB] Requests sent for client 0: 596303 at 205s[0m
+1730754702954,0,INSERT,608,1977614.33,1644167.17,1812065.23,1809842.18,1947205.63,1976565.76,1977614.33
+[34m[YCSB] Requests sent for client 0: 785343 at 205s[0m
 [YCSB] Exp time: 205s
 [YCSB] Exp time: 205s
-1730708564740,0,INSERT,1402,154.11,45.73,58.40,56.06,68.73,84.80,121.60
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 610846 at 210s[0m
+1730754707963,0,INSERT,393,5742002.17,5339348.99,5541342.62,5544869.89,5704253.44,5742002.17,5742002.17
+[34m[YCSB] Requests sent for client 0: 804187 at 210s[0m
 [YCSB] Exp time: 210s
-[TGRIGGS_LOG] Compaction on level: 2
 [YCSB] Exp time: 210s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-1730708569749,0,INSERT,1445,890.37,45.70,59.79,55.42,68.67,105.60,866.30
-[34m[YCSB] Requests sent for client 0: 625357 at 215s[0m
+1730754712972,0,INSERT,253,9990832.13,9554624.51,9774336.41,9781116.93,9948889.09,9990832.13,9990832.13
+[34m[YCSB] Requests sent for client 0: 823300 at 215s[0m
 [YCSB] Exp time: 215s
 [YCSB] Exp time: 215s
 [TGRIGGS_LOG] Compaction on level: 2
-1730708574758,0,INSERT,1501,112.00,45.28,51.66,50.94,55.68,65.66,104.06
-[34m[YCSB] Requests sent for client 0: 639976 at 220s[0m
-[YCSB] Exp time: 220s
 [TGRIGGS_LOG] Compaction on level: 2
-[YCSB] Exp time: 220s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 3
 [TGRIGGS_LOG] Compaction on level: 1
-1730708579767,0,INSERT,1432,953.86,44.77,54.80,53.60,59.77,75.45,93.44
-[34m[YCSB] Requests sent for client 0: 654485 at 225s[0m
+1730754717981,0,INSERT,7605,7541358.59,5716836.35,6473044.29,6496976.89,7046430.72,7172259.84,7218397.18
+[34m[YCSB] Requests sent for client 0: 835212 at 220s[0m
+[YCSB] Exp time: 220s
+[YCSB] Exp time: 220s
+1730754722989,0,INSERT,1749,920.58,46.02,59.16,56.09,69.57,92.03,114.62
+[34m[YCSB] Requests sent for client 0: 849733 at 225s[0m
 [YCSB] Exp time: 225s
 [YCSB] Exp time: 225s
-1730708584776,0,INSERT,1414,215.94,47.97,62.12,59.90,73.22,104.51,153.34
-[34m[YCSB] Requests sent for client 0: 668997 at 230s[0m
-[TGRIGGS_LOG] Compaction on level: 2
+1730754727997,0,INSERT,1938,88.32,44.77,52.13,50.72,58.05,75.90,84.42
+[34m[YCSB] Requests sent for client 0: 868904 at 230s[0m
 [YCSB] Exp time: 230s
-[TGRIGGS_LOG] Compaction on level: 2
 [YCSB] Exp time: 230s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-1730708589785,0,INSERT,1502,153.73,46.94,55.16,53.98,59.71,75.84,118.97
-[34m[YCSB] Requests sent for client 0: 683628 at 235s[0m
+1730754733006,0,INSERT,1858,870.40,44.54,55.48,52.99,63.17,84.67,150.14
+[34m[YCSB] Requests sent for client 0: 888079 at 235s[0m
 [YCSB] Exp time: 235s
 [YCSB] Exp time: 235s
-1730708594793,0,INSERT,1460,95.68,45.15,50.92,49.85,55.23,72.64,89.73
-[34m[YCSB] Requests sent for client 0: 698157 at 240s[0m
+1730754738015,0,INSERT,1837,872.45,44.19,56.20,52.22,66.88,88.96,230.66
+[34m[YCSB] Requests sent for client 0: 907239 at 240s[0m
 [YCSB] Exp time: 240s
 [YCSB] Exp time: 240s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-1730708599802,0,INSERT,1386,224.51,47.97,62.60,60.29,72.51,108.86,172.67
-[34m[YCSB] Requests sent for client 0: 712642 at 245s[0m
+1730754743023,0,INSERT,613,1754267.65,1425014.78,1589573.65,1590689.79,1721761.79,1752170.50,1753219.07
+[34m[YCSB] Requests sent for client 0: 925968 at 245s[0m
 [YCSB] Exp time: 245s
 [YCSB] Exp time: 245s
-1730708604811,0,INSERT,1502,119.55,45.73,54.36,54.37,60.00,69.44,76.16
-[34m[YCSB] Requests sent for client 0: 726957 at 250s[0m
+1730754748031,0,INSERT,393,5448400.89,5049942.02,5250131.98,5255462.91,5414846.46,5448400.89,5448400.89
+[34m[YCSB] Requests sent for client 0: 944905 at 250s[0m
 [YCSB] Exp time: 250s
 [YCSB] Exp time: 250s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-1730708609819,0,INSERT,1467,808.96,43.87,50.61,49.18,54.17,69.38,109.50
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 741506 at 255s[0m
-[TGRIGGS_LOG] Compaction on level: 2
+1730754753040,0,INSERT,253,9655287.81,9219080.19,9438692.62,9445572.61,9613344.77,9655287.81,9655287.81
+[34m[YCSB] Requests sent for client 0: 964002 at 255s[0m
 [YCSB] Exp time: 255s
-[TGRIGGS_LOG] Compaction on level: 1
 [YCSB] Exp time: 255s
-1730708614828,0,INSERT,1394,855.04,46.62,57.38,53.70,68.29,93.31,212.22
-[34m[YCSB] Requests sent for client 0: 756019 at 260s[0m
+1730754758048,0,INSERT,179,14025752.57,13581156.35,13787192.75,13790871.55,13975420.93,14025752.57,14025752.57
+[34m[YCSB] Requests sent for client 0: 983150 at 260s[0m
 [YCSB] Exp time: 260s
 [YCSB] Exp time: 260s
-1730708619837,0,INSERT,1502,79.61,44.64,49.73,49.28,53.34,58.46,61.76
-[34m[YCSB] Requests sent for client 0: 770661 at 265s[0m
-[YCSB] Exp time: 265s
-[TGRIGGS_LOG] Compaction on level: 2
-[YCSB] Exp time: 265s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
 [TGRIGGS_LOG] Compaction on level: 1
-1730708624846,0,INSERT,1492,119.61,44.10,49.73,49.09,53.02,62.27,74.88
-[34m[YCSB] Requests sent for client 0: 785191 at 270s[0m
+1730754763057,0,INSERT,314,8589934.59,8082423.81,8295839.08,8296333.31,8468299.78,8506048.51,8589934.59
+[34m[YCSB] Requests sent for client 0: 994024 at 265s[0m
+[YCSB] Exp time: 265s
+[YCSB] Exp time: 265s
+1730754768066,0,INSERT,1814,820.74,44.22,52.75,50.43,59.84,75.97,98.24
+[34m[YCSB] Requests sent for client 0: 1005625 at 270s[0m
 [YCSB] Exp time: 270s
 [YCSB] Exp time: 270s
-1730708629854,0,INSERT,1380,957.95,47.52,59.87,55.97,67.58,88.89,916.99
-[34m[YCSB] Requests sent for client 0: 799683 at 275s[0m
+1730754773074,0,INSERT,1940,755.20,44.90,56.74,55.81,62.21,83.58,215.29
+[34m[YCSB] Requests sent for client 0: 1024552 at 275s[0m
 [YCSB] Exp time: 275s
 [YCSB] Exp time: 275s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
+1730754778082,0,INSERT,838,926941.18,641204.22,778441.93,777519.10,887619.58,923271.17,926941.18
+[34m[YCSB] Requests sent for client 0: 1043743 at 280s[0m
 [YCSB] Exp time: 280s
-1730708634863,0,INSERT,1501,104.06,45.12,52.07,51.04,56.86,68.80,92.29
-[34m[YCSB] Requests sent for client 0: 814307 at 280s[0m
 [YCSB] Exp time: 280s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
 [YCSB] Exp time: 285s
-1730708639871,0,INSERT,1502,181.50,44.67,53.02,52.90,58.53,67.33,93.44
-[34m[YCSB] Requests sent for client 0: 828844 at 285s[0m
+1730754783091,0,INSERT,354,4601151.49,4188012.54,4393646.00,4395630.59,4559208.45,4596957.18,4601151.49
+[34m[YCSB] Requests sent for client 0: 1063249 at 285s[0m
 [YCSB] Exp time: 285s
 [YCSB] Exp time: 290s
-1730708644880,0,INSERT,1368,239.49,47.78,62.34,60.29,73.53,106.50,178.94
-[34m[YCSB] Requests sent for client 0: 843329 at 290s[0m
+1730754788099,0,INSERT,225,8774483.97,8329887.74,8554366.52,8556380.16,8732540.93,8774483.97,8782872.57
+[34m[YCSB] Requests sent for client 0: 1082864 at 290s[0m
 [YCSB] Exp time: 290s
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 857898 at 295s[0m
 [YCSB] Exp time: 295s
-1730708649889,0,INSERT,1502,109.95,45.89,53.96,53.76,59.26,65.92,71.23
-[TGRIGGS_LOG] Compaction on level: 2
+1730754793109,0,INSERT,226,13220446.21,12767461.38,12993768.20,12993953.79,13170114.56,13212057.60,13220446.21
+[34m[YCSB] Requests sent for client 0: 1102755 at 295s[0m
 [YCSB] Exp time: 295s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 872423 at 300s[0m
 [YCSB] Exp time: 300s
-1730708654897,0,INSERT,1501,110.66,44.48,51.11,50.08,56.03,66.88,84.93
+1730754798117,0,INSERT,148,17750294.53,17280532.48,17518814.29,17515413.50,17716740.09,17750294.53,17750294.53
+[34m[YCSB] Requests sent for client 0: 1122298 at 300s[0m
 [YCSB] Exp time: 300s
-[34m[YCSB] Requests sent for client 0: 886911 at 305s[0m
+[34m[YCSB] Requests sent for client 0: 1141902 at 305s[0m
 [YCSB] Exp time: 305s
-1730708659906,0,INSERT,1374,936.96,46.08,59.72,56.29,69.18,87.17,865.28
+1730754803126,0,INSERT,143,22397583.36,21927821.31,22153961.76,22162702.34,22330474.50,22397583.36,22397583.36
 [YCSB] Exp time: 305s
-[34m[YCSB] Requests sent for client 0: 901532 at 310s[0m
+[TGRIGGS_LOG] Compaction on level: 1
+[34m[YCSB] Requests sent for client 0: 1153232 at 310s[0m
 [YCSB] Exp time: 310s
-1730708664914,0,INSERT,1476,219.52,46.75,56.06,54.02,63.36,90.24,134.66
+1730754808134,0,INSERT,285,17800626.18,17347641.34,17574192.42,17582522.37,17750294.53,17783848.96,17800626.18
 [YCSB] Exp time: 310s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 916038 at 315s[0m
 [YCSB] Exp time: 315s
-1730708669922,0,INSERT,1501,113.60,44.74,50.26,49.50,53.82,65.44,76.80
+1730754813143,0,INSERT,9313,14000586.75,12113149.95,13063324.18,13061062.65,13824425.98,13975420.93,13992198.14
+[34m[YCSB] Requests sent for client 0: 1163393 at 315s[0m
 [YCSB] Exp time: 315s
-[34m[YCSB] Requests sent for client 0: 930528 at 320s[0m
+[34m[YCSB] Requests sent for client 0: 1174388 at 320s[0m
 [YCSB] Exp time: 320s
-1730708674932,0,INSERT,1397,902.14,47.71,58.55,55.97,66.75,89.22,147.07
+1730754818151,0,INSERT,3489,1131413.50,44.77,333163.61,362807.29,752877.57,891289.60,1129316.35
 [YCSB] Exp time: 320s
-[34m[YCSB] Requests sent for client 0: 945131 at 325s[0m
+[34m[YCSB] Requests sent for client 0: 1193030 at 325s[0m
 [YCSB] Exp time: 325s
-1730708679941,0,INSERT,1451,806.40,44.61,51.36,49.79,54.66,71.81,209.28
+1730754823160,0,INSERT,1973,104.38,44.70,51.31,49.95,56.61,77.63,90.81
 [YCSB] Exp time: 325s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 959668 at 330s[0m
+[34m[YCSB] Requests sent for client 0: 1212211 at 330s[0m
 [YCSB] Exp time: 330s
-1730708684949,0,INSERT,1495,90.43,44.29,50.18,49.09,53.66,66.62,89.15
-[TGRIGGS_LOG] Compaction on level: 2
+1730754828168,0,INSERT,1914,827.90,44.74,53.47,51.55,59.65,77.25,129.53
 [YCSB] Exp time: 330s
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 974159 at 335s[0m
+[34m[YCSB] Requests sent for client 0: 1230870 at 335s[0m
 [YCSB] Exp time: 335s
-1730708689958,0,INSERT,1428,889.86,46.11,55.37,53.22,61.41,78.78,171.78
+1730754833176,0,INSERT,814,1283457.02,990904.32,1125402.55,1123024.90,1247805.44,1281359.87,1283457.02
 [YCSB] Exp time: 335s
-[34m[YCSB] Requests sent for client 0: 988713 at 340s[0m
+[34m[YCSB] Requests sent for client 0: 1249647 at 340s[0m
 [YCSB] Exp time: 340s
-1730708694966,0,INSERT,1428,252.54,45.15,56.01,55.20,61.47,79.10,103.87
+1730754838185,0,INSERT,397,4831838.21,4441767.94,4637690.53,4643094.53,4798283.78,4827643.90,4831838.21
 [YCSB] Exp time: 340s
-[34m[YCSB] Requests sent for client 0: 1003295 at 345s[0m
+[34m[YCSB] Requests sent for client 0: 1268700 at 345s[0m
 [YCSB] Exp time: 345s
-1730708699975,0,INSERT,1502,105.53,45.15,50.61,50.27,53.92,59.97,69.69
+1730754843193,0,INSERT,256,8959033.34,8522825.73,8737112.06,8740929.54,8908701.70,8942256.13,8959033.34
 [YCSB] Exp time: 345s
-[TGRIGGS_LOG] Compaction on level: 2
-[34m[YCSB] Requests sent for client 0: 1017777 at 350s[0m
+[34m[YCSB] Requests sent for client 0: 1288142 at 350s[0m
 [YCSB] Exp time: 350s
-1730708704984,0,INSERT,1451,916.48,44.83,57.40,55.45,63.62,80.19,900.10
-[TGRIGGS_LOG] Compaction on level: 1
+1730754848202,0,INSERT,253,13295943.68,12868124.67,13079315.34,13086228.48,13254000.64,13295943.68,13295943.68
 [YCSB] Exp time: 350s
-[34m[YCSB] Requests sent for client 0: 1032326 at 355s[0m
+[34m[YCSB] Requests sent for client 0: 1307533 at 355s[0m
 [YCSB] Exp time: 355s
-1730708709993,0,INSERT,1409,853.50,45.34,54.95,52.06,60.90,79.04,817.66
+1730754853210,0,INSERT,168,17850957.82,17381195.78,17623866.22,17632854.02,17817403.39,17850957.82,17850957.82
 [YCSB] Exp time: 355s
-[34m[YCSB] Requests sent for client 0: 1046906 at 360s[0m
+[34m[YCSB] Requests sent for client 0: 1327096 at 360s[0m
 [YCSB] Exp time: 360s
-1730708715002,0,INSERT,1495,84.99,44.90,50.64,50.08,54.37,61.66,79.17
+1730754858219,0,INSERT,165,22414360.57,21961375.74,22195392.49,22213033.98,22397583.36,22414360.57,22414360.57
 [YCSB] Exp time: 360s
-[34m[YCSB] Requests sent for client 0: 1061363 at 365s[0m
+[34m[YCSB] Requests sent for client 0: 1346549 at 365s[0m
+[TGRIGGS_LOG] Compaction on level: 1
 [YCSB] Exp time: 365s
-1730708720011,0,INSERT,1468,129.92,46.18,56.77,55.97,63.58,82.75,118.02
+1730754863229,0,INSERT,859,26994540.54,26558332.93,26897333.67,26910654.46,26977763.33,26994540.54,26994540.54
 [YCSB] Exp time: 365s
-[34m[YCSB] Requests sent for client 0: 1075928 at 370s[0m
+[34m[YCSB] Requests sent for client 0: 1353141 at 370s[0m
 [YCSB] Exp time: 370s
-1730708725019,0,INSERT,1391,849.41,44.90,54.43,52.13,61.66,74.56,211.46
+1730754868237,0,INSERT,7790,17448304.64,15804137.47,16551544.69,16550723.58,17146314.75,17297309.70,17364418.56
 [YCSB] Exp time: 370s
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 1090516 at 375s[0m
+[34m[YCSB] Requests sent for client 0: 1363673 at 375s[0m
 [YCSB] Exp time: 375s
-1730708730028,0,INSERT,1502,101.82,45.02,53.69,53.82,58.34,65.73,82.94
+1730754873246,0,INSERT,7218,12515803.13,10284433.41,10986670.94,10997465.09,11542724.61,11660165.12,11970543.62
 [YCSB] Exp time: 375s
-[34m[YCSB] Requests sent for client 0: 1105017 at 380s[0m
+[34m[YCSB] Requests sent for client 0: 1377308 at 380s[0m
 [YCSB] Exp time: 380s
-1730708735036,0,INSERT,1493,99.33,44.70,52.00,50.85,57.15,71.30,85.89
+1730754878254,0,INSERT,1829,920.58,45.12,56.07,52.73,64.03,86.46,800.77
 [YCSB] Exp time: 380s
-[34m[YCSB] Requests sent for client 0: 1119569 at 385s[0m
+[34m[YCSB] Requests sent for client 0: 1395939 at 385s[0m
 [YCSB] Exp time: 385s
-1730708740046,0,INSERT,1387,846.34,44.83,54.51,50.66,59.30,76.61,823.29
+1730754883263,0,INSERT,627,1862270.98,1528823.81,1693411.90,1696595.97,1830813.70,1861222.40,1865416.70
 [YCSB] Exp time: 385s
-[34m[YCSB] Requests sent for client 0: 1134187 at 390s[0m
+[34m[YCSB] Requests sent for client 0: 1414775 at 390s[0m
 [YCSB] Exp time: 390s
-1730708745055,0,INSERT,1495,114.56,44.51,50.92,50.14,54.85,66.43,109.82
+1730754888271,0,INSERT,407,5494538.24,5100273.66,5298122.18,5297405.95,5456789.50,5494538.24,5494538.24
 [YCSB] Exp time: 390s
-[34m[YCSB] Requests sent for client 0: 1148640 at 395s[0m
+[34m[YCSB] Requests sent for client 0: 1433892 at 395s[0m
 [YCSB] Exp time: 395s
-1730708750063,0,INSERT,1502,232.83,46.62,58.92,58.24,64.96,80.25,148.35
+1730754893280,0,INSERT,256,9688842.24,9261023.23,9471229.95,9470738.43,9638510.59,9680453.63,9688842.24
 [YCSB] Exp time: 395s
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 1163166 at 400s[0m
+[34m[YCSB] Requests sent for client 0: 1453083 at 400s[0m
 [YCSB] Exp time: 400s
-1730708755073,0,INSERT,1383,842.24,45.41,55.98,52.93,63.30,78.78,805.89
+1730754898288,0,INSERT,170,14034141.18,13572767.74,13804737.43,13807648.77,14000586.75,14034141.18,14034141.18
 [YCSB] Exp time: 400s
-[34m[YCSB] Requests sent for client 0: 1177766 at 405s[0m
+[34m[YCSB] Requests sent for client 0: 1472662 at 405s[0m
 [YCSB] Exp time: 405s
-1730708760081,0,INSERT,1488,817.66,44.51,53.52,52.73,58.05,66.88,253.31
+1730754903297,0,INSERT,165,18605932.54,18152947.71,18384320.77,18387828.73,18572378.11,18605932.54,18605932.54
 [YCSB] Exp time: 405s
-[34m[YCSB] Requests sent for client 0: 1192273 at 410s[0m
+[34m[YCSB] Requests sent for client 0: 1492235 at 410s[0m
 [YCSB] Exp time: 410s
-1730708765090,0,INSERT,1501,114.17,46.69,53.60,52.83,58.24,68.54,90.24
+1730754908306,0,INSERT,165,23152558.08,22716350.46,22931454.71,22934454.27,23119003.65,23152558.08,23152558.08
 [YCSB] Exp time: 410s
-[34m[YCSB] Requests sent for client 0: 1206792 at 415s[0m
+[34m[YCSB] Requests sent for client 0: 1511734 at 415s[0m
 [YCSB] Exp time: 415s
-1730708770100,0,INSERT,1400,1070.08,45.25,56.44,53.25,65.06,80.77,807.93
+1730754913314,0,INSERT,102,27816624.13,27363639.30,27576644.15,27581743.10,27783069.70,27816624.13,27816624.13
 [YCSB] Exp time: 415s
-[34m[YCSB] Requests sent for client 0: 1221444 at 420s[0m
+[34m[YCSB] Requests sent for client 0: 1531430 at 420s[0m
 [YCSB] Exp time: 420s
-1730708775109,0,INSERT,1437,864.25,44.67,54.13,51.62,60.58,85.57,203.13
+1730754918323,0,INSERT,103,32547799.04,32094814.21,32315116.97,32312918.02,32514244.61,32547799.04,32547799.04
 [YCSB] Exp time: 420s
-[34m[YCSB] Requests sent for client 0: 1235893 at 425s[0m
+[34m[YCSB] Requests sent for client 0: 1551118 at 425s[0m
 [YCSB] Exp time: 425s
-1730708780118,0,INSERT,1502,177.79,46.56,57.50,56.99,63.55,72.13,91.39
+1730754923332,0,INSERT,107,37278973.95,36809211.90,37045190.50,37077647.36,37245419.52,37278973.95,37278973.95
 [YCSB] Exp time: 425s
-[34m[YCSB] Requests sent for client 0: 1250401 at 430s[0m
+[34m[YCSB] Requests sent for client 0: 1570674 at 430s[0m
 [YCSB] Exp time: 430s
-1730708785126,0,INSERT,1436,964.61,45.18,56.54,54.11,63.84,87.68,175.10
+1730754928340,0,INSERT,77,41976594.43,41540386.82,41758926.40,41775267.84,41976594.43,41976594.43,41976594.43
 [YCSB] Exp time: 430s
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 1265054 at 435s[0m
+[34m[YCSB] Requests sent for client 0: 1590459 at 435s[0m
 [YCSB] Exp time: 435s
-1730708790135,0,INSERT,1426,203.90,44.93,52.11,50.78,57.73,74.69,100.93
+1730754933349,0,INSERT,66,46841987.07,46372225.02,46612190.05,46607106.05,46841987.07,46841987.07,46841987.07
 [YCSB] Exp time: 435s
-[34m[YCSB] Requests sent for client 0: 1279541 at 440s[0m
+[34m[YCSB] Requests sent for client 0: 1610280 at 440s[0m
 [YCSB] Exp time: 440s
-1730708795144,0,INSERT,1501,111.94,46.50,57.25,56.80,63.17,75.01,86.53
+1730754938357,0,INSERT,66,51673825.28,51237617.66,51455213.07,51438944.26,51673825.28,51673825.28,51673825.28
 [YCSB] Exp time: 440s
-[34m[YCSB] Requests sent for client 0: 1294047 at 445s[0m
+[TGRIGGS_LOG] Compaction on level: 1
+[34m[YCSB] Requests sent for client 0: 1623417 at 445s[0m
 [YCSB] Exp time: 445s
-1730708800153,0,INSERT,1462,113.28,45.09,54.45,52.51,62.94,81.34,108.99
+1730754943366,0,INSERT,7803,49325015.04,47747956.74,48537178.22,48553263.10,49157242.88,49291460.61,49325015.04
 [YCSB] Exp time: 445s
-[34m[YCSB] Requests sent for client 0: 1308678 at 450s[0m
+[34m[YCSB] Requests sent for client 0: 1634256 at 450s[0m
 [YCSB] Exp time: 450s
-1730708805162,0,INSERT,1397,871.42,44.86,52.97,50.85,58.27,76.22,200.19
+1730754948375,0,INSERT,8571,45097156.61,43385880.58,44244508.51,44258295.81,44929384.45,45097156.61,45097156.61
 [YCSB] Exp time: 450s
-[34m[YCSB] Requests sent for client 0: 1323003 at 455s[0m
+[34m[YCSB] Requests sent for client 0: 1646173 at 455s[0m
 [YCSB] Exp time: 455s
-1730708810171,0,INSERT,607,1612709.89,1349517.31,1478741.78,1479540.74,1584398.33,1609564.16,1612709.89
+1730754953384,0,INSERT,512,40298872.83,39896219.65,40111308.80,40131100.67,40265318.40,40298872.83,40298872.83
 [YCSB] Exp time: 455s
-[34m[YCSB] Requests sent for client 0: 1337675 at 460s[0m
+[34m[YCSB] Requests sent for client 0: 1658873 at 460s[0m
 [YCSB] Exp time: 460s
-1730708815180,0,INSERT,389,5096079.36,4722786.30,4908322.26,4911529.98,5058330.62,5091885.05,5096079.36
+1730754958393,0,INSERT,9070,38084280.32,35399925.76,36317641.32,36339449.85,37077647.36,37245419.52,37278973.95
 [YCSB] Exp time: 460s
-[34m[YCSB] Requests sent for client 0: 1352397 at 465s[0m
+[34m[YCSB] Requests sent for client 0: 1671136 at 465s[0m
 [YCSB] Exp time: 465s
-1730708820189,0,INSERT,249,9118416.89,8698986.50,8909762.91,8917090.30,9076473.86,9118416.89,9118416.89
+1730754963401,0,INSERT,1839,32128368.64,31423725.57,31432488.22,31440502.78,31440502.78,31440502.78,31440502.78
 [YCSB] Exp time: 465s
-[34m[YCSB] Requests sent for client 0: 1367165 at 470s[0m
+[34m[YCSB] Requests sent for client 0: 1682106 at 470s[0m
 [YCSB] Exp time: 470s
-1730708825198,0,INSERT,159,13279166.46,12834570.24,13057501.45,13061062.65,13237223.42,13279166.46,13279166.46
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
+1730754968410,0,INSERT,9300,27615297.54,22934454.27,25390309.64,24763170.82,27413970.94,27581743.10,27598520.32
 [YCSB] Exp time: 470s
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 1374352 at 475s[0m
+[34m[YCSB] Requests sent for client 0: 1692867 at 475s[0m
 [YCSB] Exp time: 475s
-1730708830207,0,INSERT,1327,851.46,46.21,57.44,53.79,64.73,80.32,818.69
+1730754973419,0,INSERT,1646,14218690.56,12599689.22,12653705.53,12658409.47,12691963.90,12691963.90,12700352.51
 [YCSB] Exp time: 475s
-[34m[YCSB] Requests sent for client 0: 1388672 at 480s[0m
+[34m[YCSB] Requests sent for client 0: 1705373 at 480s[0m
 [YCSB] Exp time: 480s
-1730708835215,0,INSERT,1447,106.17,45.70,56.45,55.87,62.56,81.53,104.64
+1730754978427,0,INSERT,1972,5918162.94,1922039.81,2255237.86,2123366.40,2589982.72,2594177.02,5834276.86
 [YCSB] Exp time: 480s
-[34m[YCSB] Requests sent for client 0: 1403296 at 485s[0m
+[34m[YCSB] Requests sent for client 0: 1723792 at 485s[0m
 [YCSB] Exp time: 485s
-1730708840223,0,INSERT,1400,875.52,47.84,60.44,56.77,71.23,95.30,247.81
+1730754983435,0,INSERT,492,4280287.23,3923771.39,4090605.80,4087349.25,4236247.04,4276092.93,4280287.23
 [YCSB] Exp time: 485s
-[34m[YCSB] Requests sent for client 0: 1417799 at 490s[0m
+[34m[YCSB] Requests sent for client 0: 1743333 at 490s[0m
 [YCSB] Exp time: 490s
-1730708845232,0,INSERT,1502,233.98,47.78,56.78,54.88,62.72,90.37,153.47
+1730754988445,0,INSERT,273,8157921.28,7734296.58,7940593.34,7939817.47,8115978.24,8153726.97,8157921.28
 [YCSB] Exp time: 490s
-[34m[YCSB] Requests sent for client 0: 1432306 at 495s[0m
+[34m[YCSB] Requests sent for client 0: 1763129 at 495s[0m
 [YCSB] Exp time: 495s
-1730708850241,0,INSERT,1475,95.74,45.41,54.74,54.43,60.38,69.18,83.45
+1730754993453,0,INSERT,264,12490637.31,12046041.09,12268529.85,12272533.50,12448694.27,12482248.70,12490637.31
 [YCSB] Exp time: 495s
-[34m[YCSB] Requests sent for client 0: 1446604 at 500s[0m
+[34m[YCSB] Requests sent for client 0: 1782823 at 500s[0m
 [YCSB] Exp time: 500s
-1730708855250,0,INSERT,352,2675965.95,2300575.74,2488574.70,2485125.12,2638217.21,2673868.80,2675965.95
+1730754998462,0,INSERT,169,16986931.20,16517169.15,16751231.17,16752050.18,16936599.55,16978542.59,16986931.20
 [YCSB] Exp time: 500s
-[34m[YCSB] Requests sent for client 0: 1461004 at 505s[0m
+[34m[YCSB] Requests sent for client 0: 1802751 at 505s[0m
 [YCSB] Exp time: 505s
-1730708860259,0,INSERT,253,6496976.89,6081740.80,6274355.51,6262095.87,6442450.94,6484393.98,6496976.89
+1730755003470,0,INSERT,168,21558722.56,21088960.51,21331634.50,21340618.75,21525168.13,21558722.56,21575499.77
 [YCSB] Exp time: 505s
-[34m[YCSB] Requests sent for client 0: 1475545 at 510s[0m
+[34m[YCSB] Requests sent for client 0: 1822507 at 510s[0m
 [YCSB] Exp time: 510s
-1730708865268,0,INSERT,228,10687086.59,10259267.58,10471043.14,10477371.39,10645143.55,10678697.98,10687086.59
+1730755008479,0,INSERT,108,26189234.18,25702694.91,25951246.26,25954353.15,26138902.53,26189234.18,26189234.18
 [YCSB] Exp time: 510s
-[34m[YCSB] Requests sent for client 0: 1489505 at 515s[0m
+[34m[YCSB] Requests sent for client 0: 1842374 at 515s[0m
 [YCSB] Exp time: 515s
-1730708870278,0,INSERT,143,15007219.71,14562623.49,14780287.33,14780727.29,14973665.28,15007219.71,15007219.71
+1730755013488,0,INSERT,109,32547799.04,30450647.04,30783036.01,30702305.28,30920409.09,32380026.88,32547799.04
 [YCSB] Exp time: 515s
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 1498577 at 520s[0m
+[34m[YCSB] Requests sent for client 0: 1862093 at 520s[0m
 [YCSB] Exp time: 520s
-1730708875286,0,INSERT,2952,7033847.81,5976883.20,6522878.71,6568280.06,6912212.99,6991904.77,7029653.50
+1730755018496,0,INSERT,110,35668361.22,35198599.17,35433175.15,35433480.19,35634806.78,35668361.22,35668361.22
 [YCSB] Exp time: 520s
-[34m[YCSB] Requests sent for client 0: 1509872 at 525s[0m
+[34m[YCSB] Requests sent for client 0: 1881788 at 525s[0m
 [YCSB] Exp time: 525s
-1730708880295,0,INSERT,1405,840.19,45.28,55.02,52.96,61.22,77.76,220.16
+1730755023505,0,INSERT,110,40365981.70,39896219.65,40125304.91,40131100.67,40298872.83,40365981.70,40365981.70
 [YCSB] Exp time: 525s
-[34m[YCSB] Requests sent for client 0: 1524366 at 530s[0m
+[34m[YCSB] Requests sent for client 0: 1901401 at 530s[0m
+[TGRIGGS_LOG] Compaction on level: 1
 [YCSB] Exp time: 530s
-1730708885304,0,INSERT,1501,127.04,46.34,52.59,51.97,56.86,63.04,72.06
+1730755028514,0,INSERT,3649,44962938.88,44224741.38,44595582.68,44593840.13,44895830.02,44962938.88,44962938.88
 [YCSB] Exp time: 530s
-[34m[YCSB] Requests sent for client 0: 1538882 at 535s[0m
+[34m[YCSB] Requests sent for client 0: 1909659 at 535s[0m
 [YCSB] Exp time: 535s
-1730708890313,0,INSERT,1477,909.31,46.27,53.71,51.87,58.27,73.86,355.58
+1730755033523,0,INSERT,8658,37547409.41,35836133.38,36671335.84,36674994.17,37379637.25,37513854.98,37547409.41
 [YCSB] Exp time: 535s
-[34m[YCSB] Requests sent for client 0: 1553534 at 540s[0m
+[34m[YCSB] Requests sent for client 0: 1919163 at 540s[0m
 [YCSB] Exp time: 540s
-1730708895321,0,INSERT,1338,10461.18,44.90,109.94,52.03,61.98,797.18,10182.66
+1730755038531,0,INSERT,6548,31021072.38,29460791.30,30124876.63,30131879.93,30651973.63,30752636.93,30953963.52
 [YCSB] Exp time: 540s
-[34m[YCSB] Requests sent for client 0: 1568078 at 545s[0m
+[34m[YCSB] Requests sent for client 0: 1927344 at 545s[0m
 [YCSB] Exp time: 545s
-1730708900330,0,INSERT,251,3768582.14,3355443.20,3561929.12,3563061.25,3728736.25,3764387.84,3768582.14
-[YCSB] Exp time: 545s
-[34m[YCSB] Requests sent for client 0: 1582981 at 550s[0m
-[YCSB] Exp time: 550s
-1730708905339,0,INSERT,252,7923040.25,7507804.16,7716437.50,7717519.36,7885291.52,7923040.25,7923040.25
-[YCSB] Exp time: 550s
-[34m[YCSB] Requests sent for client 0: 1597787 at 555s[0m
-[YCSB] Exp time: 555s
-1730708910347,0,INSERT,161,12264144.89,11811160.06,12035177.58,12037652.48,12213813.25,12255756.29,12264144.89
-[YCSB] Exp time: 555s
-[34m[YCSB] Requests sent for client 0: 1612697 at 560s[0m
-[YCSB] Exp time: 560s
-1730708915356,0,INSERT,161,19864223.74,16273899.52,16517742.29,16500391.94,16684941.31,16718495.74,19864223.74
-[YCSB] Exp time: 560s
-[YCSB] Exp time: 565s
-[34m[YCSB] Requests sent for client 0: 1627501 at 565s[0m
-[YCSB] Exp time: 565s
-1730708920365,0,INSERT,103,21223178.24,20736638.98,20983980.75,20988297.21,21172846.59,21223178.24,21223178.24
-[YCSB] Exp time: 570s
-[34m[YCSB] Requests sent for client 0: 1642485 at 570s[0m
-[YCSB] Exp time: 570s
-1730708925374,0,INSERT,103,25870467.07,25400705.02,25629152.07,25635586.05,25820135.42,25853689.86,25870467.07
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-[YCSB] Exp time: 575s
-[34m[YCSB] Requests sent for client 0: 1649541 at 575s[0m
-[YCSB] Exp time: 575s
-1730708930382,0,INSERT,198,15216934.91,14789115.90,14998280.34,15007219.71,15174991.87,15216934.91,15216934.91
-[34m[YCSB] Requests sent for client 0: 1656733 at 580s[0m
-[YCSB] Exp time: 580s
-[YCSB] Exp time: 580s
-1730708935391,0,INSERT,1250,332398.59,46.05,63485.28,50659.33,154796.03,178257.92,332136.45
-[34m[YCSB] Requests sent for client 0: 1670728 at 585s[0m
-[YCSB] Exp time: 585s
-[YCSB] Exp time: 585s
-1730708940400,0,INSERT,1501,134.53,44.96,51.34,50.27,56.83,64.86,71.10
-[34m[YCSB] Requests sent for client 0: 1685253 at 590s[0m
-[YCSB] Exp time: 590s
-[YCSB] Exp time: 590s
-1730708945409,0,INSERT,1502,258.94,46.50,55.00,53.12,60.54,85.06,144.51
-[34m[YCSB] Requests sent for client 0: 1699897 at 595s[0m
-[YCSB] Exp time: 595s
-[YCSB] Exp time: 595s
-1730708950417,0,INSERT,1196,58589.18,46.14,4814.13,55.74,21987.33,55083.01,58327.04
-[34m[YCSB] Requests sent for client 0: 1714443 at 600s[0m
-[YCSB] Exp time: 600s
-[YCSB] Exp time: 600s
-1730708955425,0,INSERT,497,2973761.54,2657091.58,2820047.05,2824863.74,2944401.41,2971664.38,2973761.54
-[34m[YCSB] Requests sent for client 0: 1728936 at 605s[0m
-[YCSB] Exp time: 605s
-[YCSB] Exp time: 605s
-1730708960434,0,INSERT,319,6765412.35,6375342.08,6572283.72,6576668.67,6736052.22,6765412.35,6765412.35
-[34m[YCSB] Requests sent for client 0: 1743407 at 610s[0m
-[YCSB] Exp time: 610s
-[YCSB] Exp time: 610s
-1730708965442,0,INSERT,201,10921967.62,10494148.61,10703676.00,10712252.41,10880024.57,10921967.62,10921967.62
-[34m[YCSB] Requests sent for client 0: 1758090 at 615s[0m
-[YCSB] Exp time: 615s
-[YCSB] Exp time: 615s
-1730708970451,0,INSERT,202,15233712.13,14805893.12,15017394.01,15023996.93,15191769.09,15233712.13,15233712.13
-[34m[YCSB] Requests sent for client 0: 1772639 at 620s[0m
-[YCSB] Exp time: 620s
-[YCSB] Exp time: 620s
-1730708975460,0,INSERT,129,19696451.58,19260243.97,19476722.08,19495124.99,19662897.15,19696451.58,19696451.58
-[34m[YCSB] Requests sent for client 0: 1787394 at 625s[0m
-[YCSB] Exp time: 625s
-[YCSB] Exp time: 625s
-1730708980468,0,INSERT,124,24276631.55,23840423.94,24054739.34,24058527.74,24243077.12,24276631.55,24276631.55
-[34m[YCSB] Requests sent for client 0: 1802155 at 630s[0m
-[YCSB] Exp time: 630s
-[YCSB] Exp time: 630s
-1730708985477,0,INSERT,132,28806479.87,28353495.04,28583164.96,28571598.85,28772925.44,28806479.87,28806479.87
-[34m[YCSB] Requests sent for client 0: 1816786 at 635s[0m
-[YCSB] Exp time: 635s
-[TGRIGGS_LOG] Compaction on level: 1
-[YCSB] Exp time: 635s
-1730708990486,0,INSERT,7991,33017561.09,30752636.93,31895154.85,31910264.83,32816234.50,33000783.87,33017561.09
-[34m[YCSB] Requests sent for client 0: 1821763 at 640s[0m
-[YCSB] Exp time: 640s
-[YCSB] Exp time: 640s
-1730708995495,0,INSERT,1788,17364418.56,16584278.02,16804812.08,16810770.43,16986931.20,17037262.85,17280532.48
-[34m[YCSB] Requests sent for client 0: 1828995 at 645s[0m
-[YCSB] Exp time: 645s
-[YCSB] Exp time: 645s
-1730709000504,0,INSERT,5514,5121245.18,496500.74,2121755.76,2017460.22,3586129.92,3680501.76,3854565.38
-[34m[YCSB] Requests sent for client 0: 1842215 at 650s[0m
-[YCSB] Exp time: 650s
-[YCSB] Exp time: 650s
-1730709005513,0,INSERT,1387,210.56,45.25,53.95,51.97,62.11,79.23,100.61
-[34m[YCSB] Requests sent for client 0: 1856758 at 655s[0m
-[YCSB] Exp time: 655s
-[YCSB] Exp time: 655s
-1730709010521,0,INSERT,1460,227.07,45.09,53.08,51.45,59.13,79.23,108.09
-[34m[YCSB] Requests sent for client 0: 1871171 at 660s[0m
-[YCSB] Exp time: 660s
-[YCSB] Exp time: 660s
-1730709015530,0,INSERT,561,4007657.47,2178940.93,2337093.38,2336227.33,2459959.29,2485125.12,2489319.42
-[34m[YCSB] Requests sent for client 0: 1885827 at 665s[0m
-[YCSB] Exp time: 665s
-[YCSB] Exp time: 665s
-1730709020539,0,INSERT,359,6174015.49,5796528.13,5984973.88,5985271.81,6136266.75,6169821.18,6174015.49
-[34m[YCSB] Requests sent for client 0: 1900605 at 670s[0m
-[YCSB] Exp time: 670s
-[YCSB] Exp time: 670s
-1730709025548,0,INSERT,231,14638120.96,9873391.62,10233103.12,10091495.42,10267656.19,14638120.96,14638120.96
-[34m[YCSB] Requests sent for client 0: 1915233 at 675s[0m
-[YCSB] Exp time: 675s
-[YCSB] Exp time: 675s
-1730709030558,0,INSERT,162,14520680.45,14101250.05,14300867.85,14294188.03,14487126.02,14520680.45,14520680.45
-[34m[YCSB] Requests sent for client 0: 1929912 at 680s[0m
-[YCSB] Exp time: 680s
-[YCSB] Exp time: 680s
-1730709035567,0,INSERT,149,19008585.73,18555600.90,18783557.10,18790481.92,18975031.30,19008585.73,19008585.73
-[34m[YCSB] Requests sent for client 0: 1944633 at 685s[0m
-[YCSB] Exp time: 685s
-[YCSB] Exp time: 685s
-1730709040576,0,INSERT,150,23521656.83,23068672.00,23297960.62,23320330.24,23488102.40,23521656.83,23521656.83
-[34m[YCSB] Requests sent for client 0: 1959213 at 690s[0m
-[YCSB] Exp time: 690s
-[YCSB] Exp time: 690s
-1730709045584,0,INSERT,95,28101836.80,27648851.97,27879936.04,27883732.99,28085059.58,28101836.80,28101836.80
-[34m[YCSB] Requests sent for client 0: 1974017 at 695s[0m
-[YCSB] Exp time: 695s
-[YCSB] Exp time: 695s
-1730709050593,0,INSERT,92,32799457.28,32346472.45,32564211.53,32581353.47,32765902.85,32799457.28,32799457.28
-[34m[YCSB] Requests sent for client 0: 1988836 at 700s[0m
-[YCSB] Exp time: 700s
-[YCSB] Exp time: 700s
-1730709055602,0,INSERT,88,37480300.54,37044092.93,37265247.14,37278973.95,37446746.11,37480300.54,37480300.54
-[34m[YCSB] Requests sent for client 0: 2003662 at 705s[0m
-[YCSB] Exp time: 705s
-[YCSB] Exp time: 705s
-1730709060611,0,INSERT,99,42177921.02,41708158.98,41951343.87,41976594.43,42177921.02,42177921.02,42177921.02
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 2
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 2015530 at 710s[0m
-[YCSB] Exp time: 710s
-[YCSB] Exp time: 710s
-1730709065621,0,INSERT,6359,39325794.30,37446746.11,38345077.78,38352715.77,39090913.28,39225131.01,39258685.44
-[34m[YCSB] Requests sent for client 0: 2022256 at 715s[0m
-[YCSB] Exp time: 715s
-[YCSB] Exp time: 715s
-1730709070630,0,INSERT,363,30131879.93,29729226.75,29927341.18,29930553.34,30081548.29,30115102.72,30131879.93
-[34m[YCSB] Requests sent for client 0: 2028851 at 720s[0m
-[YCSB] Exp time: 720s
-[YCSB] Exp time: 720s
-1730709075639,0,INSERT,2485,16684941.31,16265510.91,16364490.08,16299065.34,16567500.80,16634609.66,16684941.31
-[34m[YCSB] Requests sent for client 0: 2037009 at 725s[0m
-[YCSB] Exp time: 725s
-[YCSB] Exp time: 725s
-1730709080648,0,INSERT,1323,866.82,47.90,60.38,58.14,70.08,82.50,96.00
-[34m[YCSB] Requests sent for client 0: 2051217 at 730s[0m
-[YCSB] Exp time: 730s
-[YCSB] Exp time: 730s
-1730709085657,0,INSERT,1393,234.24,45.79,58.30,56.58,66.75,91.97,114.17
-[34m[YCSB] Requests sent for client 0: 2065807 at 735s[0m
-[YCSB] Exp time: 735s
-[YCSB] Exp time: 735s
-1730709090665,0,INSERT,1480,518.14,46.30,55.15,53.02,62.17,80.64,147.71
-[34m[YCSB] Requests sent for client 0: 2080291 at 740s[0m
-[YCSB] Exp time: 740s
-[YCSB] Exp time: 740s
-1730709095674,0,INSERT,510,4643094.53,2327838.72,2485065.50,2472542.21,2594177.02,2623537.15,4555014.14
-[34m[YCSB] Requests sent for client 0: 2094981 at 745s[0m
-[YCSB] Exp time: 745s
-[YCSB] Exp time: 745s
-1730709100684,0,INSERT,327,6366953.47,5976883.20,6172072.26,6174015.49,6329204.74,6362759.17,6366953.47
-[34m[YCSB] Requests sent for client 0: 2109773 at 750s[0m
-[YCSB] Exp time: 750s
-[YCSB] Exp time: 750s
-1730709105692,0,INSERT,209,10494148.61,10057940.99,10279516.64,10284433.41,10452205.57,10494148.61,10494148.61
-[34m[YCSB] Requests sent for client 0: 2124648 at 755s[0m
-[YCSB] Exp time: 755s
-[YCSB] Exp time: 755s
-1730709110701,0,INSERT,210,14789115.90,14352908.29,14573928.14,14579400.70,14747172.86,14789115.90,14789115.90
-[34m[YCSB] Requests sent for client 0: 2139460 at 760s[0m
-[YCSB] Exp time: 760s
-[YCSB] Exp time: 760s
-1730709115710,0,INSERT,133,19277021.18,18807259.14,19037914.32,19042140.16,19226689.54,19260243.97,19277021.18
-[34m[YCSB] Requests sent for client 0: 2154412 at 765s[0m
-[YCSB] Exp time: 765s
-[YCSB] Exp time: 765s
-1730709120720,0,INSERT,134,23790092.29,23320330.24,23555211.26,23555211.26,23739760.64,23790092.29,23790092.29
-[34m[YCSB] Requests sent for client 0: 2169361 at 770s[0m
-[YCSB] Exp time: 770s
-[YCSB] Exp time: 770s
-1730709125729,0,INSERT,134,28353495.04,27883732.99,28114106.70,28118614.02,28303163.39,28353495.04,28353495.04
-[34m[YCSB] Requests sent for client 0: 2184183 at 775s[0m
-[YCSB] Exp time: 775s
-[YCSB] Exp time: 775s
-1730709130738,0,INSERT,85,39426457.60,32547799.04,32866763.52,32799457.28,32984006.66,33034338.30,39426457.60
-[34m[YCSB] Requests sent for client 0: 2199088 at 780s[0m
-[YCSB] Exp time: 780s
-[YCSB] Exp time: 780s
-1730709135747,0,INSERT,86,37748736.00,37245419.52,37511904.14,37513854.98,37715181.57,37748736.00,37748736.00
-[34m[YCSB] Requests sent for client 0: 2213978 at 785s[0m
-[YCSB] Exp time: 785s
-[YCSB] Exp time: 785s
-1730709140757,0,INSERT,86,42479910.91,41976594.43,42232544.52,42245029.89,42446356.48,42479910.91,42479910.91
-[34m[YCSB] Requests sent for client 0: 2228864 at 790s[0m
-[YCSB] Exp time: 790s
-[YCSB] Exp time: 790s
-1730709145766,0,INSERT,85,47211085.82,46707769.34,46955480.00,46976204.80,47143976.96,47211085.82,47211085.82
-[34m[YCSB] Requests sent for client 0: 2243735 at 795s[0m
-[YCSB] Exp time: 795s
-[YCSB] Exp time: 795s
-1730709150775,0,INSERT,55,51942260.73,51438944.26,51686942.01,51707379.71,51908706.30,51942260.73,51942260.73
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 2256154 at 800s[0m
-[YCSB] Exp time: 800s
-[YCSB] Exp time: 800s
-1730709155784,0,INSERT,9145,49358569.47,46707769.34,48020407.72,48016392.19,49056579.58,49325015.04,49325015.04
-[34m[YCSB] Requests sent for client 0: 2261995 at 805s[0m
-[YCSB] Exp time: 805s
-[YCSB] Exp time: 805s
-1730709160793,0,INSERT,211,36674994.17,36205232.13,36438920.46,36440113.15,36641439.74,36674994.17,36674994.17
-[34m[YCSB] Requests sent for client 0: 2269029 at 810s[0m
-[YCSB] Exp time: 810s
-[YCSB] Exp time: 810s
-1730709165801,0,INSERT,5327,27044872.19,25199378.43,25925633.34,25954353.15,26524778.50,26625441.79,26877100.03
-[34m[YCSB] Requests sent for client 0: 2276628 at 815s[0m
-[YCSB] Exp time: 815s
-[YCSB] Exp time: 815s
-1730709170810,0,INSERT,8057,16441671.68,8749318.14,11560214.75,11333009.41,13790871.55,14025752.57,14092861.44
-[34m[YCSB] Requests sent for client 0: 2286386 at 820s[0m
-[YCSB] Exp time: 820s
-[YCSB] Exp time: 820s
-1730709175819,0,INSERT,1502,108.09,44.67,50.61,49.44,54.72,69.69,95.94
-[34m[YCSB] Requests sent for client 0: 2301018 at 825s[0m
-[YCSB] Exp time: 825s
-[YCSB] Exp time: 825s
-1730709180828,0,INSERT,542,1356857.34,712507.39,871921.41,870842.37,998244.35,1027604.48,1029177.34
-[34m[YCSB] Requests sent for client 0: 2315535 at 830s[0m
-[YCSB] Exp time: 830s
-[YCSB] Exp time: 830s
-1730709185837,0,INSERT,353,4777312.25,4391436.29,4586187.06,4584374.27,4743757.82,4777312.25,4777312.25
-[34m[YCSB] Requests sent for client 0: 2329930 at 835s[0m
-[YCSB] Exp time: 835s
-[YCSB] Exp time: 835s
-1730709190846,0,INSERT,220,8883535.87,8468299.78,8674487.95,8673820.67,8841592.83,8883535.87,8883535.87
-[34m[YCSB] Requests sent for client 0: 2344493 at 840s[0m
-[YCSB] Exp time: 840s
-[YCSB] Exp time: 840s
-1730709195855,0,INSERT,219,13136560.13,12725518.34,12933184.26,12926844.93,13094617.09,13136560.13,13136560.13
-[YCSB] Exp time: 845s
-[34m[YCSB] Requests sent for client 0: 2359114 at 845s[0m
-[YCSB] Exp time: 845s
-1730709200864,0,INSERT,143,17649631.23,17196646.40,17425602.60,17431527.42,17616076.80,17649631.23,17649631.23
-[YCSB] Exp time: 850s
-[34m[YCSB] Requests sent for client 0: 2373898 at 850s[0m
-[YCSB] Exp time: 850s
-1730709205874,0,INSERT,140,22162702.34,21709717.50,21942397.26,21944598.53,22129147.90,22162702.34,22179479.55
-[YCSB] Exp time: 855s
-[34m[YCSB] Requests sent for client 0: 2388594 at 855s[0m
-[YCSB] Exp time: 855s
-1730709210883,0,INSERT,88,26709327.87,26273120.26,26493130.57,26474446.85,26692550.66,26709327.87,26709327.87
-[34m[YCSB] Requests sent for client 0: 2403407 at 860s[0m
-[YCSB] Exp time: 860s
-[YCSB] Exp time: 860s
-1730709215892,0,INSERT,88,31406948.35,30970740.74,31187319.34,31172067.33,31390171.14,31406948.35,31406948.35
-[34m[YCSB] Requests sent for client 0: 2418255 at 865s[0m
-[YCSB] Exp time: 865s
-[YCSB] Exp time: 865s
-1730709220901,0,INSERT,95,36104568.83,35634806.78,35877634.91,35903242.24,36104568.83,36104568.83,36104568.83
-[34m[YCSB] Requests sent for client 0: 2433130 at 870s[0m
-[YCSB] Exp time: 870s
-[YCSB] Exp time: 870s
-1730709225910,0,INSERT,88,40802189.31,40332427.26,40568452.19,40567308.29,40768634.88,40802189.31,40802189.31
-[34m[YCSB] Requests sent for client 0: 2447967 at 875s[0m
-[YCSB] Exp time: 875s
-[YCSB] Exp time: 875s
-1730709230919,0,INSERT,88,45499809.79,45030047.74,45263784.87,45264928.77,45466255.36,45499809.79,45499809.79
-[34m[YCSB] Requests sent for client 0: 2462717 at 880s[0m
-[YCSB] Exp time: 880s
-[YCSB] Exp time: 880s
-1730709235928,0,INSERT,55,50298093.57,49861885.95,50070228.47,50096766.98,50264539.13,50264539.13,50298093.57
-[34m[YCSB] Requests sent for client 0: 2477594 at 885s[0m
-[YCSB] Exp time: 885s
-[YCSB] Exp time: 885s
-1730709240937,0,INSERT,62,55096377.34,54593060.86,54855001.91,54895050.75,55096377.34,55096377.34,55096377.34
-[34m[YCSB] Requests sent for client 0: 2492450 at 890s[0m
-[YCSB] Exp time: 890s
-[YCSB] Exp time: 890s
-1730709245946,0,INSERT,62,59894661.12,59424899.07,59668980.50,59693334.53,59894661.12,59894661.12,59894661.12
-[34m[YCSB] Requests sent for client 0: 2507324 at 895s[0m
-[YCSB] Exp time: 895s
-[YCSB] Exp time: 895s
-1730709250955,0,INSERT,62,64726499.33,64223182.85,64482417.90,64525172.73,64726499.33,64726499.33,64726499.33
-[34m[YCSB] Requests sent for client 0: 2522178 at 900s[0m
-[YCSB] Exp time: 900s
-[YCSB] Exp time: 900s
-1730709255963,0,INSERT,62,69524783.10,69055021.06,69289902.08,69323456.51,69524783.10,69524783.10,69524783.10
-[TGRIGGS_LOG] Compaction on level: 1
-[34m[YCSB] Requests sent for client 0: 2532456 at 905s[0m
-[YCSB] Exp time: 905s
-[YCSB] Exp time: 905s
-1730709260972,0,INSERT,515,61874372.61,61404610.56,61392361.56,61505273.85,61673046.02,61874372.61,61874372.61
-[YCSB] Exp time: 910s
-[34m[YCSB] Requests sent for client 0: 2540724 at 910s[0m
-[YCSB] Exp time: 910s
-1730709265981,0,INSERT,8585,53116665.85,50532974.59,51742819.99,51740934.14,52714012.67,52948893.70,53016002.56
-[34m[YCSB] Requests sent for client 0: 2546529 at 915s[0m
-[YCSB] Exp time: 915s
-[YCSB] Exp time: 915s
-1730709270989,0,INSERT,9390,42916118.53,39762001.92,41118702.31,41137733.63,42211475.45,42446356.48,42479910.91
-[34m[YCSB] Requests sent for client 0: 2553402 at 920s[0m
-[YCSB] Exp time: 920s
-[YCSB] Exp time: 920s
-1730709275998,0,INSERT,2357,30282874.88,29041360.90,29205406.76,29209133.05,29326573.57,29360128.00,29896998.91
-[34m[YCSB] Requests sent for client 0: 2560368 at 925s[0m
-[YCSB] Exp time: 925s
-[YCSB] Exp time: 925s
-1730709281007,0,INSERT,1846,19209912.32,18270388.22,19064770.32,19109249.02,19193135.10,19209912.32,19209912.32
-[34m[YCSB] Requests sent for client 0: 2573194 at 930s[0m
-[YCSB] Exp time: 930s
-[YCSB] Exp time: 930s
-1730709286016,0,INSERT,495,18387828.73,18069061.63,18229529.77,18236833.79,18354274.30,18387828.73,18387828.73
-[34m[YCSB] Requests sent for client 0: 2587654 at 935s[0m
-[YCSB] Exp time: 935s
-[YCSB] Exp time: 935s
-1730709291025,0,INSERT,311,19730006.02,19344130.05,19529515.59,19545456.64,19679674.37,19713228.80,19730006.02
-[34m[YCSB] Requests sent for client 0: 2602165 at 940s[0m
-[YCSB] Exp time: 940s
-[YCSB] Exp time: 940s
-1730709296033,0,INSERT,198,23001563.14,22582132.74,22794644.14,22800236.54,22968008.70,23001563.14,23001563.14
-[34m[YCSB] Requests sent for client 0: 2616839 at 945s[0m
-[YCSB] Exp time: 945s
-[YCSB] Exp time: 945s
-1730709301042,0,INSERT,201,26407337.98,26004684.80,26198624.41,26206011.39,26373783.55,26407337.98,26407337.98
-[34m[YCSB] Requests sent for client 0: 2631436 at 950s[0m
-[YCSB] Exp time: 950s
-[YCSB] Exp time: 950s
-1730709306051,0,INSERT,132,30031216.64,29595009.02,29816671.64,29813112.83,29997662.21,30031216.64,30031216.64
-[34m[YCSB] Requests sent for client 0: 2646194 at 955s[0m
-[YCSB] Exp time: 955s
-[YCSB] Exp time: 955s
-1730709311060,0,INSERT,132,33839644.67,33420214.27,33631200.47,33621540.86,33806090.24,33839644.67,33839644.67
-[34m[YCSB] Requests sent for client 0: 2660945 at 960s[0m
-[YCSB] Exp time: 960s
-[YCSB] Exp time: 960s
-1730709316069,0,INSERT,132,38218498.05,37748736.00,37969890.21,37983617.02,38151389.18,38218498.05,38218498.05
-[34m[YCSB] Requests sent for client 0: 2675540 at 965s[0m
-[YCSB] Exp time: 965s
-[YCSB] Exp time: 965s
-1730709321078,0,INSERT,77,41976594.43,41573941.25,41777228.81,41808822.27,41976594.43,41976594.43,41976594.43
-[34m[YCSB] Requests sent for client 0: 2690386 at 970s[0m
-[YCSB] Exp time: 970s
-[YCSB] Exp time: 970s
-1730709326086,0,INSERT,81,46607106.05,46137344.00,46352548.04,46372225.02,46539997.18,46573551.62,46607106.05
-[34m[YCSB] Requests sent for client 0: 2705226 at 975s[0m
-[YCSB] Exp time: 975s
-[YCSB] Exp time: 975s
-1730709331095,0,INSERT,84,51204063.23,50734301.18,50971578.95,51002736.64,51170508.80,51204063.23,51204063.23
-[34m[YCSB] Requests sent for client 0: 2720049 at 980s[0m
-[YCSB] Exp time: 980s
-[YCSB] Exp time: 980s
-1730709336104,0,INSERT,81,55801020.41,55331258.37,55569246.28,55599693.82,55767465.98,55801020.41,55801020.41
-[34m[YCSB] Requests sent for client 0: 2734886 at 985s[0m
-[YCSB] Exp time: 985s
-[YCSB] Exp time: 985s
-1730709341112,0,INSERT,88,60431532.03,59928215.55,60179492.49,60163096.58,60397977.60,60431532.03,60431532.03
-[34m[YCSB] Requests sent for client 0: 2749623 at 990s[0m
-[YCSB] Exp time: 990s
-[YCSB] Exp time: 990s
-1730709346122,0,INSERT,48,65095598.08,64659390.46,64868406.61,64894271.49,65028489.22,65095598.08,65095598.08
-[34m[YCSB] Requests sent for client 0: 2764495 at 995s[0m
-[YCSB] Exp time: 995s
-[YCSB] Exp time: 995s
-1730709351131,0,INSERT,55,69927436.29,69390565.38,69664491.56,69726109.69,69927436.29,69927436.29,69927436.29
-[34m[YCSB] Requests sent for client 0: 2779377 at 1000s[0m
-[YCSB] Exp time: 1000s
-[YCSB] Exp time: 1000s
-1730709356140,0,INSERT,55,74692165.63,74155294.72,74429220.90,74490839.04,74692165.63,74692165.63,74692165.63
-[34m[YCSB] Requests sent for client 0: 2794259 at 1005s[0m
-[YCSB] Exp time: 1005s
-[YCSB] Exp time: 1005s
-1730709361149,0,INSERT,55,79524003.84,78987132.93,79259838.95,79255568.38,79456894.97,79524003.84,79524003.84
-[34m[YCSB] Requests sent for client 0: 2809139 at 1010s[0m
-[YCSB] Exp time: 1010s
-[YCSB] Exp time: 1010s
-1730709366158,0,INSERT,48,84288733.18,83818971.14,84059444.57,84087406.59,84221624.32,84288733.18,84288733.18
-[34m[YCSB] Requests sent for client 0: 2824006 at 1015s[0m
-[YCSB] Exp time: 1015s
-[YCSB] Exp time: 1015s
-1730709371167,0,INSERT,55,89120571.39,88583700.48,88857626.66,88919244.80,89120571.39,89120571.39,89120571.39
-[34m[YCSB] Requests sent for client 0: 2838883 at 1020s[0m
-[YCSB] Exp time: 1020s
-[YCSB] Exp time: 1020s
-1730709376176,0,INSERT,55,93885300.73,93415538.69,93654080.20,93683974.14,93885300.73,93885300.73,93885300.73
+1730755043540,0,INSERT,1701,22380806.14,21793603.58,21862630.83,21860712.45,21927821.31,21944598.53,22179479.55
