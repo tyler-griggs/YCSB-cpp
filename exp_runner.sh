@@ -53,28 +53,15 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/home/windsey/ycsb-rocksdb-data \
   -p requestdistribution=zipfian \
-  -s -p operationcount=600000 \
-  -p recordcount=3500000 \
-  -p updateproportion=0 \
-  -p insertproportion=0 \
-  -p readproportion=1 \
-  -p scanproportion=0 \
-  -p randominsertproportion=0 \
-  -threads 2 \
+  -s -p operationcount=6000000 \
+  -p recordcount=31250000 \
+  -threads 1 \
   -p status.interval_ms=500 \
-  -target_rates "500,100" \
-  -p read_rate_limits="105,105,105,105" \
+  -target_rates "3000,100" \
   -p refill_period=5 \
   -p real_op_mode=false \
   -p status=true \
-  -p rsched_interval_ms=50 \
   -p lookback_intervals=30 \
-  -p io_read_capacity_kbps=$((420 * 1024)) \
-  -p io_write_capacity_kbps=$((220 * 1024)) \
-  -p memtable_capacity_kb=$((512 * 1024)) \
-  -p min_memtable_count=$((2)) \
-  -p max_memtable_size_kb=$((64 * 1024)) \
-  -p min_memtable_size_kb=$((64 * 1024)) \
   | tee status_thread.txt &
 
 

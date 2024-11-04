@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <random>
 #include <string>
+#include <unordered_set>
 #include <iostream>
 using std::string;
 using ycsbc::CoreWorkload;
@@ -164,6 +165,7 @@ namespace ycsbc
 
     // No hashing.
     ordered_inserts_ = true;
+    used_keys.clear();
 
     if (read_proportion > 0)
     {
@@ -313,6 +315,18 @@ namespace ycsbc
     {
       key_num = key_chooser_->Next();
     } while (key_num > transaction_insert_key_sequence_->Last());
+    return key_num;
+  }
+
+  uint64_t CoreWorkload::NextTransactionKeyNumUnique()
+  {
+    uint64_t key_num;
+    do
+    {
+      key_num = key_chooser_->Next();
+    } while (key_num > transaction_insert_key_sequence_->Last() || used_keys.count(key_num) > 0);
+
+    used_keys.insert(key_num); // Mark this key as used
     return key_num;
   }
 
@@ -499,11 +513,11 @@ namespace ycsbc
 
   DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name, long long start_time_ns)
   {
-    uint64_t key_num = NextTransactionKeyNum();
+    uint64_t key_num = NextTransactionKeyNumUnique();
     uint64_t client_key_num = key_num;
-    // uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
 
     const std::string key = BuildKeyName(client_key_num);
+    // std::cout << "[YCSB] Inserting key: " << key << std::endl;
     std::vector<DB::Field> values;
     BuildValues(values);
     return db.Insert(table_name, key, values, start_time_ns, client_id);

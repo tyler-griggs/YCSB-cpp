@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_set>
 #include "db.h"
 #include "generator.h"
 #include "discrete_generator.h"
@@ -222,6 +223,7 @@ namespace ycsbc
     void BuildSingleValue(std::vector<DB::Field> &update);
 
     uint64_t NextTransactionKeyNum();
+    uint64_t NextTransactionKeyNumUnique();
     std::string NextFieldName();
 
     DB::Status TransactionRead(DB &db, int client_id, std::string table_name);
@@ -248,6 +250,9 @@ namespace ycsbc
     size_t record_count_;
     int zero_padding_;
     bool op_mode_real_;
+
+  private:
+    std::unordered_set<uint64_t> used_keys;
   };
 
 } // ycsbc

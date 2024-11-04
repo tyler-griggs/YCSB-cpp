@@ -525,6 +525,7 @@ namespace ycsbc
     if (rate_limits.size() > 0)
     {
       // Add rate limiter
+      std::cout << "[YCSB] Adding rate limiter\n";
       opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
           num_clients,
           rate_limits,
@@ -559,7 +560,7 @@ namespace ycsbc
       cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
       cf_opt[i].soft_pending_compaction_bytes_limit = static_cast<uint64_t>(128) * 1024 * 1024 * 1024; // 128GB
       cf_opt[i].hard_pending_compaction_bytes_limit = static_cast<uint64_t>(256) * 1024 * 1024 * 1024; // 256GB
-      // cf_opt[i].delayed_write_rate = 128 * 1024 * 1024;
+      // cf_opt[i].min_write_buffer_number_to_merge = 2;
       cf_opt[i].write_buffer_size = 128 * 1024 * 1024;
       cf_opt[i].level0_slowdown_writes_trigger = 40;
       cf_opt[i].level0_stop_writes_trigger = 80;
