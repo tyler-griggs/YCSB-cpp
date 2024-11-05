@@ -251,6 +251,7 @@ namespace ycsbc
     rocksdb::Options opt;
     opt.create_if_missing = true;
     opt.create_missing_column_families = true;
+    opt.db_write_buffer_size = 512 * 1024 * 1024;
     std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
     GetOptions(props, &opt, &cf_descs);
 
@@ -562,8 +563,8 @@ namespace ycsbc
       cf_opt[i].hard_pending_compaction_bytes_limit = static_cast<uint64_t>(256) * 1024 * 1024 * 1024; // 256GB
       // cf_opt[i].min_write_buffer_number_to_merge = 2;
       cf_opt[i].write_buffer_size = 128 * 1024 * 1024;
-      cf_opt[i].level0_slowdown_writes_trigger = 40;
-      cf_opt[i].level0_stop_writes_trigger = 80;
+      cf_opt[i].level0_slowdown_writes_trigger = 1000;
+      cf_opt[i].level0_stop_writes_trigger = 1000;
       cf_opt[i].max_write_buffer_number_to_maintain = 4;
     }
     vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);

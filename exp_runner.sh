@@ -39,6 +39,9 @@ process_mpstat_output() {
   done < mpstat_output.txt
 }
 
+# Remove the ycsb-rocksdb-data directory
+# rm -rf /home/${USER}/ycsb-rocksdb-data
+
 # Setup trap for cleanup on script exit
 trap cleanup EXIT
 
@@ -57,7 +60,7 @@ mpstat_pid=$!
   -p recordcount=31250000 \
   -threads 1 \
   -p status.interval_ms=500 \
-  -target_rates "4000,100" \
+  -target_rates "10000,2000,1000,100" \
   -p refill_period=5 \
   -p real_op_mode=false \
   -p status=true \

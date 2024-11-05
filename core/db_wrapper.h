@@ -101,10 +101,12 @@ namespace ycsbc
     }
     Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, long long start_time_ns, int client_id)
     {
+      // timer_.Start();
       Status s = db_->Insert(table, key, values);
       auto now = std::chrono::high_resolution_clock::now();
       auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
       auto elapsed = now_ns - start_time_ns;
+      // uint64_t elapsed = timer_.End();
       if (s == kOK)
       {
         measurements_->Report(INSERT, elapsed);

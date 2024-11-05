@@ -33,9 +33,6 @@ namespace ycsbc
       long deadline = op_start_time_ns + target_ops_tick_ns;
       std::chrono::nanoseconds deadline_ns(deadline);
       std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> target_time_point(deadline_ns);
-      // auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-      // long duration_used_ns = now_ns - op_start_time_ns;
-      // std::cout << "\033[34m[YCSB] Operation Time used: " << duration_used_ns << " ns\033[0m" << std::endl;
       while (std::chrono::high_resolution_clock::now() < target_time_point)
       {
       }
@@ -94,14 +91,14 @@ namespace ycsbc
       {
         db->Init();
       }
-
+      std::this_thread::sleep_for(std::chrono::seconds(10));
       auto client_start = std::chrono::system_clock::now();
       auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
       auto client_start_steady = std::chrono::steady_clock::now();
       auto interval_start_time = std::chrono::steady_clock::now();
       int printed = 0;
       std::atomic<int> active_threads(0);
-      MyThreadPool pool(10);
+      MyThreadPool pool(4);
 
       int ops = 0;
       for (int b = 0; b < num_bursts; ++b)
