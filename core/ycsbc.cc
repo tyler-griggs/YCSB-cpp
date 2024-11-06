@@ -95,6 +95,14 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       }
       per_client_measurements[i]->Reset();
     }
+    std::vector<std::string> op_csv_stats_total = measurements->GetCSVStatusMsg();
+    for (const auto &csv : op_csv_stats_total)
+    {
+      if (should_print)
+      {
+        std::cout << duration_since_epoch_ms << ',' << csv << std::endl;
+      }
+    }
 
     if (done)
     {

@@ -559,13 +559,13 @@ namespace ycsbc
     for (size_t i = 0; i < cf_opt.size(); ++i)
     {
       cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
-      cf_opt[i].soft_pending_compaction_bytes_limit = static_cast<uint64_t>(128) * 1024 * 1024 * 1024; // 128GB
-      cf_opt[i].hard_pending_compaction_bytes_limit = static_cast<uint64_t>(256) * 1024 * 1024 * 1024; // 256GB
+      // cf_opt[i].soft_pending_compaction_bytes_limit = static_cast<uint64_t>(128) * 1024 * 1024 * 1024; // 128GB
+      // cf_opt[i].hard_pending_compaction_bytes_limit = static_cast<uint64_t>(256) * 1024 * 1024 * 1024; // 256GB
       // cf_opt[i].min_write_buffer_number_to_merge = 2;
-      cf_opt[i].write_buffer_size = 128 * 1024 * 1024;
-      cf_opt[i].level0_slowdown_writes_trigger = 1000;
-      cf_opt[i].level0_stop_writes_trigger = 1000;
-      cf_opt[i].max_write_buffer_number_to_maintain = 4;
+      cf_opt[i].write_buffer_size = 64 * 1024 * 1024;
+      // cf_opt[i].level0_slowdown_writes_trigger = 1000;
+      // cf_opt[i].level0_stop_writes_trigger = 1000;
+      // cf_opt[i].max_write_buffer_number_to_maintain = 4;
     }
     vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);
     for (size_t i = 0; i < cf_opt.size(); ++i)

@@ -143,8 +143,14 @@ namespace ycsbc
               interval_start_time = std::chrono::steady_clock::now();
             }
           }
-
-          EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+          if (elapsed_time_s % 50 <= 5 && elapsed_time_s > 0)
+          {
+            EnforceClientRateLimit(op_start_time_ns, (long)20000, (long)50000, ops);
+          }
+          else
+          {
+            EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+          }
         }
         std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
       }
