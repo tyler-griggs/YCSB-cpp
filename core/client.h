@@ -142,11 +142,6 @@ namespace ycsbc
               interval_start_time = std::chrono::steady_clock::now();
             }
           }
-          if (elapsed_time_s >= 450)
-          {
-            pool.stopAll();
-            break;
-          }
           // if (elapsed_time_s % 50 <= 5 && elapsed_time_s > 0)
           // {
           //   EnforceClientRateLimit(op_start_time_ns, (long)20000, (long)50000, ops);
@@ -161,7 +156,6 @@ namespace ycsbc
       }
 
       pool.waitAll();
-      std::this_thread::sleep_for(std::chrono::seconds(150));
 
       if (cleanup_db)
       {
