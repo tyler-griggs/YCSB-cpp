@@ -71,6 +71,20 @@ public:
                       { return tasks.empty() && tasks_in_progress == 0; });
     }
 
+    void stopAll()
+    {
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            stop = true;
+        }
+        condition.notify_all();
+        for (std::thread &worker : workers)
+        {
+            if (worker.joinable())
+                worker.join();
+        }
+    }
+
     // Destructor
     ~MyThreadPool()
     {

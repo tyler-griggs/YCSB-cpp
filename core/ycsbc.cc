@@ -48,12 +48,23 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
 {
   std::string client_stats_filename = "logs/client_stats.log";
   std::ofstream client_stats_logfile;
+  std::string memtable_size_filename = "logs/memtable_size.log";
+  std::ofstream memtable_size_logfile;
   client_stats_logfile.open(client_stats_filename, std::ios::out | std::ios::trunc);
+  memtable_size_logfile.open(memtable_size_filename, std::ios::out | std::ios::trunc);
   if (!client_stats_logfile.is_open())
   {
     // TODO(tgriggs):  Handle file open failure, propagate exception
     // throw std::ios_base::failure("Failed to open the file.");
   }
+  if (!memtable_size_logfile.is_open())
+  {
+    throw std::ios_base::failure("Failed to open the file.");
+  }
+  {
+    /* code */
+  }
+
   client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p" << std::endl;
 
   time_point<system_clock> start = system_clock::now();
@@ -62,6 +73,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
   int print_intervals = 10;
   int cur_interval = 0;
   bool should_print = false;
+  bool started = false;
   while (1)
   {
     if (++cur_interval == print_intervals)
@@ -85,6 +97,10 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     for (size_t i = 0; i < per_client_measurements.size(); ++i)
     {
       std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
+      if (op_csv_stats.size() > 0)
+      {
+        started = true;
+      }
       for (const auto &csv : op_csv_stats)
       {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
@@ -92,6 +108,10 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
         {
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
+      }
+      if (started)
+      {
+        memtable_size_logfile << duration_since_epoch_ms << ',' << i << ',' << dbs[i]->GetCurSizeActiveMemtable() << std::endl;
       }
       per_client_measurements[i]->Reset();
     }

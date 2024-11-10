@@ -110,6 +110,10 @@ namespace ycsbc
     virtual Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) = 0;
 
     virtual void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
+    virtual uint64_t GetCurSizeActiveMemtable()
+    {
+      return 0;
+    }
     virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes);
     virtual void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts);
     virtual std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();

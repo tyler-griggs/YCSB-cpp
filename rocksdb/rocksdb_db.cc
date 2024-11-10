@@ -252,6 +252,9 @@ namespace ycsbc
     opt.create_if_missing = true;
     opt.create_missing_column_families = true;
     opt.db_write_buffer_size = 512 * 1024 * 1024;
+    opt.info_log_level = rocksdb::InfoLogLevel::DEBUG_LEVEL;
+    opt.statistics = rocksdb::CreateDBStatistics();
+    opt.stats_dump_period_sec = 60; // Dump stats every 60 seconds
     std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
     GetOptions(props, &opt, &cf_descs);
 
@@ -970,6 +973,20 @@ namespace ycsbc
       throw utils::Exception(std::string("RocksDB Delete: ") + s.ToString());
     }
     return kOK;
+  }
+
+  uint64_t RocksdbDB::GetCurSizeActiveMemtable()
+  {
+    uint64_t active_memtable_size = 0;
+    if (db_->GetIntProperty("rocksdb.cur-size-active-mem-table", &active_memtable_size))
+    {
+      return active_memtable_size;
+    }
+    else
+    {
+      std::cerr << "Failed to retrieve active memtable size for client " << std::endl;
+      return -1;
+    }
   }
 
   DB *NewRocksdbDB()

@@ -128,7 +128,6 @@ namespace ycsbc
 
           // Periodically check whether log interval has been hit
           auto current_time = std::chrono::steady_clock::now();
-          auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
           int elapsed_time_s = std::chrono::duration_cast<std::chrono::seconds>(current_time - client_start_steady).count();
           if (elapsed_time_s % 5 == 0 && elapsed_time_s > printed)
           {
@@ -137,25 +136,32 @@ namespace ycsbc
           }
           if (i % 100 == 0)
           {
-            if (elapsedTime.count() >= client_log_interval_s)
+            if (elapsed_time_s >= client_log_interval_s)
             {
               op_progress.push_back(ops);
               interval_start_time = std::chrono::steady_clock::now();
             }
           }
-          if (elapsed_time_s % 50 <= 5 && elapsed_time_s > 0)
+          if (elapsed_time_s >= 450)
           {
-            EnforceClientRateLimit(op_start_time_ns, (long)20000, (long)50000, ops);
+            pool.stopAll();
+            break;
           }
-          else
-          {
-            EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
-          }
+          // if (elapsed_time_s % 50 <= 5 && elapsed_time_s > 0)
+          // {
+          //   EnforceClientRateLimit(op_start_time_ns, (long)20000, (long)50000, ops);
+          // }
+          // else
+          // {
+          //   EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+          // }
+          EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
         }
         std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
       }
 
       pool.waitAll();
+      std::this_thread::sleep_for(std::chrono::seconds(150));
 
       if (cleanup_db)
       {
