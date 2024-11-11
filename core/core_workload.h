@@ -22,6 +22,8 @@
 
 namespace ycsbc {
 
+std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string& prop, const std::string& default_val);
+
 enum Operation {
   INSERT = 0,
   READ,
@@ -183,6 +185,9 @@ class CoreWorkload {
   static const std::string BURST_SIZE_OPS;
   static const std::string BURST_SIZE_OPS_DEFAULT;
 
+  static const std::string CLIENT_TO_CF_MAP;
+  static const std::string CLIENT_TO_CF_MAP_DEFAULT;
+
   ///
   /// Initialize the scenario.
   /// Called once, in the main client thread, before any operations are started.
@@ -244,6 +249,7 @@ class CoreWorkload {
   size_t record_count_;
   int zero_padding_;
   bool op_mode_real_;
+  std::vector<std::string> client_to_cf_;
 };
 
 } // ycsbc

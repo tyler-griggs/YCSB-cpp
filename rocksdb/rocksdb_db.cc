@@ -42,6 +42,9 @@ namespace {
   const std::string PROP_COMPRESSION = "rocksdb.compression";
   const std::string PROP_COMPRESSION_DEFAULT = "no";
 
+  const std::string PROP_NUM_CFS = "rocksdb.num_cfs";
+  const std::string PROP_NUM_CFS_DEFAULT = "1";
+
   const std::string PROP_MAX_BG_JOBS = "rocksdb.max_background_jobs";
   const std::string PROP_MAX_BG_JOBS_DEFAULT = "0";
 
@@ -236,19 +239,23 @@ void RocksdbDB::Init() {
   std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
   GetOptions(props, &opt, &cf_descs);
 
-  std::cout << "[TGRIGGS_LOG] init column families: default, cf2, cf3, cf4\n";
   std::vector<rocksdb::ColumnFamilyOptions> cf_opts;
-  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
-  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
-  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
-  cf_opts.push_back(rocksdb::ColumnFamilyOptions());
+  const int num_cfs = std::stoi(props.GetProperty(PROP_NUM_CFS, PROP_NUM_CFS_DEFAULT));
+  for (int i = 0; i < num_cfs; ++i) {
+    cf_opts.push_back(rocksdb::ColumnFamilyOptions());
+  }
   GetCfOptions(props, cf_opts);
-  cf_descs.emplace_back(rocksdb::kDefaultColumnFamilyName, cf_opts[0]);
-  cf_descs.emplace_back("cf2", cf_opts[1]);
-  cf_descs.emplace_back("cf3", cf_opts[2]);
-  cf_descs.emplace_back("cf4", cf_opts[3]);
+  for (int i = 0; i < num_cfs; ++i) {
+    std::string cf_name;
+    if (i == 0) {
+      cf_name = rocksdb::kDefaultColumnFamilyName;
+    } else {
+      cf_name = "cf" + std::to_string(i+1);
+    }
+    cf_descs.emplace_back(cf_name, cf_opts[i]);
+    std::cout << "[FAIRDB_LOG] Init column family: " << cf_name << std::endl;
+  }
 
-  std::cout << "[TGRIGGS_LOG] creating stats object\n";
   opt.statistics = rocksdb::CreateDBStatistics();
 
   rocksdb::Status s;
@@ -447,18 +454,6 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   }
 }
 
-std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string& prop, const std::string& default_val) {
-  std::string vals = props.GetProperty(prop, default_val);
-  std::vector<std::string> output;
-  std::string val;
-
-  std::istringstream stream(vals);
-  while (std::getline(stream, val, ':')) {
-    output.push_back(val);
-  }
-  return output;
-}
-
 
 void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
   std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
@@ -553,14 +548,10 @@ void RocksdbDB::DeserializeRow(std::vector<Field> &values, const std::string &da
 
 rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   int cf_idx;
-  if (table == rocksdb::kDefaultColumnFamilyName) {
+  if (table == "default") {
     cf_idx = 0;
-  } else if (table == "cf2") {
-    cf_idx = 1;
-  } else if (table == "cf3") {
-    cf_idx = 2;
-  } else if (table == "cf4") {
-    cf_idx = 3;
+  } else if (table.substr(0, 2) == "cf") {
+    cf_idx = std::stoi(table.substr(2)) - 1;        
   } else {
     return nullptr;
   }
@@ -575,7 +566,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
 
   auto* handle = table2handle(table);
   if (handle == nullptr) {
-    std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+    std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
 

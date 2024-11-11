@@ -115,11 +115,28 @@ const std::string CoreWorkload::BURST_GAP_S_DEFAULT = "0";
 const std::string CoreWorkload::BURST_SIZE_OPS = "burst_size_ops";
 const std::string CoreWorkload::BURST_SIZE_OPS_DEFAULT = "0";
 
+const std::string CoreWorkload::CLIENT_TO_CF_MAP = "client_to_cf_map";
+const std::string CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT = "default:cf2:cf3:cf4";
+
 namespace ycsbc {
+
+std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string& prop, const std::string& default_val) {
+  std::string vals = props.GetProperty(prop, default_val);
+  std::vector<std::string> output;
+  std::string val;
+
+  std::istringstream stream(vals);
+  while (std::getline(stream, val, ':')) {
+    output.push_back(val);
+  }
+  return output;
+}
 
 void CoreWorkload::Init(const utils::Properties &p) {
   table_name_ = p.GetProperty(TABLENAME_PROPERTY,TABLENAME_DEFAULT);
   op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "true";
+
+  client_to_cf_ = Prop2vector(p, CLIENT_TO_CF_MAP, CLIENT_TO_CF_MAP_DEFAULT);
 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
   field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
@@ -163,7 +180,6 @@ void CoreWorkload::Init(const utils::Properties &p) {
 
   // No hashing.
   ordered_inserts_ = true;
-
 
   if (read_proportion > 0) {
     op_chooser_.AddValue(READ, read_proportion);
@@ -291,18 +307,7 @@ bool CoreWorkload::DoInsert(DB &db) {
 }
 
 bool CoreWorkload::DoTransaction(DB &db, int client_id) {
-
-  // std::string table_name = rocksdb::kDefaultColumnFamilyName;
-  std::string table_name;
-  if (client_id == 0) {
-    table_name = rocksdb::kDefaultColumnFamilyName;
-  } else if (client_id == 1) {
-    table_name = "cf2";
-  } else if (client_id == 2) {
-    table_name = "cf3";
-  } else if (client_id == 3) {
-    table_name = "cf4";
-  }
+  std::string table_name = client_to_cf_[client_id];
 
   DB::Status status;
   if (op_mode_real_) {
