@@ -483,7 +483,6 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
     }
     cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
   }
-  vals = Prop2vector(props, PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT);
   int num_levels = std::stoi(props.GetProperty(PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].num_levels = num_levels;
