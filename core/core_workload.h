@@ -43,6 +43,8 @@ enum Operation {
   MAXOPTYPE
 };
 
+Operation stringToOperation(const std::string& operationName);
+
 extern const char *kOperationString[MAXOPTYPE];
 
 class CoreWorkload {
@@ -188,6 +190,9 @@ class CoreWorkload {
   static const std::string CLIENT_TO_CF_MAP;
   static const std::string CLIENT_TO_CF_MAP_DEFAULT;
 
+  static const std::string CLIENT_TO_OP_MAP;
+  static const std::string CLIENT_TO_OP_MAP_DEFAULT;
+
   ///
   /// Initialize the scenario.
   /// Called once, in the main client thread, before any operations are started.
@@ -250,6 +255,7 @@ class CoreWorkload {
   int zero_padding_;
   bool op_mode_real_;
   std::vector<std::string> client_to_cf_;
+  std::vector<Operation> client_to_op_;
 };
 
 } // ycsbc

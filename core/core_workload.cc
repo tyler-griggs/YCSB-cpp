@@ -116,7 +116,10 @@ const std::string CoreWorkload::BURST_SIZE_OPS = "burst_size_ops";
 const std::string CoreWorkload::BURST_SIZE_OPS_DEFAULT = "0";
 
 const std::string CoreWorkload::CLIENT_TO_CF_MAP = "client_to_cf_map";
-const std::string CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT = "default:cf2:cf3:cf4";
+const std::string CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT = "default,cf2,cf3,cf4";
+
+const std::string CoreWorkload::CLIENT_TO_OP_MAP = "client_to_op_map";
+const std::string CoreWorkload::CLIENT_TO_OP_MAP_DEFAULT = "READ,READ,READ,READ";
 
 namespace ycsbc {
 
@@ -126,10 +129,38 @@ std::vector<std::string> Prop2vector(const utils::Properties &props, const std::
   std::string val;
 
   std::istringstream stream(vals);
-  while (std::getline(stream, val, ':')) {
+  while (std::getline(stream, val, ',')) {
     output.push_back(val);
   }
   return output;
+}
+
+Operation stringToOperation(const std::string& operationName) {
+    static const std::unordered_map<std::string, Operation> operationMap = {
+        {"INSERT", INSERT},
+        {"READ", READ},
+        {"UPDATE", UPDATE},
+        {"SCAN", SCAN},
+        {"READMODIFYWRITE", READMODIFYWRITE},
+        {"DELETE", DELETE},
+        {"RANDOM_INSERT", RANDOM_INSERT},
+        {"INSERT_BATCH", INSERT_BATCH},
+        {"INSERT_FAILED", INSERT_FAILED},
+        {"READ_FAILED", READ_FAILED},
+        {"UPDATE_FAILED", UPDATE_FAILED},
+        {"SCAN_FAILED", SCAN_FAILED},
+        {"READMODIFYWRITE_FAILED", READMODIFYWRITE_FAILED},
+        {"DELETE_FAILED", DELETE_FAILED},
+        {"INSERT_BATCH_FAILED", INSERT_BATCH_FAILED},
+        {"MAXOPTYPE", MAXOPTYPE}
+    };
+
+    auto it = operationMap.find(operationName);
+    if (it != operationMap.end()) {
+        return it->second;
+    } else {
+        throw std::invalid_argument("Invalid operation name: " + operationName);
+    }
 }
 
 void CoreWorkload::Init(const utils::Properties &p) {
@@ -137,6 +168,16 @@ void CoreWorkload::Init(const utils::Properties &p) {
   op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "true";
 
   client_to_cf_ = Prop2vector(p, CLIENT_TO_CF_MAP, CLIENT_TO_CF_MAP_DEFAULT);
+
+  std::vector<std::string> client_to_op_string = Prop2vector(p, CLIENT_TO_OP_MAP, CLIENT_TO_OP_MAP_DEFAULT);
+  for (const auto& op_string : client_to_op_string) {
+    client_to_op_.push_back(stringToOperation(op_string));
+  }
+
+  const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
+  if (num_threads != client_to_op_.size() || num_threads != client_to_cf_.size()) {
+    throw utils::Exception("Inconsistent thread counts and thread to CF and OP mappings");
+  }
 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
   field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
@@ -204,10 +245,10 @@ void CoreWorkload::Init(const utils::Properties &p) {
   transaction_insert_key_sequence_ = new AcknowledgedCounterGenerator(record_count_);
 
   if (request_dist == "uniform") {
-    std::cout << "[TGRIGGS_LOG] Uniform distribution." << std::endl;
+    std::cout << "[FAIRDB_LOG] Uniform distribution." << std::endl;
     key_chooser_ = new UniformGenerator(0, record_count_ - 1);
   } else if (request_dist == "zipfian") {
-    std::cout << "[TGRIGGS_LOG] Zipfian distribution." << std::endl;
+    std::cout << "[FAIRDB_LOG] Zipfian distribution." << std::endl;
     // If the number of keys changes, we don't want to change popular keys.
     // So we construct the scrambled zipfian generator with a keyspace
     // that is larger than what exists at the beginning of the test.
@@ -336,22 +377,29 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         throw utils::Exception("Operation request is not recognized!");
     }
   } else {
-    if (client_id == 0) {
-      // status = TransactionRandomInsert(db, client_id, table_name);
-      status = TransactionInsertBatch(db, client_id, table_name);
-      // status = TransactionScan(db, client_id, table_name);
-    } else if (client_id == 1) {
-      status = TransactionInsertBatch(db, client_id, table_name);
-    } else if (client_id == 2) {
-      // status = TransactionRead(db, client_id, table_name);
-      status = TransactionRandomInsert(db, client_id, table_name);
-      // status = TransactionScan(db, /*client_id =*/ 0, rocksdb::kDefaultColumnFamilyName);
-      // status = TransactionScan(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
-    } else {
-      // status = TransactionRead(db, client_id, table_name);
-      status = TransactionScan(db, client_id, table_name);
-      // status = TransactionRandomInsert(db, client_id, table_name);
+    Operation op = client_to_op_[client_id];
+    switch (op) {
+      case READ:
+        status = TransactionRead(db, client_id, table_name);
+        break;
+      case UPDATE:
+        status = TransactionUpdate(db, client_id, table_name);
+        break;
+      case INSERT:
+        status = TransactionInsert(db);
+        break;
+      case SCAN:
+        status = TransactionScan(db, client_id, table_name);
+        break;
+      case READMODIFYWRITE:
+        status = TransactionReadModifyWrite(db);
+        break;
+      case RANDOM_INSERT:
+        status = TransactionRandomInsert(db, client_id, table_name);
+        break;
+      default:
+        std::cout << "[FAIRDB_LOG] Unknown op: " << op << std::endl;
+        throw utils::Exception("Operation request is not recognized!");
     }
   }
 

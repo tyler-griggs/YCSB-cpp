@@ -50,26 +50,31 @@ iostat_pid=$!
 mpstat_pid=$!
 
 # Start ycsb process in the background
-./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
+  -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
+  -p readallfields=true \
   -p requestdistribution=zipfian \
   -s -p operationcount=35000000 \
   -p recordcount=3125000 \
+  -p fieldcount=16 \
+  -p fieldlength=1024 \
   -p updateproportion=0 \
   -p insertproportion=0 \
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -threads 4 \
-  -p client_to_cf_map="cf2:cf4:default:cf4" \
+  -p real_op_mode=false \
+  -p client_to_cf_map="default,cf2,cf3,cf4" \
+  -p client_to_op_map="READ,READ,READ,READ" \
+  -target_rates "1,1,1,1" \
   -p status.interval_ms=500 \
   -p burst_gap_s=0 \
   -p burst_size_ops=1 \
-  -target_rates "1,1,1,1" \
   -p rate_limits="100000,100000,100000,100000" \
   -p read_rate_limits="100000,100000,100000,100000" \
   -p refill_period=5 \
-  -p real_op_mode=true \
   -p rsched=false \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=30 \
@@ -143,6 +148,7 @@ wait $ycsb_pid
 
 
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
@@ -153,6 +159,7 @@ wait $ycsb_pid
 #   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
 
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
@@ -163,6 +170,7 @@ wait $ycsb_pid
 #   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
 
 #   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
@@ -173,6 +181,7 @@ wait $ycsb_pid
 #   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
 
 #   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
 #   -p recordcount=3125000 \
 #   -p fieldcount=16 \
 #   -p fieldlength=1024 \
