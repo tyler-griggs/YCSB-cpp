@@ -467,9 +467,9 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].write_buffer_size = std::stoi(vals[i]);
   }
-  vals = Prop2vector(props, PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT);
+  const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].min_write_buffer_number_to_merge = std::stoi(vals[i]);
+    cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
   }
   vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
   for (size_t i = 0; i < cf_opt.size(); ++i) {
@@ -484,8 +484,9 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
     cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
   }
   vals = Prop2vector(props, PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT);
+  int num_levels = std::stoi(props.GetProperty(PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].num_levels = std::stoi(vals[i]);
+    cf_opt[i].num_levels = num_levels;
   }
 }
 
