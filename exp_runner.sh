@@ -64,6 +64,7 @@ mpstat_pid=$!
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
+  -p rocksdb.num_cfs=4 \
   -threads 4 \
   -p real_op_mode=false \
   -p client_to_cf_map="default,cf2,cf3,cf4" \
