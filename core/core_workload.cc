@@ -174,10 +174,10 @@ void CoreWorkload::Init(const utils::Properties &p) {
     client_to_op_.push_back(stringToOperation(op_string));
   }
 
-  const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
-  if (num_threads != client_to_op_.size() || num_threads != client_to_cf_.size()) {
-    throw utils::Exception("Inconsistent thread counts and thread to CF and OP mappings");
-  }
+  // const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
+  // if (num_threads != client_to_op_.size() || num_threads != client_to_cf_.size()) {
+  //   throw utils::Exception("Inconsistent thread counts and thread to CF and OP mappings");
+  // }
 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
   field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
