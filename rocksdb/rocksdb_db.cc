@@ -439,6 +439,9 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   }
 
   int num_clients = rate_limits.size();
+  if (num_clients != std::stoi(props.GetProperty("threadcount", "1"))) {
+    throw utils::Exception("Inconsistent thread counts and rate limit counts.");
+  }
 
   if (rate_limits.size() > 0) {
     // Add rate limiter
