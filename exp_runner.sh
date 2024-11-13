@@ -18,7 +18,7 @@ process_iostat_output() {
         if [[ $line == *"Time:"* ]]; then
             # Extract timestamp
             current_timestamp=$(echo $line | awk '{print $2, $3}')
-        elif [[ $line == *nvme0n1* ]]; then
+        elif [[ $line == *md0* ]]; then
             # Write the current timestamp along with the iostat metrics
             echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
         fi
