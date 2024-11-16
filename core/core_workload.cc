@@ -174,7 +174,7 @@ void CoreWorkload::Init(const utils::Properties &p) {
     client_to_op_.push_back(stringToOperation(op_string));
   }
 
-  const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
+  // const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
   // if (num_threads != client_to_op_.size() || num_threads != client_to_cf_.size()) {
   //   throw utils::Exception("Inconsistent thread counts and thread to CF and OP mappings");
   // }
