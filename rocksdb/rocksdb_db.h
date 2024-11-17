@@ -64,6 +64,7 @@ class RocksdbDB : public DB {
   
   void PrintDbStats();
   rocksdb::ColumnFamilyHandle* table2handle(const std::string& table);
+  int table2clientId(const std::string& table);
 
  private:
   enum RocksFormat {

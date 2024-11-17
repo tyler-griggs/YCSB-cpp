@@ -25,6 +25,7 @@
 #include <rocksdb/options.h>
 #include <rocksdb/rate_limiter.h>
 // #include <rocksdb/util/rate_limiter_multi_tenant_impl.h>
+#include <rocksdb/tg_thread_local.h>
 
 namespace {
   const std::string PROP_NAME = "rocksdb.dbname";
@@ -455,6 +456,12 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
       /* single_burst_bytes */ 0
     ));
   }
+
+  size_t write_buffer_memory_limit = 512 * 1024 * 1024; // 512 MB
+  std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
+      std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit);
+  opt->write_buffer_manager = write_buffer_manager;
+
 }
 
 
@@ -560,6 +567,15 @@ rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   }
   assert(cf_idx < cf_handles_.size());
   return cf_handles_[cf_idx];
+}
+
+int RocksdbDB::table2clientId(const std::string& table) {
+  if (table == "default") {
+    return 0;
+  } else if (table.substr(0, 2) == "cf") {
+    return std::stoi(table.substr(2)) - 1;        
+  }
+  return -2;
 }
 
 DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &key,
@@ -682,6 +698,9 @@ DB::Status RocksdbDB::InsertSingle(const std::string &table, const std::string &
     std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
+
+  auto& thread_metadata = TG_GetThreadMetadata();
+  thread_metadata.client_id = table2clientId(table);
   
   std::string data;
   SerializeRow(values, data);
