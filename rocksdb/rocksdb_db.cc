@@ -460,10 +460,12 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   size_t write_buffer_memory_limit = 512 * 1024 * 1024; // 512 MB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
       std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit);
+  write_buffer_manager->SetPerClientBufferSize(0, 128*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(1, 64*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(2, 128*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(3, 128*1024*1024);
   opt->write_buffer_manager = write_buffer_manager;
-
 }
-
 
 void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
   std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
