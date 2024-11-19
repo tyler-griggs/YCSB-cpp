@@ -457,35 +457,51 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     ));
   }
 
-  size_t write_buffer_memory_limit = 512 * 1024 * 1024; // 512 MB
+  size_t write_buffer_memory_limit = 1024 * 1024 * 1024; // 1GB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
       std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit);
-  write_buffer_manager->SetPerClientBufferSize(0, 128*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(1, 64*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(2, 128*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(3, 128*1024*1024);
-  opt->write_buffer_manager = write_buffer_manager;
+  for (int i = 0; i < 6; ++i) {
+    write_buffer_manager->SetPerClientBufferSize(i, 128*1024*1024);
+  }
+  for (int i = 6; i < 8; ++i) {
+    write_buffer_manager->SetPerClientBufferSize(i, 96*1024*1024);
+  }
+opt->write_buffer_manager = write_buffer_manager;
+
 }
 
 void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
   std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
+    if (vals.size() == 1) {
+      cf_opt[i].max_write_buffer_number = std::stoi(vals[0]);
+    } else {
+      cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
+    }
   }
   vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].write_buffer_size = std::stoi(vals[i]);
+    if (vals.size() == 1) {
+      cf_opt[i].write_buffer_size = std::stoi(vals[0]);
+    } else {
+      cf_opt[i].write_buffer_size = std::stoi(vals[i]);
+    }
   }
   const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
   }
+  std::cout << "4\n";
   vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     rocksdb::BlockBasedTableOptions table_options;
-    if (std::stoul(vals[i]) > 0) {
-      std::cout << "[TGRIGGS_LOG] Creating cache of size " << vals[i] << std::endl;
-      block_cache = rocksdb::NewLRUCache(std::stoul(vals[i]));
+    std::string temp_val = vals[0];
+    if (vals.size() > 1) {
+      temp_val = vals[i];
+    }
+    if (std::stoul(temp_val) > 0) {
+      std::cout << "[TGRIGGS_LOG] Creating cache of size " << temp_val << std::endl;
+      block_cache = rocksdb::NewLRUCache(std::stoul(temp_val));
       table_options.block_cache = block_cache;
     } else {
       table_options.no_block_cache = true;  // Disable block cache

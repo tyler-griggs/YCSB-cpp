@@ -77,6 +77,9 @@ const string CoreWorkload::READMODIFYWRITE_PROPORTION_DEFAULT = "0.0";
 const string CoreWorkload::RANDOM_INSERT_PROPORTION_PROPERTY = "randominsertproportion";
 const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 
+const string CoreWorkload::INSERT_BATCH_PROPORTION_PROPERTY = "insertbatchproportion";
+const string CoreWorkload::INSERT_BATCH_PROPORTION_DEFAULT = "0.0";
+
 const string CoreWorkload::REQUEST_DISTRIBUTION_PROPERTY = "requestdistribution";
 const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform";
 
@@ -197,6 +200,9 @@ void CoreWorkload::Init(const utils::Properties &p) {
   double randominsert_proportion = std::stod(p.GetProperty(
       RANDOM_INSERT_PROPORTION_PROPERTY, RANDOM_INSERT_PROPORTION_DEFAULT));
 
+  double insertbatch_proportion = std::stod(p.GetProperty(
+      INSERT_BATCH_PROPORTION_PROPERTY, INSERT_BATCH_PROPORTION_DEFAULT));
+
   record_count_ = std::stoi(p.GetProperty(RECORD_COUNT_PROPERTY));
   std::string request_dist = p.GetProperty(REQUEST_DISTRIBUTION_PROPERTY,
                                            REQUEST_DISTRIBUTION_DEFAULT);
@@ -239,6 +245,9 @@ void CoreWorkload::Init(const utils::Properties &p) {
   }
   if (randominsert_proportion > 0) {
     op_chooser_.AddValue(RANDOM_INSERT, randominsert_proportion);
+  }
+  if (insertbatch_proportion > 0) {
+    op_chooser_.AddValue(INSERT_BATCH, insertbatch_proportion);
   }
 
   insert_key_sequence_ = new CounterGenerator(insert_start);
@@ -372,6 +381,9 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
       case RANDOM_INSERT:
         status = TransactionRandomInsert(db, client_id, table_name);
         break;
+      case INSERT_BATCH:
+        status = TransactionInsertBatch(db, client_id, table_name);
+        break;
       default:
         std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
         throw utils::Exception("Operation request is not recognized!");
@@ -396,6 +408,9 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
         break;
       case RANDOM_INSERT:
         status = TransactionRandomInsert(db, client_id, table_name);
+        break;
+      case INSERT_BATCH:
+        status = TransactionInsertBatch(db, client_id, table_name);
         break;
       default:
         std::cout << "[FAIRDB_LOG] Unknown op: " << op << std::endl;
@@ -494,7 +509,7 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int batch_size = 600;
+  int batch_size = 500;
   uint64_t client_key_num = key_num;
   client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 

@@ -64,17 +64,17 @@ mpstat_pid=$!
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -p rocksdb.num_cfs=4 \
-  -threads 4 \
+  -p rocksdb.num_cfs=8 \
+  -threads 8 \
   -p real_op_mode=false \
-  -p client_to_cf_map="default,cf2,cf3,cf4" \
-  -p client_to_op_map="READ,READ,READ,READ" \
-  -target_rates "1,1,1,1" \
+  -p client_to_cf_map="default,cf2,cf3,cf4,cf5,cf6,cf7,cf8" \
+  -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH" \
+  -target_rates "1000,1000,1000,1000,1000,1000,100000,100000" \
   -p status.interval_ms=500 \
-  -p burst_gap_s=0 \
+  -p burst_gap_s=30 \
   -p burst_size_ops=1 \
-  -p rate_limits="100000,100000,100000,100000" \
-  -p read_rate_limits="100000,100000,100000,100000" \
+  -p rate_limits="100000,100000,100000,100000,100000,100000,100000,100000" \
+  -p read_rate_limits="100000,100000,100000,100000,100000,100000,100000,100000" \
   -p refill_period=5 \
   -p rsched=false \
   -p rsched_interval_ms=50 \
@@ -146,7 +146,6 @@ wait $ycsb_pid
 #   -p rate_limits=200 \
 #   -p requestdistribution=uniform \
 #   | tee status_thread.txt
-
 
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
 #   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
