@@ -72,7 +72,7 @@ class RocksdbDB : public DB {
   };
   RocksFormat format_;
 
-  void GetOptions(const utils::Properties &props, rocksdb::Options *opt,
+  void GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                   std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs);
   void GetCfOptions(const utils::Properties &props, 
                     std::vector<rocksdb::ColumnFamilyOptions>& cf_opt);

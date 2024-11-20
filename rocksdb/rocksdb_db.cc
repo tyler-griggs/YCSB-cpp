@@ -234,24 +234,25 @@ void RocksdbDB::Init() {
     throw utils::Exception("RocksDB db path is missing");
   }
 
-  rocksdb::Options opt;
-  opt.create_if_missing = true;
-  opt.create_missing_column_families = true;
-  std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
-  GetOptions(props, &opt, &cf_descs);
-
   std::vector<rocksdb::ColumnFamilyOptions> cf_opts;
   const int num_cfs = std::stoi(props.GetProperty(PROP_NUM_CFS, PROP_NUM_CFS_DEFAULT));
   for (int i = 0; i < num_cfs; ++i) {
     cf_opts.push_back(rocksdb::ColumnFamilyOptions());
   }
+
+  rocksdb::Options opt;
+  opt.create_if_missing = true;
+  opt.create_missing_column_families = true;
+  std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
+  GetOptions(num_cfs, props, &opt, &cf_descs);
+  
   GetCfOptions(props, cf_opts);
   for (int i = 0; i < num_cfs; ++i) {
     std::string cf_name;
     if (i == 0) {
       cf_name = rocksdb::kDefaultColumnFamilyName;
     } else {
-      cf_name = "cf" + std::to_string(i+1);
+      cf_name = "cf" + std::to_string(i);
     }
     cf_descs.emplace_back(cf_name, cf_opts[i]);
     std::cout << "[FAIRDB_LOG] Init column family: " << cf_name << std::endl;
@@ -290,7 +291,7 @@ void RocksdbDB::Cleanup() {
   delete db_;
 }
 
-void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt,
+void RocksdbDB::GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                            std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs) {
   std::string env_uri = props.GetProperty(PROP_ENV_URI, PROP_ENV_URI_DEFAULT);
   std::string fs_uri = props.GetProperty(PROP_FS_URI, PROP_FS_URI_DEFAULT);
@@ -355,7 +356,6 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     }
     val = std::stoi(props.GetProperty(PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT));
     if (val != 0) {
-      std::cout << "TGRIGGS_LOG write buffer size: " << val << std::endl;
       opt->write_buffer_size = val;
     }
     // val = std::stoi(props.GetProperty(PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT));
@@ -399,7 +399,6 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     if (props.GetProperty(PROP_USE_MMAP_READ, PROP_USE_MMAP_READ_DEFAULT) == "true") {
       opt->allow_mmap_reads = true;
     }
-
     rocksdb::BlockBasedTableOptions table_options;
     table_options.no_block_cache = true;  // We handle block cache at per-CF level
 #if ROCKSDB_MAJOR < 8
@@ -439,10 +438,9 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
 
-  int num_clients = rate_limits.size();
-  // if (num_clients != std::stoi(props.GetProperty("threadcount", "1"))) {
-  //   throw utils::Exception("Inconsistent thread counts and rate limit counts.");
-  // }
+  if (num_clients != rate_limits.size() && rate_limits.size() > 1) {
+    throw utils::Exception("Inconsistent thread counts and rate limit counts.");
+  }
 
   if (rate_limits.size() > 0) {
     // Add rate limiter
@@ -456,36 +454,52 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
       /* single_burst_bytes */ 0
     ));
   }
-
-  size_t write_buffer_memory_limit = 512 * 1024 * 1024; // 512 MB
+  size_t write_buffer_memory_limit = 1024 * 1024 * 1024; // 1GB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
-      std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit);
-  write_buffer_manager->SetPerClientBufferSize(0, 128*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(1, 64*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(2, 128*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(3, 128*1024*1024);
-  opt->write_buffer_manager = write_buffer_manager;
+      std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit, nullptr, true, num_clients);
+
+  write_buffer_manager->SetPerClientBufferSize(0, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(1, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(2, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(3, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
+
+opt->write_buffer_manager = write_buffer_manager;
+
 }
 
 void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
   std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_MAX_WRITE_BUFFER doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
   }
   vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_WRITE_BUFFER_SIZE doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].write_buffer_size = std::stoi(vals[i]);
+      cf_opt[i].write_buffer_size = std::stoi(vals[i]);
   }
   const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
   }
   vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_CACHE_SIZE doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     rocksdb::BlockBasedTableOptions table_options;
-    if (std::stoul(vals[i]) > 0) {
-      std::cout << "[TGRIGGS_LOG] Creating cache of size " << vals[i] << std::endl;
-      block_cache = rocksdb::NewLRUCache(std::stoul(vals[i]));
+    std::string val = vals[i];
+    if (std::stoul(val) > 0) {
+      std::cout << "[TGRIGGS_LOG] Creating cache of size " << val << std::endl;
+      block_cache = rocksdb::NewLRUCache(std::stoul(val));
       table_options.block_cache = block_cache;
     } else {
       table_options.no_block_cache = true;  // Disable block cache
@@ -563,7 +577,7 @@ rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   if (table == "default") {
     cf_idx = 0;
   } else if (table.substr(0, 2) == "cf") {
-    cf_idx = std::stoi(table.substr(2)) - 1;        
+    cf_idx = std::stoi(table.substr(2));        
   } else {
     return nullptr;
   }
@@ -575,7 +589,7 @@ int RocksdbDB::table2clientId(const std::string& table) {
   if (table == "default") {
     return 0;
   } else if (table.substr(0, 2) == "cf") {
-    return std::stoi(table.substr(2)) - 1;        
+    return std::stoi(table.substr(2));        
   }
   return -2;
 }
@@ -761,12 +775,12 @@ void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
 
 // TODO(tgriggs): is there a way to perform the memtable updates without converting to string?
 void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) {
-  std::unordered_map<std::string, std::string> cf_opt_updates;
-  for (size_t i = 0; i < res_opts.size(); ++i) {
-    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
-    cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
-    db_->SetOptions(cf_handles_[i], cf_opt_updates);
-  }
+  // std::unordered_map<std::string, std::string> cf_opt_updates;
+  // for (size_t i = 0; i < res_opts.size(); ++i) {
+  //   cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
+  //   cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
+  //   db_->SetOptions(cf_handles_[i], cf_opt_updates);
+  // }
   
   // TODO(tgriggs): restructure this so that we don't have to rearrange on every update
   std::vector<int64_t> write_rate_limits(res_opts.size());
@@ -801,10 +815,9 @@ std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage(
   std::vector<ycsbc::utils::MultiTenantResourceUsage> all_stats;
   all_stats.reserve(num_clients);
   for (int i = 0; i < num_clients; ++i) {
-    int client_id = i;
     ycsbc::utils::MultiTenantResourceUsage client_stats;
-    client_stats.io_bytes_written_kb = write_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;
-    client_stats.io_bytes_read_kb = read_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;
+    client_stats.io_bytes_written_kb = write_rate_limiter->GetTotalBytesThroughForClient(i) / 1024;
+    client_stats.io_bytes_read_kb = read_rate_limiter->GetTotalBytesThroughForClient(i) / 1024;
     all_stats.push_back(client_stats);
   }
   return all_stats;

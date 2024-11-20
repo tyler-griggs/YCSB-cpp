@@ -64,24 +64,24 @@ mpstat_pid=$!
   -p readproportion=1 \
   -p scanproportion=0 \
   -p randominsertproportion=0 \
-  -p rocksdb.num_cfs=4 \
-  -threads 4 \
   -p real_op_mode=false \
-  -p client_to_cf_map="default,cf2,cf3,cf4" \
-  -p client_to_op_map="READ,READ,READ,READ" \
-  -target_rates "1,1,1,1" \
+  -threads 8 \
+  -p rocksdb.num_cfs=8 \
+  -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7" \
+  -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ" \
+  -target_rates "100,100,100,100,100,100,100,100" \
   -p status.interval_ms=500 \
   -p burst_gap_s=0 \
   -p burst_size_ops=1 \
-  -p rate_limits="100000,100000,100000,100000" \
-  -p read_rate_limits="100000,100000,100000,100000" \
-  -p refill_period=5 \
+  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p refill_period=50 \
   -p rsched=false \
   -p rsched_interval_ms=50 \
   -p lookback_intervals=30 \
   -p rsched_rampup_multiplier=1.2 \
-  -p io_read_capacity_kbps=$((420 * 1024)) \
-  -p io_write_capacity_kbps=$((220 * 1024)) \
+  -p io_read_capacity_kbps=$((20 * 1024)) \
+  -p io_write_capacity_kbps=$((20 * 1024)) \
   -p memtable_capacity_kb=$((512 * 1024)) \
   -p min_memtable_count=$((16)) \
   -p max_memtable_size_kb=$((64 * 1024)) \
@@ -146,7 +146,6 @@ wait $ycsb_pid
 #   -p rate_limits=200 \
 #   -p requestdistribution=uniform \
 #   | tee status_thread.txt
-
 
 # nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
 #   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \

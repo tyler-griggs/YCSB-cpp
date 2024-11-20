@@ -122,6 +122,9 @@ class CoreWorkload {
   static const std::string RANDOM_INSERT_PROPORTION_PROPERTY;
   static const std::string RANDOM_INSERT_PROPORTION_DEFAULT;
 
+  static const std::string INSERT_BATCH_PROPORTION_PROPERTY;
+  static const std::string INSERT_BATCH_PROPORTION_DEFAULT;
+
   ///
   /// The name of the property for the the distribution of request keys.
   /// Options are "uniform", "zipfian" and "latest".
