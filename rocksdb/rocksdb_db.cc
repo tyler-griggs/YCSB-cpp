@@ -778,12 +778,12 @@ void RocksdbDB::UpdateMemtableSize(int client_id, int memtable_size_bytes) {
 
 // TODO(tgriggs): is there a way to perform the memtable updates without converting to string?
 void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) {
-  std::unordered_map<std::string, std::string> cf_opt_updates;
-  for (size_t i = 0; i < res_opts.size(); ++i) {
-    cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
-    cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
-    db_->SetOptions(cf_handles_[i], cf_opt_updates);
-  }
+  // std::unordered_map<std::string, std::string> cf_opt_updates;
+  // for (size_t i = 0; i < res_opts.size(); ++i) {
+  //   cf_opt_updates["write_buffer_size"] = std::to_string(res_opts[i].write_buffer_size_kb * 1024);
+  //   cf_opt_updates["max_write_buffer_number"] = std::to_string(res_opts[i].max_write_buffer_number);
+  //   db_->SetOptions(cf_handles_[i], cf_opt_updates);
+  // }
   
   // TODO(tgriggs): restructure this so that we don't have to rearrange on every update
   std::vector<int64_t> write_rate_limits(res_opts.size());

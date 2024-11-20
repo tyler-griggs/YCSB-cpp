@@ -270,31 +270,31 @@ void CentralResourceSchedulerThread(
         for (const auto& usage : interval_usages) {
             max_interval_usage[i].io_bytes_read_kb = std::max(max_interval_usage[i].io_bytes_read_kb, usage[i].io_bytes_read_kb);
             max_interval_usage[i].io_bytes_written_kb = std::max(max_interval_usage[i].io_bytes_written_kb, usage[i].io_bytes_written_kb);
-            max_interval_usage[i].mem_bytes_written_kb = std::max(max_interval_usage[i].mem_bytes_written_kb, usage[i].mem_bytes_written_kb);
+            // max_interval_usage[i].mem_bytes_written_kb = std::max(max_interval_usage[i].mem_bytes_written_kb, usage[i].mem_bytes_written_kb);
         }
       }
       std::vector<int64_t> io_read_usage;
       std::vector<int64_t> io_write_usage;
-      std::vector<int64_t> memtable_usage;
+      // std::vector<int64_t> memtable_usage;
       for (const auto& usage : max_interval_usage) {
         io_read_usage.push_back(usage.io_bytes_read_kb);
         io_write_usage.push_back(usage.io_bytes_written_kb);
-        memtable_usage.push_back(usage.mem_bytes_written_kb);
+        // memtable_usage.push_back(usage.mem_bytes_written_kb);
       }
       std::vector<int64_t> io_read_allocation = ComputePRFAllocation(options.io_read_capacity_kbps, io_read_usage, options.ramp_up_multiplier);
       std::vector<int64_t> io_write_allocation = ComputePRFAllocation(options.io_write_capacity_kbps, io_write_usage, options.ramp_up_multiplier);
-      std::vector<int64_t> memtable_allocation = ComputePRFAllocation(options.memtable_capacity_kb, memtable_usage, options.ramp_up_multiplier);
-      std::vector<int> write_buffer_sizes(num_clients);
-      std::vector<int> max_write_buffer_numbers(num_clients);
-      MemtableAllocationToRocksDbParams(
-        memtable_allocation, options.memtable_capacity_kb, 
-        options.max_memtable_size_kb, options.min_memtable_size_kb,
-        options.min_memtable_count,
-        write_buffer_sizes, max_write_buffer_numbers);
+      // std::vector<int64_t> memtable_allocation = ComputePRFAllocation(options.memtable_capacity_kb, memtable_usage, options.ramp_up_multiplier);
+      // std::vector<int> write_buffer_sizes(num_clients);
+      // std::vector<int> max_write_buffer_numbers(num_clients);
+      // MemtableAllocationToRocksDbParams(
+      //   memtable_allocation, options.memtable_capacity_kb, 
+      //   options.max_memtable_size_kb, options.min_memtable_size_kb,
+      //   options.min_memtable_count,
+      //   write_buffer_sizes, max_write_buffer_numbers);
 
       for (size_t i = 0; i < num_clients; ++i) {
-        res_opts[i].max_write_buffer_number = max_write_buffer_numbers[i];
-        res_opts[i].write_buffer_size_kb = write_buffer_sizes[i];
+        // res_opts[i].max_write_buffer_number = max_write_buffer_numbers[i];
+        // res_opts[i].write_buffer_size_kb = write_buffer_sizes[i];
         res_opts[i].read_rate_limit_kbs = io_read_allocation[i];
         res_opts[i].write_rate_limit_kbs = io_write_allocation[i];
         // if (i == 0) {
