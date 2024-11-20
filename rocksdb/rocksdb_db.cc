@@ -473,36 +473,33 @@ opt->write_buffer_manager = write_buffer_manager;
 
 void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions>& cf_opt) {
   std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_MAX_WRITE_BUFFER doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    if (vals.size() == 1) {
-      cf_opt[i].max_write_buffer_number = std::stoi(vals[0]);
-    } else {
-      cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
-    }
+    cf_opt[i].max_write_buffer_number = std::stoi(vals[i]);
   }
   vals = Prop2vector(props, PROP_WRITE_BUFFER_SIZE, PROP_WRITE_BUFFER_SIZE_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_WRITE_BUFFER_SIZE doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    if (vals.size() == 1) {
-      cf_opt[i].write_buffer_size = std::stoi(vals[0]);
-    } else {
       cf_opt[i].write_buffer_size = std::stoi(vals[i]);
-    }
   }
   const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
   }
-  std::cout << "4\n";
   vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
+  if (vals.size() != cf_opt.size()) {
+    throw utils::Exception("PROP_CACHE_SIZE doesn't match number of column families");
+  }
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     rocksdb::BlockBasedTableOptions table_options;
-    std::string temp_val = vals[0];
-    if (vals.size() > 1) {
-      temp_val = vals[i];
-    }
-    if (std::stoul(temp_val) > 0) {
-      std::cout << "[TGRIGGS_LOG] Creating cache of size " << temp_val << std::endl;
-      block_cache = rocksdb::NewLRUCache(std::stoul(temp_val));
+    std::string val = vals[i];
+    if (std::stoul(val) > 0) {
+      std::cout << "[TGRIGGS_LOG] Creating cache of size " << val << std::endl;
+      block_cache = rocksdb::NewLRUCache(std::stoul(val));
       table_options.block_cache = block_cache;
     } else {
       table_options.no_block_cache = true;  // Disable block cache
