@@ -456,14 +456,16 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
   // }
   size_t write_buffer_memory_limit = 1024 * 1024 * 1024; // 1GB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
-      std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit);
-  for (int i = 0; i < 4; ++i) {
-    write_buffer_manager->SetPerClientBufferSize(i, 128*1024*1024);
-  }
-  write_buffer_manager->SetPerClientBufferSize(4, 65*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(5, 65*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(6, 65*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(7, 65*1024*1024);
+      std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit, nullptr, true, num_clients);
+
+  write_buffer_manager->SetPerClientBufferSize(0, 65*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(1, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(2, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(3, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
 
 opt->write_buffer_manager = write_buffer_manager;
 
@@ -578,7 +580,7 @@ rocksdb::ColumnFamilyHandle* RocksdbDB::table2handle(const std::string& table) {
   if (table == "default") {
     cf_idx = 0;
   } else if (table.substr(0, 2) == "cf") {
-    cf_idx = std::stoi(table.substr(2)) - 1;        
+    cf_idx = std::stoi(table.substr(2));        
   } else {
     return nullptr;
   }
