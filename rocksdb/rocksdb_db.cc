@@ -234,24 +234,25 @@ void RocksdbDB::Init() {
     throw utils::Exception("RocksDB db path is missing");
   }
 
-  rocksdb::Options opt;
-  opt.create_if_missing = true;
-  opt.create_missing_column_families = true;
-  std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
-  GetOptions(props, &opt, &cf_descs);
-
   std::vector<rocksdb::ColumnFamilyOptions> cf_opts;
   const int num_cfs = std::stoi(props.GetProperty(PROP_NUM_CFS, PROP_NUM_CFS_DEFAULT));
   for (int i = 0; i < num_cfs; ++i) {
     cf_opts.push_back(rocksdb::ColumnFamilyOptions());
   }
+
+  rocksdb::Options opt;
+  opt.create_if_missing = true;
+  opt.create_missing_column_families = true;
+  std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
+  GetOptions(num_cfs, props, &opt, &cf_descs);
+  
   GetCfOptions(props, cf_opts);
   for (int i = 0; i < num_cfs; ++i) {
     std::string cf_name;
     if (i == 0) {
       cf_name = rocksdb::kDefaultColumnFamilyName;
     } else {
-      cf_name = "cf" + std::to_string(i+1);
+      cf_name = "cf" + std::to_string(i);
     }
     cf_descs.emplace_back(cf_name, cf_opts[i]);
     std::cout << "[FAIRDB_LOG] Init column family: " << cf_name << std::endl;
@@ -290,7 +291,7 @@ void RocksdbDB::Cleanup() {
   delete db_;
 }
 
-void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt,
+void RocksdbDB::GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                            std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs) {
   std::string env_uri = props.GetProperty(PROP_ENV_URI, PROP_ENV_URI_DEFAULT);
   std::string fs_uri = props.GetProperty(PROP_FS_URI, PROP_FS_URI_DEFAULT);
@@ -437,35 +438,34 @@ void RocksdbDB::GetOptions(const utils::Properties &props, rocksdb::Options *opt
     std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
   }
 
-  int num_clients = rate_limits.size();
-  // if (num_clients != std::stoi(props.GetProperty("threadcount", "1"))) {
-  //   throw utils::Exception("Inconsistent thread counts and rate limit counts.");
-  // }
+  if (num_clients != rate_limits.size() && rate_limits.size() > 1) {
+    throw utils::Exception("Inconsistent thread counts and rate limit counts.");
+  }
 
-  // if (rate_limits.size() > 0) {
-  //   // Add rate limiter
-  //   opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-  //     num_clients,
-  //     rate_limits,
-  //     read_rate_limits,
-  //     refill_period * 1000,        // Refill period (ms)
-  //     10,                // Fairness (default)
-  //     rocksdb::RateLimiter::Mode::kAllIo, // All IO
-  //     /* single_burst_bytes */ 0
-  //   ));
-  // }
+  if (rate_limits.size() > 0) {
+    // Add rate limiter
+    opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
+      num_clients,
+      rate_limits,
+      read_rate_limits,
+      refill_period * 1000,        // Refill period (ms)
+      10,                // Fairness (default)
+      rocksdb::RateLimiter::Mode::kAllIo, // All IO
+      /* single_burst_bytes */ 0
+    ));
+  }
   size_t write_buffer_memory_limit = 1024 * 1024 * 1024; // 1GB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
       std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit, nullptr, true, num_clients);
 
-  write_buffer_manager->SetPerClientBufferSize(0, 65*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(0, 1024*1024*1024);
   write_buffer_manager->SetPerClientBufferSize(1, 1024*1024*1024);
   write_buffer_manager->SetPerClientBufferSize(2, 1024*1024*1024);
   write_buffer_manager->SetPerClientBufferSize(3, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
+  // write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
 
 opt->write_buffer_manager = write_buffer_manager;
 
