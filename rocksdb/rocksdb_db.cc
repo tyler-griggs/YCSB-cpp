@@ -59,7 +59,7 @@ namespace {
   const std::string PROP_MAX_BYTES_FOR_LEVEL_BASE_DEFAULT = "0";
 
   const std::string PROP_WRITE_BUFFER_SIZE = "rocksdb.write_buffer_size";
-  const std::string PROP_WRITE_BUFFER_SIZE_DEFAULT = "0";
+  const std::string PROP_WRITE_BUFFER_SIZE_DEFAULT = "0,0,0,0";
 
   const std::string PROP_MAX_WRITE_BUFFER = "rocksdb.max_write_buffer_number";
   const std::string PROP_MAX_WRITE_BUFFER_DEFAULT = "0";
@@ -582,7 +582,7 @@ int RocksdbDB::table2clientId(const std::string& table) {
 
 DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &key,
                                  const std::vector<std::string> *fields,
-                                 std::vector<Field> &result) {
+                                 std::vector<Field> &result, int client_id) {
   std::string data;
 
   auto* handle = table2handle(table);
@@ -595,7 +595,7 @@ DB::Status RocksdbDB::ReadSingle(const std::string &table, const std::string &ke
   rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
   read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
 
-  rocksdb::Status s = db_->Get(read_options, handle, key, &data);
+  rocksdb::Status s = db_->Get(read_options, handle, key, &data, client_id);
   if (s.IsNotFound()) {
     return kNotFound;
   } else if (!s.ok()) {
@@ -783,13 +783,25 @@ void RocksdbDB::UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResour
 
 std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
   std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
+  int num_clients = cf_handles_.size();
+
+  if (!write_rate_limiter) {
+    std::vector<ycsbc::utils::MultiTenantResourceUsage> to_return;
+    for (int i = 0; i < num_clients; ++i) {
+      int client_id = i;
+      ycsbc::utils::MultiTenantResourceUsage client_stats;
+      client_stats.io_bytes_written_kb = 10;
+      client_stats.io_bytes_read_kb = 10;
+      to_return.push_back(client_stats);
+    }
+    return to_return;
+  }
   rocksdb::RateLimiter* read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
 
-  int num_clients = cf_handles_.size();
   std::vector<ycsbc::utils::MultiTenantResourceUsage> all_stats;
   all_stats.reserve(num_clients);
   for (int i = 0; i < num_clients; ++i) {
-    int client_id = i + 1;
+    int client_id = i;
     ycsbc::utils::MultiTenantResourceUsage client_stats;
     client_stats.io_bytes_written_kb = write_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;
     client_stats.io_bytes_read_kb = read_rate_limiter->GetTotalBytesThroughForClient(client_id) / 1024;

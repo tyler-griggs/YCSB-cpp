@@ -78,7 +78,7 @@ const string CoreWorkload::RANDOM_INSERT_PROPORTION_PROPERTY = "randominsertprop
 const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 
 const string CoreWorkload::REQUEST_DISTRIBUTION_PROPERTY = "requestdistribution";
-const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform";
+const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform,uniform,uniform,uniform"; // -
 
 const string CoreWorkload::ZERO_PADDING_PROPERTY = "zeropadding";
 const string CoreWorkload::ZERO_PADDING_DEFAULT = "1";
@@ -104,7 +104,7 @@ const string CoreWorkload::OPERATION_COUNT_PROPERTY = "operationcount";
 const std::string CoreWorkload::FIELD_NAME_PREFIX = "fieldnameprefix";
 const std::string CoreWorkload::FIELD_NAME_PREFIX_DEFAULT = "field";
 
-const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
+const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const"; //
 
 const std::string CoreWorkload::OP_MODE_PROPERTY = "real_op_mode";
 const std::string CoreWorkload::OP_MODE_DEFAULT = "true";
@@ -117,6 +117,9 @@ const std::string CoreWorkload::BURST_SIZE_OPS_DEFAULT = "0";
 
 const std::string CoreWorkload::CLIENT_TO_CF_MAP = "client_to_cf_map";
 const std::string CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT = "default,cf2,cf3,cf4";
+
+const std::string CoreWorkload::CLIENT_TO_CF_OFFSET = "client_to_cf_offset";
+const std::string CoreWorkload::CLIENT_TO_CF_OFFSET_DEFAULT = "0,0,0,0";
 
 const std::string CoreWorkload::CLIENT_TO_OP_MAP = "client_to_op_map";
 const std::string CoreWorkload::CLIENT_TO_OP_MAP_DEFAULT = "READ,READ,READ,READ";
@@ -131,6 +134,18 @@ std::vector<std::string> Prop2vector(const utils::Properties &props, const std::
   std::istringstream stream(vals);
   while (std::getline(stream, val, ',')) {
     output.push_back(val);
+  }
+  return output;
+}
+
+std::vector<int> Prop2vectorInt (const utils::Properties &props, const std::string& prop, const std::string& default_val) {
+  std::string vals = props.GetProperty(prop, default_val);
+  std::vector<int> output;
+  std::string val;
+
+  std::istringstream stream(vals);
+  while (std::getline(stream, val, ',')) {
+    output.push_back(std::stoi(val));
   }
   return output;
 }
@@ -168,6 +183,7 @@ void CoreWorkload::Init(const utils::Properties &p) {
   op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "true";
 
   client_to_cf_ = Prop2vector(p, CLIENT_TO_CF_MAP, CLIENT_TO_CF_MAP_DEFAULT);
+  client_to_cf_offset = Prop2vector(p, CLIENT_TO_CF_OFFSET, CLIENT_TO_CF_OFFSET_DEFAULT);
 
   std::vector<std::string> client_to_op_string = Prop2vector(p, CLIENT_TO_OP_MAP, CLIENT_TO_OP_MAP_DEFAULT);
   for (const auto& op_string : client_to_op_string) {
@@ -197,9 +213,8 @@ void CoreWorkload::Init(const utils::Properties &p) {
   double randominsert_proportion = std::stod(p.GetProperty(
       RANDOM_INSERT_PROPORTION_PROPERTY, RANDOM_INSERT_PROPORTION_DEFAULT));
 
-  record_count_ = std::stoi(p.GetProperty(RECORD_COUNT_PROPERTY));
-  std::string request_dist = p.GetProperty(REQUEST_DISTRIBUTION_PROPERTY,
-                                           REQUEST_DISTRIBUTION_DEFAULT);
+  record_counts_ = Prop2vectorInt(p, RECORD_COUNT_PROPERTY, "0,0,0,0");
+  std::vector<std::string> request_dist = Prop2vector (p, REQUEST_DISTRIBUTION_PROPERTY, REQUEST_DISTRIBUTION_DEFAULT);
   int min_scan_len = std::stoi(p.GetProperty(MIN_SCAN_LENGTH_PROPERTY, MIN_SCAN_LENGTH_DEFAULT));
   int max_scan_len = std::stoi(p.GetProperty(MAX_SCAN_LENGTH_PROPERTY, MAX_SCAN_LENGTH_DEFAULT));
   std::string scan_len_dist = p.GetProperty(SCAN_LENGTH_DISTRIBUTION_PROPERTY,
@@ -242,30 +257,36 @@ void CoreWorkload::Init(const utils::Properties &p) {
   }
 
   insert_key_sequence_ = new CounterGenerator(insert_start);
-  transaction_insert_key_sequence_ = new AcknowledgedCounterGenerator(record_count_);
 
-  if (request_dist == "uniform") {
-    std::cout << "[FAIRDB_LOG] Uniform distribution." << std::endl;
-    key_chooser_ = new UniformGenerator(0, record_count_ - 1);
-  } else if (request_dist == "zipfian") {
-    std::cout << "[FAIRDB_LOG] Zipfian distribution." << std::endl;
-    // If the number of keys changes, we don't want to change popular keys.
-    // So we construct the scrambled zipfian generator with a keyspace
-    // that is larger than what exists at the beginning of the test.
-    // If the generator picks a key that is not inserted yet, we just ignore it
-    // and pick another key.
-    int op_count = std::stoi(p.GetProperty(OPERATION_COUNT_PROPERTY));
-    int new_keys = (int)(op_count * insert_proportion * 2); // a fudge factor
-    if (p.ContainsKey(ZIPFIAN_CONST_PROPERTY)) {
-      double zipfian_const = std::stod(p.GetProperty(ZIPFIAN_CONST_PROPERTY));
-      key_chooser_ = new ScrambledZipfianGenerator(0, record_count_ + new_keys - 1, zipfian_const);
+  for (size_t client_i = 0; client_i < request_dist.size(); client_i++) {
+    transaction_insert_key_sequence_.push_back(new AcknowledgedCounterGenerator(record_counts_[0]));
+    std::string req_dist_single = request_dist[client_i];
+    std::cout << "[FAIRDB_LOG] " << "Initialising request type " << req_dist_single << std::endl;
+    Generator<uint64_t>* key_chooser_single;
+    if (req_dist_single == "uniform") {
+      std::cout << "[FAIRDB_LOG] Uniform distribution." << std::endl;
+      key_chooser_single = new UniformGenerator(0, record_counts_[client_i] - 1);
+    } else if (req_dist_single == "zipfian") {
+      std::cout << "[FAIRDB_LOG] Zipfian distribution." << std::endl;
+      // If the number of keys changes, we don't want to change popular keys.
+      // So we construct the scrambled zipfian generator with a keyspace
+      // that is larger than what exists at the beginning of the test.
+      // If the generator picks a key that is not inserted yet, we just ignore it
+      // and pick another key.
+      int op_count = std::stoi(p.GetProperty(OPERATION_COUNT_PROPERTY));
+      int new_keys = (int)(op_count * insert_proportion * 2); // a fudge factor
+      if (p.ContainsKey(ZIPFIAN_CONST_PROPERTY)) {
+        double zipfian_const = std::stod(p.GetProperty(ZIPFIAN_CONST_PROPERTY));
+        key_chooser_single = new ScrambledZipfianGenerator(0, record_counts_[client_i] + new_keys - 1, zipfian_const);
+      } else {
+        key_chooser_single = new ScrambledZipfianGenerator(record_counts_[client_i] + new_keys);
+      }
+    } else if (req_dist_single == "latest") {
+      key_chooser_single = new SkewedLatestGenerator(*transaction_insert_key_sequence_[client_i]);
     } else {
-      key_chooser_ = new ScrambledZipfianGenerator(record_count_ + new_keys);
+      throw utils::Exception("Unknown request distribution: " + req_dist_single);
     }
-  } else if (request_dist == "latest") {
-    key_chooser_ = new SkewedLatestGenerator(*transaction_insert_key_sequence_);
-  } else {
-    throw utils::Exception("Unknown request distribution: " + request_dist);
+    key_chooser_.push_back(key_chooser_single);
   }
 
   field_chooser_ = new UniformGenerator(0, field_count_ - 1);
@@ -328,11 +349,11 @@ void CoreWorkload::BuildSingleValue(std::vector<ycsbc::DB::Field> &values) {
   std::generate_n(std::back_inserter(field.value), len, [&]() { return byte_generator.Next(); } );
 }
 
-uint64_t CoreWorkload::NextTransactionKeyNum() {
+uint64_t CoreWorkload::NextTransactionKeyNum(int client_id) {
   uint64_t key_num;
   do {
-    key_num = key_chooser_->Next();
-  } while (key_num > transaction_insert_key_sequence_->Last());
+    key_num = key_chooser_[client_id]->Next();
+  } while (key_num > transaction_insert_key_sequence_[client_id]->Last());
   return key_num;
 }
 
@@ -407,9 +428,10 @@ bool CoreWorkload::DoTransaction(DB &db, int client_id) {
 }
 
 DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string table_name) {
-  uint64_t key_num = NextTransactionKeyNum();
+  uint64_t key_num = NextTransactionKeyNum(client_id);
+  int offset = std::stoi(client_to_cf_offset[client_id]);
 
-  uint64_t client_key_num = key_num;
+  uint64_t client_key_num = key_num + offset;
   // uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
 
 
@@ -425,16 +447,16 @@ DB::Status CoreWorkload::TransactionRead(DB &db, int client_id, std::string tabl
 }
 
 DB::Status CoreWorkload::TransactionReadModifyWrite(DB &db) {
-  uint64_t key_num = NextTransactionKeyNum();
+  uint64_t key_num = NextTransactionKeyNum(0);
   const std::string key = BuildKeyName(key_num);
   std::vector<DB::Field> result;
 
   if (!read_all_fields()) {
     std::vector<std::string> fields;
     fields.push_back(NextFieldName());
-    db.Read(table_name_, key, &fields, result);
+    db.Read(table_name_, key, &fields, result, 0);
   } else {
-    db.Read(table_name_, key, NULL, result);
+    db.Read(table_name_, key, NULL, result, 0);
   }
 
   std::vector<DB::Field> values;
@@ -447,7 +469,7 @@ DB::Status CoreWorkload::TransactionReadModifyWrite(DB &db) {
 }
 
 DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string table_name) {
-  uint64_t key_num = NextTransactionKeyNum();
+  uint64_t key_num = NextTransactionKeyNum(client_id);
   int len = 100;
   uint64_t client_key_num = std::min(key_num, uint64_t(3125000 - len));
   // uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
@@ -465,7 +487,7 @@ DB::Status CoreWorkload::TransactionScan(DB &db, int client_id, std::string tabl
 }
 
 DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string table_name) {
-  uint64_t key_num = NextTransactionKeyNum();
+  uint64_t key_num = NextTransactionKeyNum(client_id);
   // For multi-cf
   uint64_t client_key_num = key_num;
   // uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
@@ -481,7 +503,7 @@ DB::Status CoreWorkload::TransactionUpdate(DB &db, int client_id, std::string ta
 }
 
 DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::string table_name) {
-  uint64_t key_num = NextTransactionKeyNum();
+  uint64_t key_num = NextTransactionKeyNum(client_id);
   uint64_t client_key_num = key_num;
   // uint64_t client_key_num = key_num + (client_id) * (6250000 / 4);
 
@@ -492,8 +514,8 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 }
 
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
-  uint64_t key_num = NextTransactionKeyNum();
-  // uint64_t key_num = transaction_insert_key_sequence_->Next();
+  uint64_t key_num = NextTransactionKeyNum(client_id);
+  // uint64_t key_num = transaction_insert_key_sequence_[client_id]->Next();
   int batch_size = 600;
   uint64_t client_key_num = key_num;
   client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
@@ -505,12 +527,12 @@ DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::stri
 }
 
 DB::Status CoreWorkload::TransactionInsert(DB &db) {
-  uint64_t key_num = transaction_insert_key_sequence_->Next();
+  uint64_t key_num = transaction_insert_key_sequence_[0]->Next();
   const std::string key = BuildKeyName(key_num);
   std::vector<DB::Field> values;
   BuildValues(values);
   DB::Status s = db.Insert(table_name_, key, values);
-  transaction_insert_key_sequence_->Acknowledge(key_num);
+  transaction_insert_key_sequence_[0]->Acknowledge(key_num);
   return s;
 }
 

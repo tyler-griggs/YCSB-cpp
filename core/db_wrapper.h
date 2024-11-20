@@ -41,7 +41,8 @@ class DBWrapper : public DB {
               const std::vector<std::string> *fields, std::vector<Field> &result,
               int client_id) {
     timer_.Start();
-    Status s = db_->Read(table, key, fields, result);
+    Status s = db_->Read(table, key, fields, result, client_id);
+
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(READ, elapsed);
@@ -136,9 +137,13 @@ class DBWrapper : public DB {
   }
 
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
+    printf("GET RESOURCE USAGE\n");
     auto res = db_->GetResourceUsage();
     for (size_t i = 0; i < res.size(); ++i) {
+      printf("GET RESOURCE USAGE %d \n", i);
       res[i].mem_bytes_written_kb = per_client_bytes_written_->get_value(i) / 1024;
+            printf("END GET RESOURCE USAGE %d \n", i);
+
     }
     return res;
   }

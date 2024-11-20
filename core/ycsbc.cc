@@ -297,11 +297,16 @@ int main(const int argc, const char *argv[]) {
     }
     std::vector<std::future<std::tuple<long long, std::vector<int>>>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;
+
+    uint64_t total_target_rates = 0;
+    for (int i = 0; i < num_threads; i++) {
+      total_target_rates += target_rates[i];
+    }
+
     for (int i = 0; i < num_threads; ++i) {
-      int thread_ops = total_ops / num_threads;
-      if (i < total_ops % num_threads) {
-        thread_ops++;
-      }
+      printf("TOTAL OPS %d target rate %d total target rate %d\n", total_ops, target_rates[i], total_target_rates);
+      uint64_t thread_ops = ((uint64_t) total_ops * target_rates[i]) / total_target_rates;
+
       ycsbc::utils::RateLimiter *rlim = nullptr;
       if (ops_limit > 0 || rate_file != "") {
         int64_t per_thread_ops = ops_limit / num_threads;

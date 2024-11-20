@@ -190,6 +190,9 @@ class CoreWorkload {
   static const std::string CLIENT_TO_CF_MAP;
   static const std::string CLIENT_TO_CF_MAP_DEFAULT;
 
+  static const std::string CLIENT_TO_CF_OFFSET;
+  static const std::string CLIENT_TO_CF_OFFSET_DEFAULT;
+
   static const std::string CLIENT_TO_OP_MAP;
   static const std::string CLIENT_TO_OP_MAP_DEFAULT;
 
@@ -207,18 +210,22 @@ class CoreWorkload {
 
   CoreWorkload() :
       field_count_(0), read_all_fields_(false), write_all_fields_(false),
-      field_len_generator_(nullptr), key_chooser_(nullptr), field_chooser_(nullptr),
+      field_len_generator_(nullptr), key_chooser_(), field_chooser_(nullptr),
       scan_len_chooser_(nullptr), insert_key_sequence_(nullptr),
-      transaction_insert_key_sequence_(nullptr), ordered_inserts_(true), record_count_(0) {
+      transaction_insert_key_sequence_(), ordered_inserts_(true), record_counts_() {
   }
 
   virtual ~CoreWorkload() {
     delete field_len_generator_;
-    delete key_chooser_;
+    for (auto key_chooser_single : key_chooser_) {
+      delete key_chooser_single;
+    }
     delete field_chooser_;
     delete scan_len_chooser_;
     delete insert_key_sequence_;
-    delete transaction_insert_key_sequence_;
+    for (auto seq: transaction_insert_key_sequence_) {
+      delete seq;
+    }
   }
 
  protected:
@@ -227,7 +234,7 @@ class CoreWorkload {
   void BuildValues(std::vector<DB::Field> &values);
   void BuildSingleValue(std::vector<DB::Field> &update);
 
-  uint64_t NextTransactionKeyNum();
+  uint64_t NextTransactionKeyNum(int client_id);
   std::string NextFieldName();
 
   DB::Status TransactionRead(DB &db, int client_id, std::string table_name);
@@ -245,16 +252,17 @@ class CoreWorkload {
   bool write_all_fields_;
   Generator<uint64_t> *field_len_generator_;
   DiscreteGenerator<Operation> op_chooser_;
-  Generator<uint64_t> *key_chooser_; // transaction key gen
+  std::vector<Generator<uint64_t>*> key_chooser_; // transaction key gen
   Generator<uint64_t> *field_chooser_;
   Generator<uint64_t> *scan_len_chooser_;
   CounterGenerator *insert_key_sequence_; // load insert key gen
-  AcknowledgedCounterGenerator *transaction_insert_key_sequence_; // transaction insert key gen
+  std::vector<AcknowledgedCounterGenerator*> transaction_insert_key_sequence_; // transaction insert key gen
   bool ordered_inserts_;
-  size_t record_count_;
+  std::vector<int> record_counts_;
   int zero_padding_;
   bool op_mode_real_;
   std::vector<std::string> client_to_cf_;
+  std::vector<std::string> client_to_cf_offset;
   std::vector<Operation> client_to_op_;
 };
 

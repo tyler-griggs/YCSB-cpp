@@ -91,6 +91,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
     auto interval_start_time = std::chrono::steady_clock::now();
 
+    std::cout << "[FAIRDB Log] Client starting at " << std::to_string(client_start_micros) << " for " << std::to_string(num_ops) << " ops" << std::endl;
+
     int ops = 0;
     for (int b = 0; b < num_bursts; ++b) {
       for (int i = 0; i < adjusted_num_ops; ++i) {
@@ -113,7 +115,6 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // // Submit operation to thread pool and wait for it. 
           // std::future<void*> result = threadpool->dispatch(txn_lambda);
           // result.wait();
-
           wl->DoTransaction(*db, client_id);
         }
         ops++;
