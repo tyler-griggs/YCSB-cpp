@@ -462,10 +462,10 @@ void RocksdbDB::GetOptions(const int num_clients, const utils::Properties &props
   write_buffer_manager->SetPerClientBufferSize(1, 1024*1024*1024);
   write_buffer_manager->SetPerClientBufferSize(2, 1024*1024*1024);
   write_buffer_manager->SetPerClientBufferSize(3, 1024*1024*1024);
-  // write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
-  // write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
-  // write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
-  // write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
+  write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
 
 opt->write_buffer_manager = write_buffer_manager;
 
@@ -738,6 +738,9 @@ DB::Status RocksdbDB::InsertMany(const std::string &table, int start_key,
     std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
     return kError;
   }
+
+  auto& thread_metadata = TG_GetThreadMetadata();
+  thread_metadata.client_id = table2clientId(table);
   
   std::string data;
   SerializeRow(values, data);

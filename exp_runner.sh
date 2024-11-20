@@ -49,6 +49,10 @@ iostat_pid=$!
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
 mpstat_pid=$!
 
+
+#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ" \
+#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
+
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
@@ -68,10 +72,10 @@ mpstat_pid=$!
   -threads 8 \
   -p rocksdb.num_cfs=8 \
   -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7" \
-  -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH" \
-  -target_rates "400,400,400,400,400,400,400,400" \
+  -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ" \
+  -target_rates "50,50,50,50,50,50,50,50" \
   -p status.interval_ms=500 \
-  -p burst_gap_s=20 \
+  -p burst_gap_s=0 \
   -p burst_size_ops=1 \
   -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
   -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
