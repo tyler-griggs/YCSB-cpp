@@ -12,9 +12,9 @@ field_length=$3
 record_count=$4
 
 # Loop through the number of column families
-for (( i=1; i<=num_column_families; i++ ))
+for (( i=0; i<num_column_families; i++ ))
 do
-    if [ $i -eq 1 ]; then
+    if [ $i -eq 0 ]; then
         table_name="default"
     else
         table_name="cf${i}"
@@ -33,3 +33,14 @@ do
       -p requestdistribution=uniform \
       -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s
 done
+
+# ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
+#       -p rocksdb.num_cfs=8 \
+#       -p recordcount=3125000 \
+#       -p fieldcount=1 \
+#       -p fieldlength=1024 \
+#       -p table=cf5 \
+#       -threads 1 \
+#       -p op_mode=real \
+#       -p requestdistribution=uniform \
+#       -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s
