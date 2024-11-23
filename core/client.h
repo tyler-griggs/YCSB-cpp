@@ -57,7 +57,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
 
   // int total_exp_duration_s = 150;
   if (burst_gap_s > 0) {
-    if (client_id == 6 || client_id == 7) {
+    if (client_id == 3 || client_id == 4) {
       std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
       adjusted_num_ops = 1;
     }

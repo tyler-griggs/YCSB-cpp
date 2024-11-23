@@ -127,6 +127,9 @@ namespace {
   const std::string PROP_READ_RATE_LIMITS = "read_rate_limits";
   const std::string PROP_READ_RATE_LIMITS_DEFAULT = "";
 
+  const std::string PROP_WBM_LIMITS = "wbm_limits";
+  const std::string PROP_WBM_LIMITS_DEFAULT = "0";
+
   const std::string PROP_STATS_DUMP_PERIOD_S = "rocksdb.stats_dump_period_sec";
   const std::string PROP_STATS_DUMP_PERIOD_S_DEFAULT = "300";
 
@@ -442,32 +445,31 @@ void RocksdbDB::GetOptions(const int num_clients, const utils::Properties &props
     throw utils::Exception("Inconsistent thread counts and rate limit counts.");
   }
 
-  if (rate_limits.size() > 0) {
-    // Add rate limiter
-    opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-      num_clients,
-      rate_limits,
-      read_rate_limits,
-      refill_period * 1000,        // Refill period (ms)
-      10,                // Fairness (default)
-      rocksdb::RateLimiter::Mode::kAllIo, // All IO
-      /* single_burst_bytes */ 0
-    ));
+  // if (rate_limits.size() > 0) {
+  //   // Add rate limiter
+  //   opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
+  //     num_clients,
+  //     rate_limits,
+  //     read_rate_limits,
+  //     refill_period * 1000,        // Refill period (ms)
+  //     10,                // Fairness (default)
+  //     rocksdb::RateLimiter::Mode::kAllIo, // All IO
+  //     /* single_burst_bytes */ 0
+  //   ));
+  // }
+
+  std::vector<int64_t> wbm_limits = stringToIntVector(props.GetProperty(PROP_WBM_LIMITS, PROP_WBM_LIMITS_DEFAULT));
+  if (num_clients != wbm_limits.size() && wbm_limits.size() > 1) {
+    throw utils::Exception("Inconsistent thread counts and wbm_limits counts.");
   }
-  size_t write_buffer_memory_limit = 1024 * 1024 * 1024; // 1GB
+
+  size_t write_buffer_memory_limit = 2 * num_clients * 64 * 1024 * 1024; // 1GB
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
       std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit, nullptr, true, num_clients);
-
-  write_buffer_manager->SetPerClientBufferSize(0, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(1, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(2, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(3, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(4, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(5, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(6, 1024*1024*1024);
-  write_buffer_manager->SetPerClientBufferSize(7, 1024*1024*1024);
-
-opt->write_buffer_manager = write_buffer_manager;
+  for (size_t i = 0; i < wbm_limits.size(); ++i) {
+   write_buffer_manager->SetPerClientBufferSize(i, wbm_limits[i] * 1024 * 1024);
+  }
+  // opt->write_buffer_manager = write_buffer_manager;
 
 }
 

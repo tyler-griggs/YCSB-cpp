@@ -35,11 +35,11 @@ do
 done
 
 # ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#       -p rocksdb.num_cfs=8 \
+#       -p rocksdb.num_cfs=16 \
 #       -p recordcount=3125000 \
-#       -p fieldcount=1 \
+#       -p fieldcount=16 \
 #       -p fieldlength=1024 \
-#       -p table=cf5 \
+#       -p table=cf1 \
 #       -threads 1 \
 #       -p op_mode=real \
 #       -p requestdistribution=uniform \

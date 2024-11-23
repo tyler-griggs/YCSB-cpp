@@ -50,8 +50,8 @@ iostat_pid=$!
 mpstat_pid=$!
 
 
-#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ" \
-#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
+#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
+#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
 
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
@@ -69,23 +69,24 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -p real_op_mode=false \
-  -threads 8 \
-  -p rocksdb.num_cfs=8 \
-  -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7" \
-  -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ" \
-  -target_rates "50,50,50,50,50,50,50,50" \
+  -threads 16 \
+  -p rocksdb.num_cfs=16 \
+  -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10,cf11,cf12,cf13,cf14,cf15" \
+  -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
+  -target_rates "380,420,395,405,401,399,409,415,385,382,418,412,391,383,392,400" \
+  -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
   -p status.interval_ms=500 \
-  -p burst_gap_s=0 \
+  -p burst_gap_s=30 \
   -p burst_size_ops=1 \
-  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
-  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
   -p refill_period=50 \
   -p rsched=false \
-  -p rsched_interval_ms=50 \
+  -p rsched_interval_ms=10 \
   -p lookback_intervals=30 \
   -p rsched_rampup_multiplier=1.2 \
-  -p io_read_capacity_kbps=$((20 * 1024)) \
-  -p io_write_capacity_kbps=$((20 * 1024)) \
+  -p io_read_capacity_kbps=$((9000 * 1024)) \
+  -p io_write_capacity_kbps=$((4500 * 1024)) \
   -p memtable_capacity_kb=$((512 * 1024)) \
   -p min_memtable_count=$((16)) \
   -p max_memtable_size_kb=$((64 * 1024)) \
