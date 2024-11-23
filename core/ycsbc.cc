@@ -16,7 +16,6 @@
 #include <future>
 #include <chrono>
 #include <iomanip>
-#include "threadpool.h"
 
 #include "client.h"
 #include "core_workload.h"
@@ -272,7 +271,7 @@ int main(const int argc, const char *argv[]) {
 
   // FairScheduler scheduler;
   ThreadPool threadpool;
-  // threadpool.start(/*num_threads=*/ 1);
+  threadpool.start(/*num_threads=*/ 4, /*num_clients=*/4);
 
   int burst_gap_s = std::stoi(props.GetProperty("burst_gap_s", "0"));
   int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));

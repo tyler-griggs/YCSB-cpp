@@ -53,8 +53,6 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   int num_bursts = 1;
   int adjusted_num_ops = num_ops;
 
-  std::this_thread::sleep_for(std::chrono::seconds(client_id));
-
   // int total_exp_duration_s = 150;
   if (burst_gap_s > 0) {
     if (client_id == 3 || client_id == 4) {
@@ -99,16 +97,19 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           wl->DoInsert(*db);
         } else {
 
-          // auto txn_lambda = [wl, db, client_id]() {
-          //   wl->DoTransaction(*db, client_id);
-          //   return nullptr;  // to match void* return
-          // };
+          auto txn_lambda = [wl, db, client_id]() {
+            wl->DoTransaction(*db, client_id);
+            return nullptr;  // to match void* return
+          };
+          
+          // Submit operation and do not wait for a return. 
+          threadpool->async_dispatch(client_id, txn_lambda);
 
           // // Submit operation to thread pool and wait for it. 
           // std::future<void*> result = threadpool->dispatch(txn_lambda);
           // result.wait();
 
-          wl->DoTransaction(*db, client_id);
+          // wl->DoTransaction(*db, client_id);
         }
         ops++;
 
