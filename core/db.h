@@ -38,11 +38,11 @@ class DB {
   ///
   /// Initializes any state for accessing this DB.
   ///
-  virtual void Init() { }
+  virtual void Init() = 0;
   ///
   /// Clears any state for accessing this DB.
   ///
-  virtual void Cleanup() { }
+  virtual void Cleanup() = 0;
   ///
   /// Reads a record from the database.
   /// Field/value pairs from the result are stored in a vector.
@@ -105,10 +105,10 @@ class DB {
 
   virtual Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) = 0;
 
-  virtual void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
-  virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes);
-  virtual void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts);
-  virtual std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage();
+  virtual void UpdateRateLimit(int client_id, int64_t rate_limit_bytes) = 0;
+  virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes) = 0;
+  virtual void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) = 0;
+  virtual std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() = 0;
   virtual void PrintDbStats() = 0;
 
   virtual ~DB() { }
@@ -116,6 +116,8 @@ class DB {
   void SetProps(utils::Properties *props) {
     props_ = props;
   }
+
+  virtual std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) = 0;
  protected:
   utils::Properties *props_;
 };

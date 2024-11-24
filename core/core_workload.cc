@@ -258,9 +258,9 @@ void CoreWorkload::Init(const utils::Properties &p) {
   if (randominsert_proportion > 0) {
     op_chooser_.AddValue(RANDOM_INSERT, randominsert_proportion);
   }
-  if (insertbatch_proportion > 0) {
-    op_chooser_.AddValue(INSERT_BATCH, insertbatch_proportion);
-  }
+  // if (insertbatch_proportion > 0) {
+  //   op_chooser_.AddValue(INSERT_BATCH, insertbatch_proportion);
+  // }
 
   insert_key_sequence_ = new CounterGenerator(insert_start);
 
@@ -270,7 +270,7 @@ void CoreWorkload::Init(const utils::Properties &p) {
     std::cout << "[FAIRDB_LOG] " << "Initialising request type " << req_dist_single << std::endl;
     Generator<uint64_t>* key_chooser_single;
     if (req_dist_single == "uniform") {
-      std::cout << "[FAIRDB_LOG] Uniform distribution." << std::endl;
+      std::cout << "[FAIRDB_LOG] Uniform distribution over " << std::to_string(record_counts_[client_i]) << " records." << std::endl;
       key_chooser_single = new UniformGenerator(0, record_counts_[client_i] - 1);
     } else if (req_dist_single == "zipfian") {
       std::cout << "[FAIRDB_LOG] Zipfian distribution." << std::endl;
@@ -356,11 +356,7 @@ void CoreWorkload::BuildSingleValue(std::vector<ycsbc::DB::Field> &values) {
 }
 
 uint64_t CoreWorkload::NextTransactionKeyNum(int client_id) {
-  uint64_t key_num;
-  do {
-    key_num = key_chooser_[client_id]->Next();
-  } while (key_num > transaction_insert_key_sequence_[client_id]->Last());
-  return key_num;
+  return key_chooser_[client_id]->Next();;
 }
 
 std::string CoreWorkload::NextFieldName() {

@@ -19,6 +19,8 @@
 #include "utils/utils.h"
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
+#include <rocksdb/rocksdb_db.h>
+
 
 namespace ycsbc {
 
@@ -137,19 +139,19 @@ class DBWrapper : public DB {
   }
 
   std::vector<ycsbc::utils::MultiTenantResourceUsage> GetResourceUsage() {
-    printf("GET RESOURCE USAGE\n");
     auto res = db_->GetResourceUsage();
     for (size_t i = 0; i < res.size(); ++i) {
-      printf("GET RESOURCE USAGE %d \n", i);
       res[i].mem_bytes_written_kb = per_client_bytes_written_->get_value(i) / 1024;
-            printf("END GET RESOURCE USAGE %d \n", i);
-
     }
     return res;
   }
 
   void PrintDbStats() {
     db_->PrintDbStats();
+  }
+
+  std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) {
+    return db_->GetCacheByClientIdx(client_idx);
   }
   
  private:

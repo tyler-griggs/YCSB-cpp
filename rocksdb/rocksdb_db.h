@@ -18,13 +18,19 @@
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
 #include <rocksdb/statistics.h>
+#include <rocksdb/cache.h>
 
 namespace ycsbc {
 
 class RocksdbDB : public DB {
  public:
-  RocksdbDB() {}
+  RocksdbDB() : block_caches_by_client_() {}
   ~RocksdbDB() {}
+
+  std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) {
+    if (client_idx >= block_caches_by_client_.size()) return nullptr;
+    return block_caches_by_client_[client_idx];
+  }
 
   void Init();
 
@@ -75,7 +81,7 @@ class RocksdbDB : public DB {
   void GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                   std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs);
   void GetCfOptions(const utils::Properties &props, 
-                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt);
+                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt, std::vector<std::string>& cf_names);
   static void SerializeRow(const std::vector<Field> &values, std::string &data);
   static void DeserializeRowFilter(std::vector<Field> &values, const char *p, const char *lim,
                                    const std::vector<std::string> &fields);
@@ -118,6 +124,7 @@ class RocksdbDB : public DB {
   static rocksdb::DB *db_;
   static int ref_cnt_;
   static std::mutex mu_;
+  std::vector<std::shared_ptr<rocksdb::Cache>> block_caches_by_client_;
 };
 
 DB *NewRocksdbDB();

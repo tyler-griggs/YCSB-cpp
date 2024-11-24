@@ -45,6 +45,9 @@ class BasicDB : public DB {
 
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
 
+  void Cleanup() {}
+  std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) { return nullptr; };
+
   void UpdateMemtableSize(int client_id, int memtable_size_bytes);
 
   void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts);

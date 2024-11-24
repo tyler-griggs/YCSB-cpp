@@ -30,6 +30,11 @@
 #include "utils/resources.h"
 #include "utils/timer.h"
 #include "utils/utils.h"
+#include "rocksdb/rocksdb_db.h"
+#include <rocksdb/cache.h>
+#include <rocksdb/advanced_cache.h>
+#include "db_wrapper.h"
+
 
 // #ifdef HDRMEASUREMENT
 #include <hdr/hdr_histogram.h>
@@ -52,7 +57,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // TODO(tgriggs):  Handle file open failure, propagate exception
     // throw std::ios_base::failure("Failed to open the file.");
   }
-  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p" << std::endl;
+  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,cache_usage,cache_capacity" << std::endl;
 
   time_point<system_clock> start = system_clock::now();
   bool done = false;
@@ -79,8 +84,17 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i) {
       std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
+      int cache_usage = 0;
+      int cache_capacity = 0;
+      std::shared_ptr<rocksdb::Cache> block_cache = dbs[0]->GetCacheByClientIdx(i);
+      if (block_cache) {
+        cache_usage = block_cache->GetUsage();
+        cache_capacity = block_cache->GetCapacity();
+      }
       for (const auto& csv : op_csv_stats) {
-        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
+        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << ',' << std::to_string(cache_usage) 
+          << ',' << std::to_string(cache_capacity)  << std::endl;
+
         if (should_print) {
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
@@ -304,7 +318,7 @@ int main(const int argc, const char *argv[]) {
     }
 
     for (int i = 0; i < num_threads; ++i) {
-      printf("TOTAL OPS %d target rate %d total target rate %d\n", total_ops, target_rates[i], total_target_rates);
+      printf("TOTAL OPS %d target rate %d total target rate %ld\n", total_ops, target_rates[i], total_target_rates);
       uint64_t thread_ops = ((uint64_t) total_ops * target_rates[i]) / total_target_rates;
 
       ycsbc::utils::RateLimiter *rlim = nullptr;
