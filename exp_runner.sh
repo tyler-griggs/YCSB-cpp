@@ -72,6 +72,7 @@ mpstat_pid=$!
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
+  -p request_rate_json=sample.json \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
   -p readallfields=true \
   -p requestdistribution=zipfian \

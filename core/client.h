@@ -22,129 +22,160 @@
 #include "utils/rate_limit.h"
 #include "utils/utils.h"
 #include "threadpool.h"
-namespace ycsbc {
+namespace ycsbc
+{
 
-void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num) {
-  if (target_ops_per_s > 0) {
-    long deadline = op_start_time_ns + target_ops_tick_ns;
-    std::chrono::nanoseconds deadline_ns(deadline);
-    std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> target_time_point(deadline_ns);
+  void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num)
+  {
+    if (target_ops_per_s > 0)
+    {
+      long deadline = op_start_time_ns + target_ops_tick_ns;
+      std::chrono::nanoseconds deadline_ns(deadline);
+      std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> target_time_point(deadline_ns);
 
-    while (std::chrono::high_resolution_clock::now() < target_time_point) {}
-  }
-}
-
-inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
-                        bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
-                        int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops) {
-  cpu_set_t cpuset;
-  CPU_ZERO(&cpuset);
-
-  size_t cpu_for_client = client_id + 8;
-  CPU_SET(cpu_for_client, &cpuset);
-  std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
-  int rc = pthread_setaffinity_np(pthread_self(),
-                                  sizeof(cpu_set_t), &cpuset);
-  if (rc != 0) {
-    fprintf(stderr, "Couldn't set thread affinity.\n");
-    std::exit(1);
-  }
-
-  int num_bursts = 1;
-  int adjusted_num_ops = num_ops;
-
-  // int total_exp_duration_s = 150;
-  if (burst_gap_s > 0) {
-    if (client_id == 3 || client_id == 4) {
-      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
-      adjusted_num_ops = 1;
-    }
-    // adjusted_num_ops = 123; 
-    // adjusted_num_ops = 145; 
-    // adjusted_num_ops = 180; 
-    // adjusted_num_ops = burst_size_ops;
-    num_bursts = 100;
-  }
- 
-  std::vector<int> op_progress;       
-  int client_log_interval_s = 1;                 
-
-  long target_ops_tick_ns = 0;
-  if (target_ops_per_s > 0) {
-    target_ops_tick_ns = (long) (1000000000 / target_ops_per_s);
-  }
-
-  try {
-    if (init_db) {
-      db->Init();
-    }
-
-    auto client_start = std::chrono::system_clock::now();
-    auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
-    auto interval_start_time = std::chrono::steady_clock::now();
-
-    int ops = 0;
-    for (int b = 0; b < num_bursts; ++b) {
-      for (int i = 0; i < adjusted_num_ops; ++i) {
-        if (rlim) {
-          rlim->Consume(1);
-        }
-
-        auto op_start_time = std::chrono::high_resolution_clock::now();
-        auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
-
-        if (is_loading) {
-          wl->DoInsert(*db);
-        } else {
-
-          auto txn_lambda = [wl, db, client_id]() {
-            wl->DoTransaction(*db, client_id);
-            return nullptr;  // to match void* return
-          };
-          
-          // Submit operation and do not wait for a return. 
-          threadpool->async_dispatch(client_id, txn_lambda);
-
-          // // Submit operation to thread pool and wait for it. 
-          // std::future<void*> result = threadpool->dispatch(txn_lambda);
-          // result.wait();
-
-          // wl->DoTransaction(*db, client_id);
-        }
-        ops++;
-
-        // Periodically check whether log interval has been hit
-        if (i % 100 == 0) {
-          auto current_time = std::chrono::steady_clock::now();
-          auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
-          if (elapsedTime.count() >= client_log_interval_s) {
-            op_progress.push_back(ops);
-            interval_start_time = std::chrono::steady_clock::now();
-          }
-          // auto current_time_sys = std::chrono::system_clock::now();
-          // auto total_exp_time = std::chrono::duration_cast<std::chrono::seconds>(current_time_sys - client_start);
-          // if (total_exp_time.count() >= total_exp_duration_s) {
-          //   break;
-          // }
-        }
-        
-        EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+      while (std::chrono::high_resolution_clock::now() < target_time_point)
+      {
       }
-      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
     }
-
-    if (cleanup_db) {
-      db->Cleanup();
-    }
-
-    latch->CountDown();
-    op_progress.push_back(ops);
-    return std::make_tuple(client_start_micros, op_progress);
-  } catch (const utils::Exception &e) {
-    std::cerr << "Caught exception: " << e.what() << std::endl;
-    exit(1);
   }
-}
+
+  inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
+                                                              bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool,
+                                                              int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops, const std::vector<int> &intervals)
+  {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+
+    size_t cpu_for_client = client_id + 8;
+    CPU_SET(cpu_for_client, &cpuset);
+    std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
+    int rc = pthread_setaffinity_np(pthread_self(),
+                                    sizeof(cpu_set_t), &cpuset);
+    if (rc != 0)
+    {
+      fprintf(stderr, "Couldn't set thread affinity.\n");
+      std::exit(1);
+    }
+
+    int num_bursts = 1;
+    int adjusted_num_ops = num_ops;
+    if (intervals.size() > 0)
+    {
+      adjusted_num_ops = intervals.size();
+    }
+
+    // int total_exp_duration_s = 150;
+    if (burst_gap_s > 0)
+    {
+      if (client_id == 3 || client_id == 4)
+      {
+        std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
+        adjusted_num_ops = 1;
+      }
+      // adjusted_num_ops = 123;
+      // adjusted_num_ops = 145;
+      // adjusted_num_ops = 180;
+      // adjusted_num_ops = burst_size_ops;
+      num_bursts = 100;
+    }
+
+    std::vector<int> op_progress;
+    int client_log_interval_s = 1;
+
+    long target_ops_tick_ns = 0;
+    if (target_ops_per_s > 0)
+    {
+      target_ops_tick_ns = (long)(1000000000 / target_ops_per_s);
+    }
+
+    try
+    {
+      if (init_db)
+      {
+        db->Init();
+      }
+
+      auto client_start = std::chrono::system_clock::now();
+      auto client_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(client_start.time_since_epoch()).count();
+      auto interval_start_time = std::chrono::steady_clock::now();
+
+      int ops = 0;
+      for (int b = 0; b < num_bursts; ++b)
+      {
+        for (int i = 0; i < adjusted_num_ops; ++i)
+        {
+          if (intervals.size() > 0)
+          {
+            target_ops_tick_ns = intervals[i] * 1000000000;
+          }
+          if (rlim)
+          {
+            rlim->Consume(1);
+          }
+
+          auto op_start_time = std::chrono::high_resolution_clock::now();
+          auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
+
+          if (is_loading)
+          {
+            wl->DoInsert(*db);
+          }
+          else
+          {
+
+            auto txn_lambda = [wl, db, client_id]()
+            {
+              wl->DoTransaction(*db, client_id);
+              return nullptr; // to match void* return
+            };
+
+            // Submit operation and do not wait for a return.
+            threadpool->async_dispatch(client_id, txn_lambda);
+
+            // // Submit operation to thread pool and wait for it.
+            // std::future<void*> result = threadpool->dispatch(txn_lambda);
+            // result.wait();
+
+            // wl->DoTransaction(*db, client_id);
+          }
+          ops++;
+
+          // Periodically check whether log interval has been hit
+          if (i % 100 == 0)
+          {
+            auto current_time = std::chrono::steady_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time - interval_start_time);
+            if (elapsedTime.count() >= client_log_interval_s)
+            {
+              op_progress.push_back(ops);
+              interval_start_time = std::chrono::steady_clock::now();
+            }
+            // auto current_time_sys = std::chrono::system_clock::now();
+            // auto total_exp_time = std::chrono::duration_cast<std::chrono::seconds>(current_time_sys - client_start);
+            // if (total_exp_time.count() >= total_exp_duration_s) {
+            //   break;
+            // }
+          }
+          EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
+      }
+
+      if (cleanup_db)
+      {
+        db->Cleanup();
+      }
+
+      latch->CountDown();
+      op_progress.push_back(ops);
+      return std::make_tuple(client_start_micros, op_progress);
+    }
+    catch (const utils::Exception &e)
+    {
+      std::cerr << "Caught exception: " << e.what() << std::endl;
+      exit(1);
+    }
+  }
 
 } // ycsbc
 
