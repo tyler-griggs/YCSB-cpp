@@ -8,10 +8,8 @@
 #include <cassert>
 
 void ThreadPool::start(int num_threads, int num_clients){
-    fprintf(stderr, "Starting thread pool\n");
+    std::cout << "[FAIRDB_LOG] Starting thread pool with " << num_threads << " worker threads, " << num_clients << " clients\n";
     int num_cpus = std::thread::hardware_concurrency();
-    fprintf(stderr, "Num_cpus: %d\nNum_threads: %d\n", num_cpus, num_threads);
-    fprintf(stderr, "MainThread running on CPU %d\n", sched_getcpu());
 
     assert(num_clients > 0);
     running = true;
@@ -24,41 +22,39 @@ void ThreadPool::start(int num_threads, int num_clients){
     for (int i = 0; i < num_threads; i++) {
         std::thread *t;
         t = new std::thread([this, i] {
-          fprintf(stderr, "Worker thread %d running on CPU %d\n", i, sched_getcpu());
-          size_t client_index = i % this->num_clients;
-          while (this->running) {
-              std::function<void*()> job;
-              bool job_found = false;
+            std::cout << "[FAIRDB_LOG] Worker thread " << i << " running on CPU " << sched_getcpu() << "\n";
+            size_t client_index = i % this->num_clients; // Use this->num_clients
+            while (this->running) {
+                std::function<void*()> job;
+                bool job_found = false;
 
-              // Try to find a job from the queues in round-robin order
-              for (size_t attempt = 0; attempt < this->num_clients; ++attempt) {
-                  size_t idx = (client_index + attempt) % this->num_clients;
-                  if (this->worklists[idx].try_dequeue(job)) {
-                      job_found = true;
-                      client_index = (idx + 1) % this->num_clients; // Move to next client
-                      break;
-                  }
-              }
+                // Try to find a job from the queues in round-robin order
+                for (size_t attempt = 0; attempt < this->num_clients; ++attempt) {
+                    size_t idx = (client_index + attempt) % this->num_clients;
+                    if (this->worklists[idx].try_dequeue(job)) {
+                        job_found = true;
+                        client_index = (idx + 1) % this->num_clients; // Move to next client
+                        break;
+                    }
+                }
 
-              if (job_found) {
-                  job();
-              } else {
-                  // No job found, wait on condition variable
-                  std::unique_lock<std::mutex> lock(this->cv_mutex);
-                  if (!this->running) {
-                      break;
-                  }
-                  this->cv.wait(lock);
-                  if (!this->running) {
-                      break;
-                  }
-              }
-          }
-          fprintf(stderr, "Worker thread %d done\n", i);
+                if (job_found) {
+                    job();
+                } else {
+                    // No job found, wait on condition variable
+                    std::unique_lock<std::mutex> lock(this->cv_mutex);
+                    if (!this->running) {
+                        break;
+                    }
+                    this->cv.wait(lock);
+                    if (!this->running) {
+                        break;
+                    }
+                }
+            }
+            std::cout << "[FAIRDB_LOG] Worker thread " << i << " done\n";
         });
 
-
-        // Optional: Set thread affinity
         /*
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
@@ -113,6 +109,7 @@ std::future<void*> ThreadPool::dispatch(int client_id, std::function<void*()> f)
 }
 
 void ThreadPool::async_dispatch(int client_id, std::function<void*()> f) {
+    // std::cout << "TGRIGGS: enqueue " << client_id << "'s request\n";
     assert(client_id >= 0 && client_id < num_clients);
     worklists[client_id].enqueue(std::move(f));
     // Notify one worker thread that a new job is available

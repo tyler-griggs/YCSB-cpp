@@ -270,8 +270,10 @@ int main(const int argc, const char *argv[]) {
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
   // FairScheduler scheduler;
+  const int tpool_threads = std::stoi(props.GetProperty("tpool_threads", "1"));
+  const int num_cfs = std::stoi(props.GetProperty("rocksdb.num_cfs", "1"));
   ThreadPool threadpool;
-  threadpool.start(/*num_threads=*/ 4, /*num_clients=*/4);
+  threadpool.start(/*num_threads=*/ tpool_threads, /*num_clients=*/num_cfs);
 
   int burst_gap_s = std::stoi(props.GetProperty("burst_gap_s", "0"));
   int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));

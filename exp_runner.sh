@@ -50,8 +50,6 @@ iostat_pid=$!
 mpstat_pid=$!
 
 
-#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
 
 
 #   -threads 16 \
@@ -69,6 +67,12 @@ mpstat_pid=$!
 #   -p client_to_op_map="READ,READ,READ,READ" \
 #   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
 
+#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
+#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
+#   -target_rates "3800,4200,3950,1000,1000,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
+#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
+
+
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
@@ -85,18 +89,18 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -p real_op_mode=false \
-  -threads 4 \
-  -p rocksdb.num_cfs=4 \
-  -p client_to_cf_map="default,cf1,cf2,cf3" \
-  -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-  -target_rates "8000,8000,8000,8000" \
-  -p wbm_size="300" \
-  -p wbm_limits="512,512,512,512" \
+  -threads 16 \
+  -p rocksdb.num_cfs=16 \
+  -p tpool_threads=16 \
+  -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10,cf11,cf12,cf13,cf14,cf15" \
+  -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
+  -target_rates "1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000" \
+  -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
   -p status.interval_ms=500 \
   -p burst_gap_s=0 \
   -p burst_size_ops=1 \
-  -p rate_limits="10000,10000,10000,10000" \
-  -p read_rate_limits="10000,10000,10000,10000" \
+  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
   -p refill_period=50 \
   -p rsched=false \
   -p rsched_interval_ms=10 \
