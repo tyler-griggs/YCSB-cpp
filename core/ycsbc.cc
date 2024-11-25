@@ -276,7 +276,7 @@ int main(const int argc, const char *argv[])
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/ 0, 0, 0, std::vector<int>()));
+                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/ 0, 0, 0, std::vector<long long>()));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -318,8 +318,11 @@ int main(const int argc, const char *argv[])
 
   // Map each YCSB client to a JSON client
   std::vector<std::string> client_mapping(num_threads);
+  int scale_factor = 1;
   if (load_from_json_)
   {
+    scale_factor = std::stoi(props.GetProperty("scale_factor", "1"));
+    std::cout << "[FAIRDB_LOG] Loading request rate JSON file: " << json_file_name << " with scale factor " << scale_factor << std::endl;
     std::ifstream file(json_file_name, std::ifstream::binary);
     file >> request_rate_json_;
     for (const auto &key : request_rate_json_.getMemberNames())
@@ -369,14 +372,14 @@ int main(const int argc, const char *argv[])
         rlim = new ycsbc::utils::RateLimiter(per_thread_ops, per_thread_ops);
       }
       rate_limiters.push_back(rlim);
-      std::vector<int> interval_list;
+      std::vector<long long> interval_list;
       if (load_from_json_)
       {
         const auto &json_client_id = client_mapping[i];
         const auto &intervals = request_rate_json_[json_client_id]["intervals"];
         for (const auto &interval : intervals)
         {
-          interval_list.push_back(interval.asInt());
+          interval_list.push_back(static_cast<long long>(interval.asInt()) * 1000000000 / static_cast<long long>(scale_factor));
         }
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,

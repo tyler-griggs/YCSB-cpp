@@ -73,6 +73,7 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p request_rate_json=sample.json \
+  -p scale_factor=1 \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
   -p readallfields=true \
   -p requestdistribution=zipfian \

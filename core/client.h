@@ -25,11 +25,11 @@
 namespace ycsbc
 {
 
-  void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num)
+  void EnforceClientRateLimit(long long op_start_time_ns, long long target_ops_per_s, long long target_ops_tick_ns, int op_num)
   {
     if (target_ops_per_s > 0)
     {
-      long deadline = op_start_time_ns + target_ops_tick_ns;
+      long long deadline = op_start_time_ns + target_ops_tick_ns;
       std::chrono::nanoseconds deadline_ns(deadline);
       std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> target_time_point(deadline_ns);
 
@@ -41,7 +41,7 @@ namespace ycsbc
 
   inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                                                               bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool,
-                                                              int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops, const std::vector<int> &intervals)
+                                                              int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops, const std::vector<long long> &intervals)
   {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -82,10 +82,10 @@ namespace ycsbc
     std::vector<int> op_progress;
     int client_log_interval_s = 1;
 
-    long target_ops_tick_ns = 0;
+    long long target_ops_tick_ns = 0;
     if (target_ops_per_s > 0)
     {
-      target_ops_tick_ns = (long)(1000000000 / target_ops_per_s);
+      target_ops_tick_ns = (long long)(1000000000 / target_ops_per_s);
     }
 
     try
@@ -106,7 +106,7 @@ namespace ycsbc
         {
           if (intervals.size() > 0)
           {
-            target_ops_tick_ns = intervals[i] * 1000000000;
+            target_ops_tick_ns = intervals[i];
           }
           if (rlim)
           {
@@ -115,6 +115,7 @@ namespace ycsbc
 
           auto op_start_time = std::chrono::high_resolution_clock::now();
           auto op_start_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(op_start_time.time_since_epoch()).count();
+          EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
 
           if (is_loading)
           {
@@ -156,7 +157,6 @@ namespace ycsbc
             //   break;
             // }
           }
-          EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
         }
         std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
       }
