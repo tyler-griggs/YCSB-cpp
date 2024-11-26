@@ -22,6 +22,8 @@
 #include "utils/rate_limit.h"
 #include "utils/utils.h"
 #include "threadpool.h"
+#include "measurements.h"
+
 namespace ycsbc {
 
 void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long target_ops_tick_ns, int op_num) {
@@ -34,9 +36,11 @@ void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long t
   }
 }
 
-inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
+inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl,
+                        const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
-                        int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops) {
+                        int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops,
+                        std::vector<ycsbc::Measurements*>& queuing_delay_measurements) {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
 
@@ -53,6 +57,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   int num_bursts = 1;
   int adjusted_num_ops = num_ops;
 
+  // std::this_thread::sleep_for(std::chrono::seconds(int(client_id / 1.25)));
   // int total_exp_duration_s = 150;
   if (burst_gap_s > 0) {
     if (client_id == 3 || client_id == 4) {
@@ -97,11 +102,30 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           wl->DoInsert(*db);
         } else {
 
-          auto txn_lambda = [wl, db, client_id]() {
-            wl->DoTransaction(*db, client_id);
-            return nullptr;  // to match void* return
-          };
+          // auto txn_lambda = [wl, db, client_id]() {
+          //   wl->DoTransaction(*db, client_id);
+          //   return nullptr;
+          // };
           
+          // // Submit operation and do not wait for a return. 
+          // threadpool->async_dispatch(client_id, txn_lambda);
+
+          auto enqueue_start_time = std::chrono::high_resolution_clock::now();
+          auto txn_lambda = [wl, db, client_id, enqueue_start_time]() {
+              // Record dequeue time
+              auto dequeue_time = std::chrono::high_resolution_clock::now();
+
+              // Calculate and print the queueing delay
+              auto queueing_delay = std::chrono::duration_cast<std::chrono::microseconds>(dequeue_time - enqueue_start_time).count();
+
+              // TODO: put this in the metrics instead of printing it
+              std::cout << "Queueing delay for client " << client_id << ": " << queueing_delay << " microseconds\n";
+
+              // Perform the transaction
+              wl->DoTransaction(*db, client_id);
+              return nullptr;
+          };
+
           // Submit operation and do not wait for a return. 
           threadpool->async_dispatch(client_id, txn_lambda);
 
