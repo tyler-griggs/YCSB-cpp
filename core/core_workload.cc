@@ -509,7 +509,7 @@ DB::Status CoreWorkload::TransactionRandomInsert(DB &db, int client_id, std::str
 DB::Status CoreWorkload::TransactionInsertBatch(DB &db, int client_id, std::string table_name) {
   uint64_t key_num = NextTransactionKeyNum();
   // uint64_t key_num = transaction_insert_key_sequence_->Next();
-  int batch_size = 100;
+  int batch_size = 400;
   uint64_t client_key_num = key_num;
   client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 
