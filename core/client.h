@@ -102,6 +102,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           wl->DoInsert(*db);
         } else {
 
+          // =============================================================
+          /* Asynchronous, does not record queuing delay */
           // auto txn_lambda = [wl, db, client_id]() {
           //   wl->DoTransaction(*db, client_id);
           //   return nullptr;
@@ -110,18 +112,18 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // // Submit operation and do not wait for a return. 
           // threadpool->async_dispatch(client_id, txn_lambda);
 
+          // =============================================================
+          /* Asynchronous, records queuing delay */
+          // TODO(tgriggs): Separate this out for reads and writes.
           auto enqueue_start_time = std::chrono::high_resolution_clock::now();
-          auto txn_lambda = [wl, db, client_id, enqueue_start_time]() {
-              // Record dequeue time
+          auto txn_lambda = [wl, db, client_id, enqueue_start_time, &queuing_delay_measurements]() {
               auto dequeue_time = std::chrono::high_resolution_clock::now();
 
               // Calculate and print the queueing delay
-              auto queueing_delay = std::chrono::duration_cast<std::chrono::microseconds>(dequeue_time - enqueue_start_time).count();
+              auto queueing_delay = std::chrono::duration_cast<std::chrono::nanoseconds>(dequeue_time - enqueue_start_time).count();
+              queuing_delay_measurements[client_id]->Report(QUEUE, queueing_delay);
+              // std::cout << "Queueing delay for client " << client_id << ": " << queueing_delay << " ns\n";
 
-              // TODO: put this in the metrics instead of printing it
-              std::cout << "Queueing delay for client " << client_id << ": " << queueing_delay << " microseconds\n";
-
-              // Perform the transaction
               wl->DoTransaction(*db, client_id);
               return nullptr;
           };
@@ -129,6 +131,8 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // Submit operation and do not wait for a return. 
           threadpool->async_dispatch(client_id, txn_lambda);
 
+          // =============================================================
+          /* Synchronous, does not record queuing delay */
           // // Submit operation to thread pool and wait for it. 
           // std::future<void*> result = threadpool->dispatch(txn_lambda);
           // result.wait();

@@ -32,6 +32,7 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
   "DELETE",
   "RANDOM_INSERT",
   "INSERT_BATCH",
+  "QUEUE",
   "INSERT-FAILED",
   "READ-FAILED",
   "UPDATE-FAILED",
