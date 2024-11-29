@@ -22,6 +22,7 @@
 #include "utils/rate_limit.h"
 #include "utils/utils.h"
 #include "threadpool.h"
+#include "behavior.h"
 namespace ycsbc
 {
 
@@ -124,20 +125,16 @@ namespace ycsbc
           else
           {
 
-            auto txn_lambda = [wl, db, client_id]()
+            auto txn_lambda = [wl, db, client_id, threadpool]()
             {
-              wl->DoTransaction(*db, client_id);
-              return nullptr; // to match void* return
+              auto lambda = [wl, db, client_id]()
+              {
+                wl->DoTransaction(*db, client_id);
+                return nullptr; // to match void* return
+              };
+              threadpool->async_dispatch(client_id, lambda);
             };
-
-            // Submit operation and do not wait for a return.
-            threadpool->async_dispatch(client_id, txn_lambda);
-
-            // // Submit operation to thread pool and wait for it.
-            // std::future<void*> result = threadpool->dispatch(txn_lambda);
-            // result.wait();
-
-            // wl->DoTransaction(*db, client_id);
+            executeClientBehaviors({BehaviorType::STEADY, 10, 100}, txn_lambda);
           }
           ops++;
 

@@ -16,6 +16,7 @@
 #include <future>
 #include <chrono>
 #include <iomanip>
+#include <yaml-cpp/yaml.h>
 
 #include "client.h"
 #include "core_workload.h"

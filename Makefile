@@ -18,7 +18,7 @@ BIND_SQLITE ?= 0
 
 # Extra options
 DEBUG_BUILD ?=
-EXTRA_CXXFLAGS ?= -I/home/windsey/fairdb/rocksdb/include/ -I/usr/include/jsoncpp
+EXTRA_CXXFLAGS ?= -I/home/windsey/fairdb/rocksdb/include/ -I/usr/include/jsoncpp -I/usr/include/yaml-cpp
 EXTRA_LDFLAGS ?= -L/home/windsey/fairdb/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4 -ljsoncpp
 
 
