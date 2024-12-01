@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <jsoncpp/json/json.h>
 
 // Define behavior types
 enum BehaviorType
@@ -18,16 +19,17 @@ enum BehaviorType
     REPLAY,
 };
 
-// Define a structure to represent behaviors
 struct Behavior
 {
     BehaviorType type;
-    int duration;           // Common duration field
-    int request_rate = 0;   // For steady or bursty behavior
-    int burst_duration = 0; // For bursts (duration of activity in seconds)
-    int idle_duration = 0;  // For bursts (duration of inactivity in seconds)
-    int repeats = 0;        // Number of bursts
-    std::string trace_file; // For replay behavior
+    int request_rate;         // For STEADY and BURSTY
+    int duration;             // For STEADY and INACTIVE
+    int burst_duration;       // For BURSTY
+    int idle_duration;        // For BURSTY
+    int repeats;              // For BURSTY
+    std::string trace_file;   // For REPLAY
+    int client_id = -1;       // Client ID in the trace file (default: -1)
+    double scale_ratio = 1.0; // Scale ratio for intervals (default: 1.0)
 };
 
 struct ClientConfig
@@ -71,14 +73,64 @@ void executeInactiveBehavior(int duration)
     std::this_thread::sleep_for(std::chrono::seconds(duration));
 }
 
-void executeReplayBehavior(const std::string &trace_file, const std::function<void()> &send_request)
+void executeReplayBehavior(const std::string &trace_file, int client_id, double scale_ratio, const std::function<void()> &send_request)
 {
-    std::ifstream trace(trace_file);
-    int inter_arrival_time;
-    while (trace >> inter_arrival_time)
+    assert(scale_ratio > 0 && "Scale ratio must be greater than 0.");
+
+    // Open the JSON file
+    std::ifstream trace(trace_file, std::ifstream::binary);
+    if (!trace.is_open())
     {
-        send_request(); // Use the callback
-        std::this_thread::sleep_for(std::chrono::microseconds(inter_arrival_time));
+        throw std::runtime_error("Failed to open trace file: " + trace_file);
+    }
+
+    // Parse the JSON file
+    Json::Value trace_data;
+    Json::CharReaderBuilder reader;
+    std::string errs;
+    if (!Json::parseFromStream(reader, trace, &trace_data, &errs))
+    {
+        throw std::runtime_error("Failed to parse JSON: " + errs);
+    }
+
+    // Check if the client ID exists in the JSON
+    std::string client_id_str = std::to_string(client_id);
+    if (!trace_data.isMember(client_id_str))
+    {
+        throw std::runtime_error("Client ID not found in trace: " + client_id_str);
+    }
+
+    // Extract intervals for the specified client
+    const Json::Value &client_data = trace_data[client_id_str];
+    const Json::Value &intervals = client_data["intervals"];
+    if (!intervals.isArray())
+    {
+        throw std::runtime_error("Invalid format for intervals in trace.");
+    }
+
+    // Process intervals with scaling
+    for (const auto &interval : intervals)
+    {
+        // Ensure the interval is numeric
+        if (!interval.isNumeric())
+        {
+            throw std::runtime_error("Invalid interval value in trace.");
+        }
+
+        // Parse the interval and scale it
+        double scaled_interval_seconds = interval.asDouble() / scale_ratio;
+
+        // Convert seconds to microseconds
+        int scaled_interval_microseconds = static_cast<int>(scaled_interval_seconds * 1'000'000);
+
+        // Ensure non-negative intervals
+        scaled_interval_microseconds = std::max(scaled_interval_microseconds, 0);
+
+        // Send the request
+        send_request();
+
+        // Wait for the scaled interval
+        std::this_thread::sleep_for(std::chrono::microseconds(scaled_interval_microseconds));
     }
 }
 
@@ -99,8 +151,11 @@ void executeClientBehaviors(const std::vector<Behavior> &behaviors, const std::f
             executeInactiveBehavior(behavior.duration);
             break;
         case REPLAY:
-            executeReplayBehavior(behavior.trace_file, send_request);
+            assert(!behavior.trace_file.empty() && "Replay behavior must have a valid trace file.");
+            executeReplayBehavior(behavior.trace_file, behavior.client_id, behavior.scale_ratio, send_request);
             break;
+        default:
+            throw std::runtime_error("Unknown behavior type.");
         }
     }
 }
@@ -118,6 +173,7 @@ BehaviorType parseBehaviorType(const std::string &type_str)
     throw std::invalid_argument("Unknown behavior type: " + type_str);
 }
 
+// Function to load client behaviors from a YAML configuration file
 std::vector<ClientConfig> loadClientBehaviors(const std::string &yaml_file)
 {
     YAML::Node config = YAML::LoadFile(yaml_file);
@@ -150,13 +206,16 @@ std::vector<ClientConfig> loadClientBehaviors(const std::string &yaml_file)
                 break;
             case REPLAY:
                 behavior.trace_file = behavior_node["trace_file"].as<std::string>();
+                behavior.client_id = behavior_node["replay_client_id"].as<int>();
+                behavior.scale_ratio = behavior_node["scale_ratio"].as<double>();
                 break;
+            default:
+                throw std::runtime_error("Unknown behavior type in YAML configuration.");
             }
             client.behaviors.push_back(behavior);
         }
         clients.push_back(client);
     }
-
     return clients;
 }
 

@@ -16,3 +16,9 @@ clients:
       - type: STEADY
         request_rate: 100  # Requests per second
         duration: 10       # Duration in seconds
+  - client_id: 3
+    behaviors:
+      - type: REPLAY
+        trace_file: "examples/sample_trace.json"
+        replay_client_id: 12
+        scale_ratio: 5
