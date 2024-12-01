@@ -224,6 +224,7 @@ int main(const int argc, const char *argv[])
   }
   std::vector<ClientConfig> clients = loadClientBehaviors(ClientConfigFile);
   const int num_threads = clients.size();
+  std::cout << "[FAIRDB_LOG] Number of clients: " << num_threads << std::endl;
 
   ycsbc::Measurements *measurements = ycsbc::CreateMeasurements(&props);
   if (measurements == nullptr)

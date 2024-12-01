@@ -111,25 +111,15 @@ void executeReplayBehavior(const std::string &trace_file, int client_id, double 
     // Process intervals with scaling
     for (const auto &interval : intervals)
     {
-        // Ensure the interval is numeric
         if (!interval.isNumeric())
         {
             throw std::runtime_error("Invalid interval value in trace.");
         }
-
-        // Parse the interval and scale it
         double scaled_interval_seconds = interval.asDouble() / scale_ratio;
-
-        // Convert seconds to microseconds
         int scaled_interval_microseconds = static_cast<int>(scaled_interval_seconds * 1'000'000);
-
-        // Ensure non-negative intervals
         scaled_interval_microseconds = std::max(scaled_interval_microseconds, 0);
 
-        // Send the request
         send_request();
-
-        // Wait for the scaled interval
         std::this_thread::sleep_for(std::chrono::microseconds(scaled_interval_microseconds));
     }
 }
