@@ -43,9 +43,16 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
+<<<<<<< HEAD
 void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements *> per_client_measurements,
                   ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs)
 {
+=======
+void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements *> per_client_measurements,
+                  std::vector<ycsbc::Measurements *> queuing_delay_measurements,
+                  ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs)
+{
+>>>>>>> 725a5e9bd747136e5de51e9cf472d6c332a8b86d
   std::string client_stats_filename = "logs/client_stats.log";
   std::ofstream client_stats_logfile;
   client_stats_logfile.open(client_stats_filename, std::ios::out | std::ios::trunc);
@@ -59,7 +66,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
   time_point<system_clock> start = system_clock::now();
   bool done = false;
 
-  int print_intervals = 10;
+  int print_intervals = 50;
   int cur_interval = 0;
   bool should_print = false;
   while (1)
@@ -98,6 +105,15 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       //   client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << "NO_STATS" << std::endl;
       // }
       per_client_measurements[i]->Reset();
+    }
+    for (size_t i = 0; i < queuing_delay_measurements.size(); ++i)
+    {
+      std::vector<std::string> op_csv_stats = queuing_delay_measurements[i]->GetCSVStatusMsg();
+      for (const auto &csv : op_csv_stats)
+      {
+        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
+      }
+      queuing_delay_measurements[i]->Reset();
     }
     // Print DB-wide and CF-wide stats -- only need to use a single client
     // std::cout << "DB stats:\n";
@@ -246,6 +262,8 @@ int main(const int argc, const char *argv[])
   }
   std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written = std::make_shared<ycsbc::utils::MultiTenantCounter>(num_threads);
 
+  std::vector<ycsbc::Measurements *> queuing_delay_measurements = ycsbc::CreatePerClientMeasurements(&props, num_threads);
+
   std::vector<ycsbc::DB *> dbs;
   for (int i = 0; i < num_threads; i++)
   {
@@ -280,7 +298,7 @@ int main(const int argc, const char *argv[])
     if (show_status)
     {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval_ms, dbs);
+                                 measurements, per_client_measurements, queuing_delay_measurements, &latch, status_interval_ms, dbs);
     }
     std::vector<std::future<long long>> client_threads;
     for (int i = 0; i < num_threads; ++i)
@@ -305,8 +323,10 @@ int main(const int argc, const char *argv[])
   std::this_thread::sleep_for(std::chrono::seconds(stoi(props.GetProperty("sleepafterload", "0"))));
 
   // FairScheduler scheduler;
+  const int tpool_threads = std::stoi(props.GetProperty("tpool_threads", "1"));
+  const int num_cfs = std::stoi(props.GetProperty("rocksdb.num_cfs", "1"));
   ThreadPool threadpool;
-  threadpool.start(/*num_threads=*/4, /*num_clients=*/4);
+  threadpool.start(/*num_threads=*/tpool_threads, /*num_clients=*/num_cfs);
 
   // transaction phase
   if (do_transaction)
@@ -326,7 +346,7 @@ int main(const int argc, const char *argv[])
     if (show_status)
     {
       status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, &latch, status_interval_ms, dbs);
+                                 measurements, per_client_measurements, queuing_delay_measurements, &latch, status_interval_ms, dbs);
     }
     std::vector<std::future<long long>> client_threads;
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;
@@ -344,9 +364,27 @@ int main(const int argc, const char *argv[])
         rlim = new ycsbc::utils::RateLimiter(per_thread_ops, per_thread_ops);
       }
       rate_limiters.push_back(rlim);
+<<<<<<< HEAD
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
                                              thread_ops, false, !do_load, true, &latch, rlim,
                                              &threadpool, i, &clients[i]));
+=======
+      // client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
+      //                                        thread_ops, false, !do_load, true, &latch, rlim,
+      //                                        &threadpool, i, target_rates[i], burst_gap_s,
+      //                                        burst_size_ops, queuing_delay_measurements));
+      client_threads.emplace_back(
+          std::async(std::launch::async,
+                     [db = dbs[i], wl = &wl, thread_ops, do_load, &latch, rlim,
+                      &threadpool, i, target_rate = target_rates[i], burst_gap_s,
+                      burst_size_ops, &queuing_delay_measurements]()
+                     {
+                       return ycsbc::ClientThread(db, wl,
+                                                  thread_ops, false, !do_load, true,
+                                                  &latch, rlim, &threadpool, i,
+                                                  target_rate, burst_gap_s, burst_size_ops, queuing_delay_measurements);
+                     }));
+>>>>>>> 725a5e9bd747136e5de51e9cf472d6c332a8b86d
     }
 
     std::future<void> rlim_future;

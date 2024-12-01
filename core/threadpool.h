@@ -5,6 +5,10 @@
 #include <future>
 #include <thread>
 #include <vector>
+#include <condition_variable>
+#include <mutex>
+#include <atomic>
+#include "concurrentqueue/concurrentqueue.h"
 #include "concurrentqueue/blockingconcurrentqueue.h"
 
 class ThreadPool {

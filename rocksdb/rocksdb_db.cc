@@ -466,7 +466,6 @@ void RocksdbDB::GetOptions(const int num_clients, const utils::Properties &props
   // size_t write_buffer_memory_limit = 2 * num_clients * 64 * 1024 * 1024; // 1GB
   size_t write_buffer_memory_limit = std::stoi(props.GetProperty("wbm_size", "1024"));
   
-  
   std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
       std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients);
   for (size_t i = 0; i < wbm_limits.size(); ++i) {
