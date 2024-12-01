@@ -1,24 +1,26 @@
-clients:
-  - client_id: 1
-    behaviors:
-      - type: STEADY
-        request_rate: 50
-        duration: 15
-      - type: BURSTY
-        request_rate: 200
-        burst_duration: 5
-        idle_duration: 3
-        repeats: 3
-      - type: INACTIVE
-        duration: 10
+clients:                    # Define clients and their behaviors.
+  - client_id: 1            # Unique ID for the first client.
+    behaviors:              # List of behaviors for this client. They will be executed sequentially.
+      - type: STEADY        # Steady request behavior.
+        request_rate: 50    # Requests per second.
+        duration: 15        # Duration in seconds.
+      - type: BURSTY        # Bursty request behavior.
+        request_rate: 200   # Requests per second during bursts.
+        burst_duration: 5   # Duration of each burst in seconds.
+        idle_duration: 3    # Duration of idle time between bursts in seconds.
+        repeats: 3          # Number of burst-and-idle cycles.
+      - type: INACTIVE      # Inactivity period.
+        duration: 10        # Duration in seconds.
+
   - client_id: 2
     behaviors:
       - type: STEADY
-        request_rate: 100  # Requests per second
-        duration: 10       # Duration in seconds
+        request_rate: 100   
+        duration: 10
+
   - client_id: 3
     behaviors:
-      - type: REPLAY
-        trace_file: "examples/sample_trace.json"
-        replay_client_id: 12
-        scale_ratio: 5
+      - type: REPLAY        # Replay behavior using pre-recorded trace.
+        trace_file: "examples/sample_trace.json"  # Path to trace file.
+        replay_client_id: 12                     # Client ID in the trace file.
+        scale_ratio: 5                           # Speed-up factor (e.g., 5x faster).
