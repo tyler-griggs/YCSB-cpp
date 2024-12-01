@@ -43,16 +43,10 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &props);
 
-<<<<<<< HEAD
-void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements *> per_client_measurements,
-                  ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs)
-{
-=======
 void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurements *> per_client_measurements,
                   std::vector<ycsbc::Measurements *> queuing_delay_measurements,
                   ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs)
 {
->>>>>>> 725a5e9bd747136e5de51e9cf472d6c332a8b86d
   std::string client_stats_filename = "logs/client_stats.log";
   std::ofstream client_stats_logfile;
   client_stats_logfile.open(client_stats_filename, std::ios::out | std::ios::trunc);
@@ -364,27 +358,9 @@ int main(const int argc, const char *argv[])
         rlim = new ycsbc::utils::RateLimiter(per_thread_ops, per_thread_ops);
       }
       rate_limiters.push_back(rlim);
-<<<<<<< HEAD
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
                                              thread_ops, false, !do_load, true, &latch, rlim,
                                              &threadpool, i, &clients[i]));
-=======
-      // client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-      //                                        thread_ops, false, !do_load, true, &latch, rlim,
-      //                                        &threadpool, i, target_rates[i], burst_gap_s,
-      //                                        burst_size_ops, queuing_delay_measurements));
-      client_threads.emplace_back(
-          std::async(std::launch::async,
-                     [db = dbs[i], wl = &wl, thread_ops, do_load, &latch, rlim,
-                      &threadpool, i, target_rate = target_rates[i], burst_gap_s,
-                      burst_size_ops, &queuing_delay_measurements]()
-                     {
-                       return ycsbc::ClientThread(db, wl,
-                                                  thread_ops, false, !do_load, true,
-                                                  &latch, rlim, &threadpool, i,
-                                                  target_rate, burst_gap_s, burst_size_ops, queuing_delay_measurements);
-                     }));
->>>>>>> 725a5e9bd747136e5de51e9cf472d6c332a8b86d
     }
 
     std::future<void> rlim_future;

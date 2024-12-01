@@ -12,3 +12,4 @@ nohup.out
 *.csv
 *.log
 *.txt
+!CMakeLists.txt
