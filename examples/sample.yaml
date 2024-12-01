@@ -1,0 +1,18 @@
+clients:
+  - client_id: 1
+    behaviors:
+      - type: STEADY
+        request_rate: 50
+        duration: 15
+      - type: BURSTY
+        request_rate: 200
+        burst_duration: 5
+        idle_duration: 3
+        repeats: 3
+      - type: INACTIVE
+        duration: 10
+  - client_id: 2
+    behaviors:
+      - type: STEADY
+        request_rate: 100  # Requests per second
+        duration: 10       # Duration in seconds

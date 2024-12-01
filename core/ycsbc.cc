@@ -93,10 +93,10 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
       }
-      if (op_csv_stats.empty())
-      {
-        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << "NO_STATS" << std::endl;
-      }
+      // if (op_csv_stats.empty())
+      // {
+      //   client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << "NO_STATS" << std::endl;
+      // }
       per_client_measurements[i]->Reset();
     }
     // Print DB-wide and CF-wide stats -- only need to use a single client
@@ -216,7 +216,7 @@ int main(const int argc, const char *argv[])
   }
 
   std::vector<int> target_rates = stringToIntVector(props.GetProperty("target_rates", "0"));
-  const string ClientConfigFile = props.GetProperty("config", "");
+  const std::string ClientConfigFile = props.GetProperty("config", "");
   if (ClientConfigFile.empty())
   {
     std::cerr << "No client config file provided" << std::endl;
@@ -288,7 +288,7 @@ int main(const int argc, const char *argv[])
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i));
+                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, &clients[i]));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -343,7 +343,7 @@ int main(const int argc, const char *argv[])
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
                                              thread_ops, false, !do_load, true, &latch, rlim,
-                                             &threadpool, i));
+                                             &threadpool, i, &clients[i]));
     }
 
     std::future<void> rlim_future;

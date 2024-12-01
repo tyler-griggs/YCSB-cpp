@@ -72,8 +72,8 @@ mpstat_pid=$!
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
-  -p config=clients.yaml \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
+  -p config=examples/sample.yaml \
   -p readallfields=true \
   -p requestdistribution=zipfian \
   -s -p operationcount=35000000 \

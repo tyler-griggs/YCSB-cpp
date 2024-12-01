@@ -28,7 +28,7 @@ namespace ycsbc
 
   inline long long ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                                 bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool,
-                                int client_id)
+                                int client_id, ClientConfig *client_config)
   {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -43,9 +43,6 @@ namespace ycsbc
       fprintf(stderr, "Couldn't set thread affinity.\n");
       std::exit(1);
     }
-
-    std::vector<int> op_progress;
-    int client_log_interval_s = 1;
     try
     {
       if (init_db)
@@ -81,8 +78,7 @@ namespace ycsbc
           };
           threadpool->async_dispatch(client_id, lambda);
         };
-        executeClientBehaviors(
-            std::vector<Behavior>{{BURSTY, 0, 200, 5, 3, 3}, {INACTIVE, 10}, {STEADY, 10, 100}}, txn_lambda);
+        executeClientBehaviors(client_config->behaviors, txn_lambda);
       }
 
       if (cleanup_db)
