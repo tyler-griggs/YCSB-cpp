@@ -30,6 +30,12 @@ struct Behavior
     std::string trace_file; // For replay behavior
 };
 
+struct ClientConfig
+{
+    int client_id;
+    std::vector<Behavior> behaviors;
+};
+
 void executeSteadyBehavior(int request_rate, int duration, const std::function<void()> &send_request)
 {
     int interval_us = 1'000'000 / request_rate; // Microseconds per request
@@ -97,6 +103,61 @@ void executeClientBehaviors(const std::vector<Behavior> &behaviors, const std::f
             break;
         }
     }
+}
+
+BehaviorType parseBehaviorType(const std::string &type_str)
+{
+    if (type_str == "STEADY")
+        return STEADY;
+    if (type_str == "BURSTY")
+        return BURSTY;
+    if (type_str == "INACTIVE")
+        return INACTIVE;
+    if (type_str == "REPLAY")
+        return REPLAY;
+    throw std::invalid_argument("Unknown behavior type: " + type_str);
+}
+
+std::vector<ClientConfig> loadClientBehaviors(const std::string &yaml_file)
+{
+    YAML::Node config = YAML::LoadFile(yaml_file);
+    std::vector<ClientConfig> clients;
+
+    for (const auto &client_node : config["clients"])
+    {
+        ClientConfig client;
+        client.client_id = client_node["client_id"].as<int>();
+
+        for (const auto &behavior_node : client_node["behaviors"])
+        {
+            Behavior behavior;
+            behavior.type = parseBehaviorType(behavior_node["type"].as<std::string>());
+
+            switch (behavior.type)
+            {
+            case STEADY:
+                behavior.request_rate = behavior_node["request_rate"].as<int>();
+                behavior.duration = behavior_node["duration"].as<int>();
+                break;
+            case BURSTY:
+                behavior.request_rate = behavior_node["request_rate"].as<int>();
+                behavior.burst_duration = behavior_node["burst_duration"].as<int>();
+                behavior.idle_duration = behavior_node["idle_duration"].as<int>();
+                behavior.repeats = behavior_node["repeats"].as<int>();
+                break;
+            case INACTIVE:
+                behavior.duration = behavior_node["duration"].as<int>();
+                break;
+            case REPLAY:
+                behavior.trace_file = behavior_node["trace_file"].as<std::string>();
+                break;
+            }
+            client.behaviors.push_back(behavior);
+        }
+        clients.push_back(client);
+    }
+
+    return clients;
 }
 
 #endif // BEHAVIOR_H

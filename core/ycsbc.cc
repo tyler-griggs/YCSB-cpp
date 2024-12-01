@@ -215,8 +215,15 @@ int main(const int argc, const char *argv[])
     exit(1);
   }
 
-  const int num_threads = stoi(props.GetProperty("threadcount", "1"));
   std::vector<int> target_rates = stringToIntVector(props.GetProperty("target_rates", "0"));
+  const string ClientConfigFile = props.GetProperty("config", "");
+  if (ClientConfigFile.empty())
+  {
+    std::cerr << "No client config file provided" << std::endl;
+    exit(1);
+  }
+  std::vector<ClientConfig> clients = loadClientBehaviors(ClientConfigFile);
+  const int num_threads = clients.size();
 
   ycsbc::Measurements *measurements = ycsbc::CreateMeasurements(&props);
   if (measurements == nullptr)
@@ -297,31 +304,6 @@ int main(const int argc, const char *argv[])
   // FairScheduler scheduler;
   ThreadPool threadpool;
   threadpool.start(/*num_threads=*/4, /*num_clients=*/4);
-
-  std::string json_file_name = props.GetProperty("request_rate_json", "");
-  Json::Value request_rate_json_;
-  bool load_from_json_ = (json_file_name != "");
-  std::vector<std::string> json_client_ids;
-
-  // Map each YCSB client to a JSON client
-  std::vector<std::string> client_mapping(num_threads);
-  int scale_factor = 1;
-  if (load_from_json_)
-  {
-    scale_factor = std::stoi(props.GetProperty("scale_factor", "1"));
-    std::cout << "[FAIRDB_LOG] Loading request rate JSON file: " << json_file_name << " with scale factor " << scale_factor << std::endl;
-    std::ifstream file(json_file_name, std::ifstream::binary);
-    file >> request_rate_json_;
-    for (const auto &key : request_rate_json_.getMemberNames())
-    {
-      json_client_ids.push_back(key);
-    }
-    for (int i = 0; i < num_threads; ++i)
-    {
-      client_mapping[i] = json_client_ids[i % json_client_ids.size()];
-      std::cout << "[FAIRDB_LOG] Mapping YCSB client " << i << " to JSON client " << client_mapping[i] << std::endl;
-    }
-  }
 
   // transaction phase
   if (do_transaction)

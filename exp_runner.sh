@@ -72,8 +72,7 @@ mpstat_pid=$!
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
-  -p request_rate_json=sample.json \
-  -p scale_factor=1 \
+  -p config=clients.yaml \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
   -p readallfields=true \
   -p requestdistribution=zipfian \
@@ -87,7 +86,6 @@ mpstat_pid=$!
   -p scanproportion=0 \
   -p randominsertproportion=0 \
   -p real_op_mode=false \
-  -threads 4 \
   -p rocksdb.num_cfs=4 \
   -p client_to_cf_map="default,cf1,cf2,cf3" \
   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
