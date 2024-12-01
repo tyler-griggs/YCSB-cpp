@@ -112,18 +112,6 @@ const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
 const std::string CoreWorkload::OP_MODE_PROPERTY = "real_op_mode";
 const std::string CoreWorkload::OP_MODE_DEFAULT = "true";
 
-const std::string CoreWorkload::BURST_GAP_S = "burst_gap_s";
-const std::string CoreWorkload::BURST_GAP_S_DEFAULT = "0";
-
-const std::string CoreWorkload::BURST_SIZE_OPS = "burst_size_ops";
-const std::string CoreWorkload::BURST_SIZE_OPS_DEFAULT = "0";
-
-const std::string CoreWorkload::CLIENT_TO_CF_MAP = "client_to_cf_map";
-const std::string CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT = "default,cf2,cf3,cf4";
-
-const std::string CoreWorkload::CLIENT_TO_OP_MAP = "client_to_op_map";
-const std::string CoreWorkload::CLIENT_TO_OP_MAP_DEFAULT = "READ,READ,READ,READ";
-
 namespace ycsbc
 {
 
@@ -141,54 +129,10 @@ namespace ycsbc
     return output;
   }
 
-  Operation stringToOperation(const std::string &operationName)
-  {
-    static const std::unordered_map<std::string, Operation> operationMap = {
-        {"INSERT", INSERT},
-        {"READ", READ},
-        {"UPDATE", UPDATE},
-        {"SCAN", SCAN},
-        {"READMODIFYWRITE", READMODIFYWRITE},
-        {"DELETE", DELETE},
-        {"RANDOM_INSERT", RANDOM_INSERT},
-        {"INSERT_BATCH", INSERT_BATCH},
-        {"INSERT_FAILED", INSERT_FAILED},
-        {"READ_FAILED", READ_FAILED},
-        {"UPDATE_FAILED", UPDATE_FAILED},
-        {"SCAN_FAILED", SCAN_FAILED},
-        {"READMODIFYWRITE_FAILED", READMODIFYWRITE_FAILED},
-        {"DELETE_FAILED", DELETE_FAILED},
-        {"INSERT_BATCH_FAILED", INSERT_BATCH_FAILED},
-        {"MAXOPTYPE", MAXOPTYPE}};
-
-    auto it = operationMap.find(operationName);
-    if (it != operationMap.end())
-    {
-      return it->second;
-    }
-    else
-    {
-      throw std::invalid_argument("Invalid operation name: " + operationName);
-    }
-  }
-
   void CoreWorkload::Init(const utils::Properties &p)
   {
     table_name_ = p.GetProperty(TABLENAME_PROPERTY, TABLENAME_DEFAULT);
     op_mode_real_ = p.GetProperty(OP_MODE_PROPERTY, OP_MODE_DEFAULT) == "true";
-
-    client_to_cf_ = Prop2vector(p, CLIENT_TO_CF_MAP, CLIENT_TO_CF_MAP_DEFAULT);
-
-    std::vector<std::string> client_to_op_string = Prop2vector(p, CLIENT_TO_OP_MAP, CLIENT_TO_OP_MAP_DEFAULT);
-    for (const auto &op_string : client_to_op_string)
-    {
-      client_to_op_.push_back(stringToOperation(op_string));
-    }
-
-    // const size_t num_threads = std::stoi(p.GetProperty("threadcount", "1"));
-    // if (num_threads != client_to_op_.size() || num_threads != client_to_cf_.size()) {
-    //   throw utils::Exception("Inconsistent thread counts and thread to CF and OP mappings");
-    // }
 
     field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY, FIELD_COUNT_DEFAULT));
     field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
@@ -405,9 +349,10 @@ namespace ycsbc
     return db.Insert(table_name_, key, fields) == DB::kOK;
   }
 
-  bool CoreWorkload::DoTransaction(DB &db, int client_id)
+  bool CoreWorkload::DoTransaction(DB &db, ClientConfig *config)
   {
-    std::string table_name = client_to_cf_[client_id];
+    std::string table_name = config->cf;
+    int client_id = config->client_id;
 
     DB::Status status;
     if (op_mode_real_)
@@ -443,7 +388,7 @@ namespace ycsbc
     }
     else
     {
-      Operation op = client_to_op_[client_id];
+      Operation op = config->op;
       switch (op)
       {
       case READ:

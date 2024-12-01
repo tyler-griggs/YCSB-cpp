@@ -20,33 +20,12 @@
 #include "utils/properties.h"
 #include "utils/utils.h"
 #include <json/json.h>
+#include "behavior.h"
 
 namespace ycsbc
 {
 
   std::vector<std::string> Prop2vector(const utils::Properties &props, const std::string &prop, const std::string &default_val);
-
-  enum Operation
-  {
-    INSERT = 0,
-    READ,
-    UPDATE,
-    SCAN,
-    READMODIFYWRITE,
-    DELETE,
-    RANDOM_INSERT,
-    INSERT_BATCH,
-    INSERT_FAILED,
-    READ_FAILED,
-    UPDATE_FAILED,
-    SCAN_FAILED,
-    READMODIFYWRITE_FAILED,
-    DELETE_FAILED,
-    INSERT_BATCH_FAILED,
-    MAXOPTYPE
-  };
-
-  Operation stringToOperation(const std::string &operationName);
 
   extern const char *kOperationString[MAXOPTYPE];
 
@@ -188,12 +167,6 @@ namespace ycsbc
     static const std::string OP_MODE_PROPERTY;
     static const std::string OP_MODE_DEFAULT;
 
-    static const std::string BURST_GAP_S;
-    static const std::string BURST_GAP_S_DEFAULT;
-
-    static const std::string BURST_SIZE_OPS;
-    static const std::string BURST_SIZE_OPS_DEFAULT;
-
     static const std::string CLIENT_TO_CF_MAP;
     static const std::string CLIENT_TO_CF_MAP_DEFAULT;
 
@@ -207,7 +180,7 @@ namespace ycsbc
     virtual void Init(const utils::Properties &p);
 
     virtual bool DoInsert(DB &db);
-    virtual bool DoTransaction(DB &db, int client_id);
+    virtual bool DoTransaction(DB &db, ClientConfig *config);
 
     bool
     read_all_fields() const
@@ -266,8 +239,6 @@ namespace ycsbc
     size_t record_count_;
     int zero_padding_;
     bool op_mode_real_;
-    std::vector<std::string> client_to_cf_;
-    std::vector<Operation> client_to_op_;
   };
 
 } // ycsbc

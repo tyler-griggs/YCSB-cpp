@@ -214,17 +214,19 @@ int main(const int argc, const char *argv[])
     std::cerr << "No operation to do" << std::endl;
     exit(1);
   }
-
-  std::vector<int> target_rates = stringToIntVector(props.GetProperty("target_rates", "0"));
   const std::string ClientConfigFile = props.GetProperty("config", "");
   if (ClientConfigFile.empty())
   {
     std::cerr << "No client config file provided" << std::endl;
     exit(1);
   }
-  std::vector<ClientConfig> clients = loadClientBehaviors(ClientConfigFile);
+  std::vector<ycsbc::ClientConfig> clients = ycsbc::loadClientBehaviors(ClientConfigFile);
   const int num_threads = clients.size();
   std::cout << "[FAIRDB_LOG] Number of clients: " << num_threads << std::endl;
+
+  int op_count = ycsbc::calculateTotalOperations(clients);
+  // int op_count = 0;
+  props.SetProperty(ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY, std::to_string(op_count));
 
   ycsbc::Measurements *measurements = ycsbc::CreateMeasurements(&props);
   if (measurements == nullptr)
@@ -414,18 +416,6 @@ void ParseCommandLine(int argc, const char *argv[], ycsbc::utils::Properties &pr
         exit(0);
       }
       props.SetProperty("threadcount", argv[argindex]);
-      argindex++;
-    }
-    else if (strcmp(argv[argindex], "-target_rates") == 0)
-    {
-      argindex++;
-      if (argindex >= argc)
-      {
-        UsageMessage(argv[0]);
-        std::cerr << "Missing argument value for -target_rates" << std::endl;
-        exit(0);
-      }
-      props.SetProperty("target_rates", argv[argindex]);
       argindex++;
     }
     else if (strcmp(argv[argindex], "-db") == 0)

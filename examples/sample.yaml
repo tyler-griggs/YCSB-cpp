@@ -1,5 +1,7 @@
 clients:                    # Define clients and their behaviors.
-  - client_id: 1            # Unique ID for the first client.
+  - client_id: 0            # Unique ID for the first client.
+    cf: "default"           # Name of the column family to use.
+    op: "RANDOM_INSERT"     # Operation to perform.
     behaviors:              # List of behaviors for this client. They will be executed sequentially.
       - type: STEADY        # Steady request behavior.
         request_rate: 50    # Requests per second.
@@ -12,13 +14,17 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE      # Inactivity period.
         duration: 10        # Duration in seconds.
 
-  - client_id: 2
+  - client_id: 1
+    cf: "cf1"
+    op: "RANDOM_INSERT"
     behaviors:
       - type: STEADY
         request_rate: 100   
         duration: 10
 
-  - client_id: 3
+  - client_id: 2
+    cf: "cf2"
+    op: "RANDOM_INSERT"
     behaviors:
       - type: REPLAY        # Replay behavior using pre-recorded trace.
         trace_file: "examples/sample_trace.json"  # Path to trace file.

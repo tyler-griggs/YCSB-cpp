@@ -56,7 +56,6 @@ mpstat_pid=$!
 
 #   -threads 16 \
 #   -p rocksdb.num_cfs=16 \
-#   -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10,cf11,cf12,cf13,cf14,cf15" \
 #   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
 #   -target_rates "380,420,395,405,401,399,409,415,385,382,418,412,391,383,392,400" \
 #   -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
@@ -70,13 +69,12 @@ mpstat_pid=$!
 #   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
 
 # Start ycsb process in the background
-./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
+./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
   -p config=examples/sample.yaml \
   -p readallfields=true \
   -p requestdistribution=zipfian \
-  -s -p operationcount=35000000 \
   -p recordcount=3125000 \
   -p fieldcount=1 \
   -p fieldlength=1024 \
@@ -87,14 +85,9 @@ mpstat_pid=$!
   -p randominsertproportion=0 \
   -p real_op_mode=false \
   -p rocksdb.num_cfs=4 \
-  -p client_to_cf_map="default,cf1,cf2,cf3" \
-  -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-  -target_rates "8000,8000,8000,8000" \
   -p wbm_size="300" \
   -p wbm_limits="512,512,512,512" \
   -p status.interval_ms=500 \
-  -p burst_gap_s=0 \
-  -p burst_size_ops=1 \
   -p rate_limits="10000,10000,10000,10000" \
   -p read_rate_limits="10000,10000,10000,10000" \
   -p refill_period=50 \

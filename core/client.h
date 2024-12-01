@@ -65,18 +65,18 @@ namespace ycsbc
       }
       else
       {
-        auto transaction_executor = [wl, db, client_id, threadpool, rlim]()
+        auto transaction_executor = [wl, db, client_config, threadpool, rlim]()
         {
           if (rlim)
           {
             rlim->Consume(1);
           }
-          auto transaction_task = [wl, db, client_id]()
+          auto transaction_task = [wl, db, client_config]()
           {
-            wl->DoTransaction(*db, client_id);
+            wl->DoTransaction(*db, client_config);
             return nullptr; // to match void* return
           };
-          threadpool->async_dispatch(client_id, transaction_task);
+          threadpool->async_dispatch(client_config->client_id, transaction_task);
         };
         executeClientBehaviors(client_config->behaviors, transaction_executor);
       }
