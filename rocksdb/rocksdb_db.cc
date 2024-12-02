@@ -124,8 +124,11 @@ namespace {
   const std::string PROP_FAIRDB_USE_POOLED = "fairdb_use_pooled";
   const std::string PROP_FAIRDB_USE_POOLED_DEFAULT = "false";
 
-  const std::string PROP_FAIRDB_RESERVED_SPACE = "fairdb_reserved_space";
-  const std::string PROP_FAIRDB_RESERVED_SPACE_DEFAULT = "0";
+  const std::string PROP_FAIRDB_CACHE_RAD_MICROSECONDS = "fairdb_cache_rad";
+  const std::string PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT = "100";
+
+  const std::string PROP_CACHE_NUM_SHARD_BITS = "cache_num_shard_bits";
+  const std::string PROP_CACHE_NUM_SHARD_BITS_DEFAULT = "-1";
 
   const std::string PROP_REFILL_PERIOD = "refill_period";
   const std::string PROP_REFILL_PERIOD_DEFAULT = "0";
@@ -531,10 +534,16 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
     if (std::stoul(val) > 0) {
       std::cout << "[TGRIGGS_LOG] Creating cache of size " << val << std::endl;
       rocksdb::LRUCacheOptions cache_opts;
+      cache_opts.client_id = i;
       cache_opts.capacity = std::stoul(val);
       cache_opts.strict_capacity_limit = false;
       cache_opts.fairdb_use_pooled = use_pooled;
-      cache_opts.fairdb_reserved_space = std::stoi(props.GetProperty(PROP_FAIRDB_RESERVED_SPACE, PROP_FAIRDB_RESERVED_SPACE_DEFAULT));
+      cache_opts.pooled_capacity = std::stoul(val);
+      cache_opts.request_additional_delay_microseconds = std::stoi(props.GetProperty(PROP_FAIRDB_CACHE_RAD_MICROSECONDS, PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT));
+      cache_opts.read_io_mbps = 5000;
+      cache_opts.additional_rampups_supported = 2;
+      cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
+
       block_cache = rocksdb::NewLRUCache(cache_opts);
       table_options.block_cache = block_cache;
       if (use_pooled) {
@@ -548,7 +557,6 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
         block_caches_by_client_.insert(block_caches_by_client_.begin() + client_idx, nullptr);
       }
     }
-    printf("size of blockc aches by client %d \n", block_caches_by_client_.size());
     cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
   }
   int num_levels = std::stoi(props.GetProperty(PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT));

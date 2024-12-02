@@ -1,56 +1,43 @@
-/***********************************************************************
- *
- * Copyright 2021 Florian Suri-Payer <fsp@cs.cornell.edu>
- *                Matthew Burke <matthelb@cs.cornell.edu>
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- **********************************************************************/
 #ifndef _LIB_THREADPOOL_H_
 #define _LIB_THREADPOOL_H_
 
 #include <functional>
 #include <future>
 #include <thread>
+#include <vector>
+#include <condition_variable>
+#include <mutex>
+#include <atomic>
 #include "concurrentqueue/concurrentqueue.h"
 #include "concurrentqueue/blockingconcurrentqueue.h"
 
 class ThreadPool {
-
 public:
-  ThreadPool() {};
-  virtual ~ThreadPool();
+    ThreadPool() {};
+    virtual ~ThreadPool();
 
-  ThreadPool(const ThreadPool&) = delete;
-  ThreadPool& operator=(const ThreadPool&) = delete;
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
 
-  void start(int num_threads = 1);
-  void stop();
-  std::future<void*> dispatch(std::function<void*()> f);
+    void start(int num_threads = 1, int num_clients = 1);
+    void stop();
+    std::future<void*> dispatch(int client_id, std::function<void*()> f);
+    void async_dispatch(int client_id, std::function<void*()> f);
+
+    // Get access to the producer side of a specific client queue
+    moodycamel::BlockingConcurrentQueue<std::function<void*()>>& getClientQueue(int client_id);
 
 private:
-  bool running;
-  std::vector<std::thread*> threads;
-  moodycamel::BlockingConcurrentQueue<std::function<void*()>> worklist;
-  // moodycamel::BlockingConcurrentQueue<std::packaged_task<void*()>> worklist;
+    std::atomic<bool> running;
+    std::vector<std::thread*> threads;
+    int num_clients;
+
+    // Vector of per-client queues
+    std::vector<moodycamel::BlockingConcurrentQueue<std::function<void*()>>> worklists;
+
+    // Synchronization primitives
+    std::mutex cv_mutex;
+    std::condition_variable cv;
 };
 
 #endif  // _LIB_THREADPOOL_H_

@@ -24,8 +24,10 @@ namespace ycsbc {
 
 class RocksdbDB : public DB {
  public:
-  RocksdbDB() : block_caches_by_client_() {}
-  ~RocksdbDB() {}
+  RocksdbDB() : block_caches_by_client_ () {
+  }
+  ~RocksdbDB() {
+  }
 
   std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) {
     if (client_idx >= block_caches_by_client_.size()) return nullptr;

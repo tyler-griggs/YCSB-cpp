@@ -57,7 +57,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // TODO(tgriggs):  Handle file open failure, propagate exception
     // throw std::ios_base::failure("Failed to open the file.");
   }
-  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,cache_usage,cache_capacity" << std::endl;
+  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,cache_usage,cache_capacity,cache_hits,cache_misses" << std::endl;
 
   time_point<system_clock> start = system_clock::now();
   bool done = false;
@@ -86,14 +86,18 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
       int cache_usage = 0;
       int cache_capacity = 0;
+      uint64_t cache_hits = 0;
+      uint64_t cache_misses = 0;
       std::shared_ptr<rocksdb::Cache> block_cache = dbs[0]->GetCacheByClientIdx(i);
       if (block_cache) {
         cache_usage = block_cache->GetUsage();
         cache_capacity = block_cache->GetCapacity();
+        cache_hits = block_cache->GetAndResetHits();
+        cache_misses = block_cache->GetAndResetMisses();
       }
       for (const auto& csv : op_csv_stats) {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << ',' << std::to_string(cache_usage) 
-          << ',' << std::to_string(cache_capacity)  << std::endl;
+          << ',' << std::to_string(cache_capacity) << ',' << std::to_string(cache_hits) << ',' << std::to_string(cache_misses) << std::endl;
 
         if (should_print) {
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
@@ -292,6 +296,10 @@ int main(const int argc, const char *argv[]) {
   int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));
 
   // transaction phase
+  const int tpool_threads = std::stoi(props.GetProperty("tpool_threads", "1"));
+  const int num_cfs = std::stoi(props.GetProperty("rocksdb.num_cfs", "1"));
+  threadpool.start(/*num_threads=*/ tpool_threads, /*num_clients=*/num_cfs);
+
   if (do_transaction) {
     // initial ops per second, unlimited if <= 0
     const int64_t ops_limit = std::stoi(props.GetProperty("limit.ops", "0"));

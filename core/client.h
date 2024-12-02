@@ -108,7 +108,13 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // // Submit operation to thread pool and wait for it. 
           // std::future<void*> result = threadpool->dispatch(txn_lambda);
           // result.wait();
-          wl->DoTransaction(*db, client_id);
+          auto txn_lambda = [wl, db, client_id]() {
+            wl->DoTransaction(*db, client_id);
+            return nullptr;
+          };
+          
+          // Submit operation and do not wait for a return. 
+          threadpool->async_dispatch(client_id, txn_lambda);
         }
         ops++;
 
