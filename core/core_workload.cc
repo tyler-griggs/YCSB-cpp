@@ -33,6 +33,7 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
     "DELETE",
     "RANDOM_INSERT",
     "INSERT_BATCH",
+    "QUEUE",
     "INSERT-FAILED",
     "READ-FAILED",
     "UPDATE-FAILED",
@@ -412,7 +413,7 @@ namespace ycsbc
     uint64_t key_num = NextTransactionKeyNum(config);
     std::string table_name = config->cf;
     int client_id = config->client_id;
-    int batch_size = 100;
+    int batch_size = 400;
     uint64_t client_key_num = key_num;
     client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 

@@ -94,10 +94,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
       }
-      // if (op_csv_stats.empty())
-      // {
-      //   client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << "NO_STATS" << std::endl;
-      // }
       per_client_measurements[i]->Reset();
     }
     for (size_t i = 0; i < queuing_delay_measurements.size(); ++i)
@@ -298,8 +294,16 @@ int main(const int argc, const char *argv[])
       {
         thread_ops++;
       }
-      client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, &clients[i]));
+      client_threads.emplace_back(
+          std::async(std::launch::async,
+                     [dbs, &wl, thread_ops, do_transaction, &latch, &clients, &queuing_delay_measurements, i]()
+                     {
+                       return ycsbc::ClientThread(
+                           dbs[i], &wl, thread_ops, true,
+                           /*init_db=*/true, !do_transaction,
+                           &latch, nullptr, nullptr,
+                           &clients[i], queuing_delay_measurements);
+                     }));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -347,9 +351,18 @@ int main(const int argc, const char *argv[])
         rlim = new ycsbc::utils::RateLimiter(per_thread_ops, per_thread_ops);
       }
       rate_limiters.push_back(rlim);
-      client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             0, false, !do_load, true, &latch, rlim,
-                                             &threadpool, i, &clients[i]));
+      client_threads.emplace_back(
+          std::async(std::launch::async,
+                     [dbs, &wl, do_load, &latch, &clients, &queuing_delay_measurements, rlim, &threadpool, i]()
+                     {
+                       return ycsbc::ClientThread(
+                           dbs[i], &wl,
+                           0, false, !do_load, true, &latch, rlim,
+                           &threadpool, &clients[i], queuing_delay_measurements);
+                     }));
+      // client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
+      //                                        0, false, !do_load, true, &latch, rlim,
+      //                                        &threadpool, &clients[i], queuing_delay_measurements));
     }
 
     std::future<void> rlim_future;

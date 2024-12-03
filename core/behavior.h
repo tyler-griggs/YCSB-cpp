@@ -33,6 +33,7 @@ namespace ycsbc
         DELETE,
         RANDOM_INSERT,
         INSERT_BATCH,
+        QUEUE,
         INSERT_FAILED,
         READ_FAILED,
         UPDATE_FAILED,

@@ -23,17 +23,18 @@
 #include "utils/utils.h"
 #include "threadpool.h"
 #include "behavior.h"
+#include "measurements.h"
 namespace ycsbc
 {
 
   inline long long ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                                 bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool,
-                                int client_id, ClientConfig *client_config)
+                                ClientConfig *client_config, std::vector<ycsbc::Measurements *> &queuing_delay_measurements)
   {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
 
-    size_t cpu_for_client = client_id + 8;
+    size_t cpu_for_client = client_config->client_id + 8;
     CPU_SET(cpu_for_client, &cpuset);
     std::cout << "[TGRIGGS_LOG] Pinning client to " << cpu_for_client << std::endl;
     int rc = pthread_setaffinity_np(pthread_self(),
@@ -65,14 +66,19 @@ namespace ycsbc
       }
       else
       {
-        auto transaction_executor = [wl, db, client_config, threadpool, rlim]()
+        auto transaction_executor = [wl, db, client_config, threadpool, rlim, &queuing_delay_measurements]()
         {
           if (rlim)
           {
             rlim->Consume(1);
           }
-          auto transaction_task = [wl, db, client_config]()
+          auto enqueue_start_time = std::chrono::high_resolution_clock::now();
+          auto transaction_task = [wl, db, client_config, enqueue_start_time, &queuing_delay_measurements]()
           {
+            auto dequeue_time = std::chrono::high_resolution_clock::now();
+            auto queueing_delay = std::chrono::duration_cast<std::chrono::nanoseconds>(dequeue_time - enqueue_start_time).count();
+            queuing_delay_measurements[client_config->client_id]->Report(QUEUE, queueing_delay);
+
             wl->DoTransaction(*db, client_config);
             return nullptr; // to match void* return
           };
