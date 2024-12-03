@@ -57,7 +57,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // TODO(tgriggs):  Handle file open failure, propagate exception
     // throw std::ios_base::failure("Failed to open the file.");
   }
-  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,cache_usage,cache_capacity,cache_hits,cache_misses" << std::endl;
+  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,global_cache_usage,global_cache_capacity,global_cache_hits,global_cache_misses,user_cache_usage,user_cache_reserved,user_cache_hits,user_cache_misses" << std::endl;
 
   time_point<system_clock> start = system_clock::now();
   bool done = false;
@@ -84,20 +84,41 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i) {
       std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
-      int cache_usage = 0;
-      int cache_capacity = 0;
+      
+      std::shared_ptr<rocksdb::Cache> block_cache = dbs[0]->GetCacheByClientIdx(i);
       uint64_t cache_hits = 0;
       uint64_t cache_misses = 0;
-      std::shared_ptr<rocksdb::Cache> block_cache = dbs[0]->GetCacheByClientIdx(i);
       if (block_cache) {
-        cache_usage = block_cache->GetUsage();
-        cache_capacity = block_cache->GetCapacity();
         cache_hits = block_cache->GetAndResetHits();
         cache_misses = block_cache->GetAndResetMisses();
       }
+
+      int cache_usage = 0;
+      int cache_capacity = 0;
+
+      int user_cache_usage = 0,user_cache_reserved = 0,user_cache_hits =0,user_cache_misses=0;
+
+      if (block_cache) {
+        cache_usage = block_cache->GetUsage();
+        cache_capacity = block_cache->GetCapacity();
+        auto manager = (rocksdb::lru_cache::LRUCacheManager*) block_cache->manager;
+
+        if (manager && manager->NumClients() == per_client_measurements.size()) {
+          rocksdb::lru_cache::FairDBCacheMetadata* cache_data = manager->GetElement(i);
+          if (cache_data) {
+            user_cache_usage = cache_data->capacity;
+            user_cache_reserved = cache_data->reserved_capacity;
+            user_cache_hits = cache_data->hit_ctr;
+            user_cache_misses = cache_data->miss_ctr;
+          }
+        }
+
+      }
       for (const auto& csv : op_csv_stats) {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << ',' << std::to_string(cache_usage) 
-          << ',' << std::to_string(cache_capacity) << ',' << std::to_string(cache_hits) << ',' << std::to_string(cache_misses) << std::endl;
+          << ',' << std::to_string(cache_capacity) << ',' << std::to_string(cache_hits) << ',' << std::to_string(cache_misses)
+          << ',' << std::to_string(user_cache_usage) << ',' << std::to_string(user_cache_reserved) << ',' << std::to_string(user_cache_hits) << ',' << std::to_string(user_cache_misses)
+          << std::endl;
 
         if (should_print) {
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;

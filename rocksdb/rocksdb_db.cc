@@ -515,19 +515,17 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
 
   for (size_t i = 0; i < client_to_cf.size(); ++i) {
     int client_idx = -1;
-    if (use_pooled) {
-      std::string cf_name = cf_names[i];
-      for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
-        std::string cf_to_idx = client_to_cf[client_to_cf_i];
-            printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
+    std::string cf_name = cf_names[i];
+    for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
+      std::string cf_to_idx = client_to_cf[client_to_cf_i];
+          printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
 
-        if (cf_to_idx == cf_name) {
-          client_idx = client_to_cf_i;
-          break;
-        }
+      if (cf_to_idx == cf_name) {
+        client_idx = client_to_cf_i;
+        break;
       }
-      assert (client_idx != -1);
     }
+    assert (client_idx != -1);
 
     rocksdb::BlockBasedTableOptions table_options;
     std::string val = vals[i];
@@ -544,11 +542,9 @@ void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb
       cache_opts.additional_rampups_supported = 2;
       cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
 
-      block_cache = rocksdb::NewLRUCache(cache_opts);
-      table_options.block_cache = block_cache;
-      if (use_pooled) {
-        block_caches_by_client_.insert(block_caches_by_client_.begin() + client_idx, block_cache);
-      }
+      table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
+      printf("block caches by client size %d, client %d\n", block_caches_by_client_.size(), client_idx );
+      block_caches_by_client_.insert(block_caches_by_client_.begin() + client_idx, table_options.block_cache);
 
     } else {
       table_options.no_block_cache = true;  // Disable block cache

@@ -20,6 +20,10 @@
 #include <rocksdb/statistics.h>
 #include <rocksdb/cache.h>
 
+namespace rocksdb {
+  class DMutex;
+}
+
 namespace ycsbc {
 
 class RocksdbDB : public DB {
