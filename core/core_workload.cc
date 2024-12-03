@@ -355,67 +355,33 @@ namespace ycsbc
     int client_id = config->client_id;
 
     DB::Status status;
-    if (op_mode_real_)
+    auto op_choice = config->op_chooser_->Next();
+    switch (op_choice)
     {
-      auto op_choice = op_chooser_.Next();
-      switch (op_choice)
-      {
-      case READ:
-        status = TransactionRead(db, client_id, table_name);
-        break;
-      case UPDATE:
-        status = TransactionUpdate(db, client_id, table_name);
-        break;
-      case INSERT:
-        status = TransactionInsert(db);
-        break;
-      case SCAN:
-        status = TransactionScan(db, client_id, table_name);
-        break;
-      case READMODIFYWRITE:
-        status = TransactionReadModifyWrite(db);
-        break;
-      case RANDOM_INSERT:
-        status = TransactionRandomInsert(db, client_id, table_name);
-        break;
-      case INSERT_BATCH:
-        status = TransactionInsertBatch(db, client_id, table_name);
-        break;
-      default:
-        std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
-        throw utils::Exception("Operation request is not recognized!");
-      }
-    }
-    else
-    {
-      Operation op = config->op;
-      switch (op)
-      {
-      case READ:
-        status = TransactionRead(db, client_id, table_name);
-        break;
-      case UPDATE:
-        status = TransactionUpdate(db, client_id, table_name);
-        break;
-      case INSERT:
-        status = TransactionInsert(db);
-        break;
-      case SCAN:
-        status = TransactionScan(db, client_id, table_name);
-        break;
-      case READMODIFYWRITE:
-        status = TransactionReadModifyWrite(db);
-        break;
-      case RANDOM_INSERT:
-        status = TransactionRandomInsert(db, client_id, table_name);
-        break;
-      case INSERT_BATCH:
-        status = TransactionInsertBatch(db, client_id, table_name);
-        break;
-      default:
-        std::cout << "[FAIRDB_LOG] Unknown op: " << op << std::endl;
-        throw utils::Exception("Operation request is not recognized!");
-      }
+    case READ:
+      status = TransactionRead(db, client_id, table_name);
+      break;
+    case UPDATE:
+      status = TransactionUpdate(db, client_id, table_name);
+      break;
+    case INSERT:
+      status = TransactionInsert(db);
+      break;
+    case SCAN:
+      status = TransactionScan(db, client_id, table_name);
+      break;
+    case READMODIFYWRITE:
+      status = TransactionReadModifyWrite(db);
+      break;
+    case RANDOM_INSERT:
+      status = TransactionRandomInsert(db, client_id, table_name);
+      break;
+    case INSERT_BATCH:
+      status = TransactionInsertBatch(db, client_id, table_name);
+      break;
+    default:
+      std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
+      throw utils::Exception("Operation request is not recognized!");
     }
 
     return (status == DB::kOK);

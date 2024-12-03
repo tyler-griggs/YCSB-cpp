@@ -1,7 +1,8 @@
 clients:                    # Define clients and their behaviors.
   - client_id: 0            # Unique ID for the first client.
     cf: "default"           # Name of the column family to use.
-    op: "RANDOM_INSERT"     # Operation to perform.
+    op_distribution:        # Operation distribution for this client. The sum of probabilities should be positive. If operation distribution is not specified, it will always use READ.
+      RANDOM_INSERT: 1.0
     behaviors:              # List of behaviors for this client. They will be executed sequentially.
       - type: STEADY        # Steady request behavior.
         request_rate: 50    # Requests per second.
@@ -16,7 +17,8 @@ clients:                    # Define clients and their behaviors.
 
   - client_id: 1
     cf: "cf1"
-    op: "RANDOM_INSERT"
+    op_distribution:        # Specify operation distribution.
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
         request_rate: 100   
@@ -24,7 +26,8 @@ clients:                    # Define clients and their behaviors.
 
   - client_id: 2
     cf: "cf2"
-    op: "RANDOM_INSERT"
+    op_distribution:        # Specify operation distribution.
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: REPLAY        # Replay behavior using pre-recorded trace.
         trace_file: "examples/sample_trace.json"  # Path to trace file.

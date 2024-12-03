@@ -1,6 +1,7 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
+#include "discrete_generator.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -59,10 +60,15 @@ namespace ycsbc
 
     struct ClientConfig
     {
-        int client_id;                   // Unique ID for the client.
-        std::string cf;                  // Column family for the client's operations.
-        Operation op;                    // Operation type (e.g., read, insert).
-        std::vector<Behavior> behaviors; // List of behaviors for this client.
+        int client_id;                                             // Unique ID for the client.
+        std::string cf;                                            // Column family for the client's operations.
+        std::unique_ptr<DiscreteGenerator<Operation>> op_chooser_; // Operation chooser
+        std::vector<Behavior> behaviors;                           // List of behaviors for this client.
+
+        ClientConfig()
+            : client_id(0),
+              cf("default"),
+              op_chooser_(std::make_unique<DiscreteGenerator<Operation>>()) {}
     };
 
     Operation stringToOperation(const std::string &operationName);

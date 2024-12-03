@@ -190,18 +190,45 @@ namespace ycsbc
             {
                 client.cf = client_node["cf"].as<std::string>();
             }
-            else
-            {
-                client.cf = "default"; // Default value if cf is not provided.
-            }
 
-            if (client_node["op"])
+            if (client_node["op_distribution"])
             {
-                client.op = stringToOperation(client_node["op"].as<std::string>());
+                const auto &op_distribution = client_node["op_distribution"];
+                double total_weight = 0.0;
+
+                // Calculate total weight for normalization
+                for (auto it = op_distribution.begin(); it != op_distribution.end(); ++it)
+                {
+                    total_weight += it->second.as<double>();
+                }
+
+                if (total_weight <= 0.0)
+                {
+                    throw std::runtime_error("Total weight in op_distribution must be greater than 0.");
+                }
+
+                // Add operations and their normalized weights to the op_chooser_
+                for (auto it = op_distribution.begin(); it != op_distribution.end(); ++it)
+                {
+                    std::string operationName = it->first.as<std::string>();
+                    double weight = it->second.as<double>() / total_weight; // Normalize weight
+                    try
+                    {
+                        Operation op = stringToOperation(operationName);
+                        client.op_chooser_->AddValue(op, weight);
+                    }
+                    catch (const std::invalid_argument &e)
+                    {
+                        throw std::runtime_error(std::string("Error in op_distribution: ") + e.what());
+                    }
+                }
             }
             else
             {
-                client.op = READ; // Default value if op is not provided.
+                // Default to always READ if no op_distribution is provided
+                client.op_chooser_->AddValue(READ, 1.0);
+                std::cout << "[FAIR_LOG] Warning: op_distribution not specified for client_id "
+                          << client_node["client_id"].as<int>() << ". Defaulting to READ.\n";
             }
 
             // Parse client behaviors.
@@ -234,10 +261,10 @@ namespace ycsbc
                     throw std::runtime_error("Unknown behavior type in YAML configuration.");
                 }
 
-                client.behaviors.push_back(behavior);
+                client.behaviors.emplace_back(behavior);
             }
 
-            clients.push_back(client);
+            clients.emplace_back(std::move(client));
         }
         return clients;
     }
