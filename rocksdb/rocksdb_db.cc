@@ -525,18 +525,18 @@ namespace ycsbc
       throw utils::Exception("Inconsistent thread counts and rate limit counts.");
     }
 
-    // if (rate_limits.size() > 0) {
-    //   // Add rate limiter
-    //   opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-    //     num_clients,
-    //     rate_limits,
-    //     read_rate_limits,
-    //     refill_period * 1000,        // Refill period (ms)
-    //     10,                // Fairness (default)
-    //     rocksdb::RateLimiter::Mode::kAllIo, // All IO
-    //     /* single_burst_bytes */ 0
-    //   ));
-    // }
+    if (rate_limits.size() > 0) {
+      // Add rate limiter
+      opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
+        num_clients,
+        rate_limits,
+        read_rate_limits,
+        refill_period * 1000,        // Refill period (ms)
+        10,                // Fairness (default)
+        rocksdb::RateLimiter::Mode::kAllIo, // All IO
+        /* single_burst_bytes */ 0
+      ));
+    }
 
     std::vector<int64_t> wbm_limits = stringToIntVector(props.GetProperty(PROP_WBM_LIMITS, PROP_WBM_LIMITS_DEFAULT));
     if (static_cast<size_t>(num_clients) != wbm_limits.size() && wbm_limits.size() > 1)
@@ -949,9 +949,11 @@ namespace ycsbc
     read_rate_limiter->SetBytesPerSecond(read_rate_limits);
   }
 
-  std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage()
-  {
+  std::vector<ycsbc::utils::MultiTenantResourceUsage> RocksdbDB::GetResourceUsage() {
     std::shared_ptr<rocksdb::RateLimiter> write_rate_limiter = db_->GetOptions().rate_limiter;
+    if (write_rate_limiter == nullptr) {
+      throw utils::Exception("[FAIRDB_LOG] Cannot enable scheduler thread without rate limiter.");
+    }
     rocksdb::RateLimiter *read_rate_limiter = write_rate_limiter->GetReadRateLimiter();
 
     int num_clients = cf_handles_.size();

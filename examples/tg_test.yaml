@@ -18,7 +18,7 @@ clients:                    # Define clients and their behaviors.
     cf: "default"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
         request_rate: 5000   
@@ -28,8 +28,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf1"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 2
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -38,8 +40,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf2"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 3
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -48,8 +52,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf3"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 4
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -58,8 +64,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf4"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 5
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -68,8 +76,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf5"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 6
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -78,8 +88,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf6"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 7
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -88,8 +100,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf7"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 8
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -98,8 +112,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf8"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 9
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -108,8 +124,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf9"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 10
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -118,8 +136,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf10"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 11
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -128,8 +148,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf11"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 12
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -138,8 +160,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf12"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 13
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -148,8 +172,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf13"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 14
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -158,8 +184,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf14"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 15
       - type: STEADY
         request_rate: 5000   
         duration: 100
@@ -168,8 +196,10 @@ clients:                    # Define clients and their behaviors.
     cf: "cf15"
     record_count: 3125000
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
+      - type: INACTIVE
+        duration: 16
       - type: STEADY
         request_rate: 5000   
         duration: 100
