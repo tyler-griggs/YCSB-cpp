@@ -517,10 +517,10 @@ namespace ycsbc
     size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
     if (refill_period == 0)
     {
-      std::cout << "[TGRIGGS_LOG] refill period set to 0" << std::endl;
+      std::cout << "[FAIRDB_LOG] refill period set to 0" << std::endl;
     }
 
-    if (num_clients != rate_limits.size() && rate_limits.size() > 1)
+    if (static_cast<size_t>(num_clients) != rate_limits.size() && rate_limits.size() > 1)
     {
       throw utils::Exception("Inconsistent thread counts and rate limit counts.");
     }
@@ -539,7 +539,7 @@ namespace ycsbc
     // }
 
     std::vector<int64_t> wbm_limits = stringToIntVector(props.GetProperty(PROP_WBM_LIMITS, PROP_WBM_LIMITS_DEFAULT));
-    if (num_clients != wbm_limits.size() && wbm_limits.size() > 1)
+    if (static_cast<size_t>(num_clients) != wbm_limits.size() && wbm_limits.size() > 1)
     {
       throw utils::Exception("Inconsistent thread counts and wbm_limits counts.");
     }
@@ -592,7 +592,7 @@ namespace ycsbc
       std::string val = vals[i];
       if (std::stoul(val) > 0)
       {
-        std::cout << "[TGRIGGS_LOG] Creating cache of size " << val << std::endl;
+        std::cout << "[FAIRDB_LOG] Creating cache of size " << val << std::endl;
         block_cache = rocksdb::NewLRUCache(std::stoul(val));
         table_options.block_cache = block_cache;
       }
@@ -755,7 +755,7 @@ namespace ycsbc
     auto *handle = table2handle(table);
     if (handle == nullptr)
     {
-      std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+      std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
       return kError;
     }
 
@@ -853,7 +853,7 @@ namespace ycsbc
     auto *handle = table2handle(table);
     if (handle == nullptr)
     {
-      std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+      std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
       return kError;
     }
 
@@ -880,7 +880,7 @@ namespace ycsbc
     auto *handle = table2handle(table);
     if (handle == nullptr)
     {
-      std::cout << "[TGRIGGS_LOG] Bad table/handle: " << table << std::endl;
+      std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
       return kError;
     }
 
@@ -993,17 +993,17 @@ namespace ycsbc
     // db_->GetCFMemTableStats();
 
     std::string hist_data = db_->GetOptions().statistics->ToString();
-    std::cout << "[TGRIGGS_LOG] Stats:\n"
+    std::cout << "[FAIRDB_LOG] Stats:\n"
               << hist_data << std::endl;
 
-    std::cout << "[TGRIGGS_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
+    std::cout << "[FAIRDB_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
               << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L0)
               << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L1)
               << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP);
 
     // Histogram of Get() operations
     // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);
-    // std::cout << "[TGRIGGS_LOG] DB_GET hist: " << hist_data << std::endl;
+    // std::cout << "[FAIRDB_LOG] DB_GET hist: " << hist_data << std::endl;
 
     // std::string hist_data = db_->GetOptions().statistics->getHistogramString(rocksdb::Tickers::DB_GET);
     // bool found = db_->GetOptions().statistics->HistogramData(rocksdb::Tickers::DB_GET, &hist_data);
