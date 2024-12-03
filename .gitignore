@@ -10,6 +10,5 @@ compile_commands.json
 .cache/
 nohup.out
 *.csv
-*.log
-*.txt
+logs/
 !CMakeLists.txt

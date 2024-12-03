@@ -1,0 +1,36 @@
+[FAIRDB_LOG] Number of clients: 3
+[FAIRDB_LOG] Zipfian distribution.
+[FAIRDB_LOG] Starting thread pool with 3 worker threads, 3 clients
+[FAIRDB_LOG] Worker thread 0 running on CPU 9
+[FAIRDB_LOG] Worker thread 1 running on CPU 58
+[FAIRDB_LOG] Worker thread 2 running on CPU 60
+[TGRIGGS_LOG] Pinning client to 8
+[TGRIGGS_LOG] Pinning client to 9
+[TGRIGGS_LOG] Pinning client to 10
+[TGRIGGS_LOG] Exp time: 0s
+[FAIRDB_LOG] WBM Size: 314572800
+[FAIRDB_LOG] Init column family: default
+[FAIRDB_LOG] Init column family: cf1
+[FAIRDB_LOG] Init column family: cf2
+[FAIRDB_LOG] Unaccounted ReserveMem -1
+[FAIRDB_LOG] Unaccounted ReserveMem -1
+[FAIRDB_LOG] Unaccounted ReserveMem -1
+[TGRIGGS_LOG] Exp time: 0s
+[TGRIGGS_LOG] Exp time: 5s
+[TGRIGGS_LOG] Exp time: 5s
+[TGRIGGS_LOG] Exp time: 10s
+[TGRIGGS_LOG] Exp time: 10s
+[TGRIGGS_LOG] Exp time: 15s
+[TGRIGGS_LOG] Exp time: 15s
+[TGRIGGS_LOG] Exp time: 20s
+[TGRIGGS_LOG] Exp time: 20s
+1733204126274,0,INSERT,100,38.81,5.62,16.10,16.34,25.25,34.17,38.81
+1733204126274,2,INSERT,3,13.97,10.80,12.71,13.35,13.97,13.97,13.97
+[TGRIGGS_LOG] Exp time: 25s
+[TGRIGGS_LOG] Exp time: 25s
+[TGRIGGS_LOG] Exp time: 30s
+[TGRIGGS_LOG] Exp time: 30s
+[TGRIGGS_LOG] Exp time: 35s
+[TGRIGGS_LOG] Exp time: 35s
+[TGRIGGS_LOG] Exp time: 40s
+[TGRIGGS_LOG] Exp time: 40s
