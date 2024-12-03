@@ -14,6 +14,20 @@
 namespace ycsbc
 {
 
+    void enforceRequestRate(int interval_us)
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+        while (true)
+        {
+            auto now = std::chrono::high_resolution_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+            if (elapsed >= interval_us)
+            {
+                break;
+            }
+        }
+    }
+
     void executeSteadyBehavior(int request_rate, int duration, const std::function<void()> &send_request)
     {
         int interval_us = 1'000'000 / request_rate; // Microseconds per request
@@ -22,7 +36,7 @@ namespace ycsbc
             for (int i = 0; i < request_rate; ++i)
             {
                 send_request(); // Use the callback
-                std::this_thread::sleep_for(std::chrono::microseconds(interval_us));
+                enforceRequestRate(interval_us);
             }
         }
     }
@@ -37,7 +51,7 @@ namespace ycsbc
                 for (int i = 0; i < request_rate; ++i)
                 {
                     send_request(); // Use the callback
-                    std::this_thread::sleep_for(std::chrono::microseconds(interval_us));
+                    enforceRequestRate(interval_us);
                 }
             }
             std::this_thread::sleep_for(std::chrono::seconds(idle_duration));
@@ -96,7 +110,7 @@ namespace ycsbc
             scaled_interval_microseconds = std::max(scaled_interval_microseconds, 0);
 
             send_request();
-            std::this_thread::sleep_for(std::chrono::microseconds(scaled_interval_microseconds));
+            enforceRequestRate(scaled_interval_microseconds);
         }
     }
 
