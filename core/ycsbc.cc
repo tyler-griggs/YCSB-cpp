@@ -234,10 +234,6 @@ int main(const int argc, const char *argv[])
   const int num_threads = clients.size();
   std::cout << "[FAIRDB_LOG] Number of clients: " << num_threads << std::endl;
 
-  int op_count = ycsbc::calculateTotalOperations(clients);
-  // int op_count = 0;
-  props.SetProperty(ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY, std::to_string(op_count));
-
   ycsbc::Measurements *measurements = ycsbc::CreateMeasurements(&props);
   if (measurements == nullptr)
   {
@@ -330,8 +326,6 @@ int main(const int argc, const char *argv[])
     // rate file path for dynamic rate limiting, format "time_stamp_sec new_ops_per_second" per line
     std::string rate_file = props.GetProperty("limit.file", "");
 
-    const int total_ops = stoi(props[ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY]);
-
     ycsbc::utils::CountDownLatch latch(num_threads);
     ycsbc::utils::Timer<double> timer;
 
@@ -346,11 +340,6 @@ int main(const int argc, const char *argv[])
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;
     for (int i = 0; i < num_threads; ++i)
     {
-      int thread_ops = total_ops / num_threads;
-      if (i < total_ops % num_threads)
-      {
-        thread_ops++;
-      }
       ycsbc::utils::RateLimiter *rlim = nullptr;
       if (ops_limit > 0 || rate_file != "")
       {
@@ -359,7 +348,7 @@ int main(const int argc, const char *argv[])
       }
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, false, !do_load, true, &latch, rlim,
+                                             0, false, !do_load, true, &latch, rlim,
                                              &threadpool, i, &clients[i]));
     }
 

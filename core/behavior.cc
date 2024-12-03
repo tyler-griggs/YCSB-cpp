@@ -164,7 +164,6 @@ namespace ycsbc
 
         for (const auto &client_node : config["clients"])
         {
-            ClientConfig client;
             int client_id = client_node["client_id"].as<int>(); // Parse client_id.
 
             // Check if client_id is unique.
@@ -183,13 +182,20 @@ namespace ycsbc
             // Add the client_id to the set of used IDs.
             used_client_ids.insert(client_id);
 
-            client.client_id = client_id; // Assign the validated client_id.
-
             // Parse optional column family (cf) and operation type (op).
-            if (client_node["cf"])
+            if (!client_node["cf"])
             {
-                client.cf = client_node["cf"].as<std::string>();
+                throw std::runtime_error("column family must be specified for each client.");
             }
+            std::string cf = client_node["cf"].as<std::string>();
+            // Ensure record_count is specified
+            if (!client_node["record_count"])
+            {
+                throw std::runtime_error("record_count must be specified for each client.");
+            }
+            int record_count = client_node["record_count"].as<int>();
+            clients.emplace_back(client_id, cf, record_count);
+            auto &client = clients.back();
 
             if (client_node["op_distribution"])
             {
@@ -260,13 +266,69 @@ namespace ycsbc
                 default:
                     throw std::runtime_error("Unknown behavior type in YAML configuration.");
                 }
-
                 client.behaviors.emplace_back(behavior);
             }
-
-            clients.emplace_back(std::move(client));
+            // Parse optional fields
+            int insert_start = client_node["insert_start"] ? client_node["insert_start"].as<int>() : 0;
+            client.insert_start_ = insert_start;
+            std::string request_distribution = client_node["request_distribution"]
+                                                   ? client_node["request_distribution"].as<std::string>()
+                                                   : "uniform";
+            if (client_node["zipfian_const"])
+            {
+                client.zipfian_const = client_node["zipfian_const"].as<double>();
+            }
+            // Set up key chooser
+            int op_count = calculateOperations(client.behaviors); // Custom function to calculate total ops.
+            generateKeyChooser(client, op_count);
         }
         return clients;
+    }
+
+    void generateKeyChooser(ClientConfig &client_config, int op_count)
+    {
+        // Initialize key generators
+        client_config.insert_key_sequence_ = std::make_unique<CounterGenerator>(client_config.insert_start_);
+        client_config.transaction_insert_key_sequence_ = std::make_unique<AcknowledgedCounterGenerator>(client_config.record_count_);
+
+        // Key chooser logic
+        if (client_config.request_distribution == "uniform")
+        {
+            std::cout << "[FAIRDB_LOG] Client " << client_config.client_id << ": Uniform distribution." << std::endl;
+            client_config.key_chooser_ = std::make_unique<UniformGenerator>(0, client_config.record_count_ - 1);
+        }
+        else if (client_config.request_distribution == "zipfian")
+        {
+            std::cout << "[FAIRDB_LOG] Client " << client_config.client_id << ": Zipfian distribution." << std::endl;
+
+            // Fetch insert proportion from op_chooser_
+            double insert_proportion = client_config.op_chooser_->GetWeight(INSERT);
+
+            // Calculate new keys
+            int op_count = calculateOperations(client_config.behaviors);
+            int new_keys = static_cast<int>(op_count * insert_proportion * 2); // Fudge factor
+
+            if (client_config.zipfian_const.has_value())
+            {
+                double zipfian_const = client_config.zipfian_const.value();
+                client_config.key_chooser_ = std::make_unique<ScrambledZipfianGenerator>(0, client_config.record_count_ + new_keys - 1, zipfian_const);
+                std::cout << "[FAIRDB_LOG] Client " << client_config.client_id << ": Zipfian constant set to " << zipfian_const << std::endl;
+            }
+            else
+            {
+                client_config.key_chooser_ = std::make_unique<ScrambledZipfianGenerator>(0, client_config.record_count_ + new_keys - 1);
+                std::cout << "[FAIRDB_LOG] Client " << client_config.client_id << ": Using default Zipfian constant." << std::endl;
+            }
+        }
+        else if (client_config.request_distribution == "latest")
+        {
+            client_config.key_chooser_ = std::make_unique<SkewedLatestGenerator>(*client_config.transaction_insert_key_sequence_);
+            std::cout << "[FAIRDB_LOG] Client " << client_config.client_id << ": Latest distribution." << std::endl;
+        }
+        else
+        {
+            throw utils::Exception("Unknown request distribution: " + client_config.request_distribution);
+        }
     }
 
     int calculateReplayOperations(const std::string &trace_file, int replay_client_id, double scale_ratio)
@@ -293,29 +355,26 @@ namespace ycsbc
         return static_cast<int>(total_operations * scale_ratio);
     }
 
-    int calculateTotalOperations(const std::vector<ClientConfig> &clients)
+    int calculateOperations(const std::vector<Behavior> &behaviors)
     {
         int total_operations = 0;
 
-        for (const auto &client : clients)
+        for (const auto &behavior : behaviors)
         {
-            for (const auto &behavior : client.behaviors)
+            switch (behavior.type)
             {
-                switch (behavior.type)
-                {
-                case STEADY:
-                    total_operations += behavior.request_rate * behavior.duration;
-                    break;
-                case BURSTY:
-                    total_operations += (behavior.request_rate * behavior.burst_duration) * behavior.repeats;
-                    break;
-                case INACTIVE:
-                    // No operations for INACTIVE
-                    break;
-                case REPLAY:
-                    total_operations += calculateReplayOperations(behavior.trace_file, behavior.client_id, behavior.scale_ratio);
-                    break;
-                }
+            case STEADY:
+                total_operations += behavior.request_rate * behavior.duration;
+                break;
+            case BURSTY:
+                total_operations += (behavior.request_rate * behavior.burst_duration) * behavior.repeats;
+                break;
+            case INACTIVE:
+                // No operations for INACTIVE
+                break;
+            case REPLAY:
+                total_operations += calculateReplayOperations(behavior.trace_file, behavior.client_id, behavior.scale_ratio);
+                break;
             }
         }
 

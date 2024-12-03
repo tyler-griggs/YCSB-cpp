@@ -60,7 +60,7 @@ namespace ycsbc
           {
             rlim->Consume(1);
           }
-          wl->DoInsert(*db);
+          wl->DoInsert(*db, client_config);
         }
       }
       else

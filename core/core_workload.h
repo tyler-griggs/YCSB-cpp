@@ -179,7 +179,7 @@ namespace ycsbc
     ///
     virtual void Init(const utils::Properties &p);
 
-    virtual bool DoInsert(DB &db);
+    virtual bool DoInsert(DB &db, ClientConfig *config);
     virtual bool DoTransaction(DB &db, ClientConfig *config);
 
     bool
@@ -190,20 +190,16 @@ namespace ycsbc
     bool write_all_fields() const { return write_all_fields_; }
 
     CoreWorkload() : field_count_(0), read_all_fields_(false), write_all_fields_(false),
-                     field_len_generator_(nullptr), key_chooser_(nullptr), field_chooser_(nullptr),
-                     scan_len_chooser_(nullptr), insert_key_sequence_(nullptr),
-                     transaction_insert_key_sequence_(nullptr), ordered_inserts_(true), record_count_(0)
+                     field_len_generator_(nullptr), field_chooser_(nullptr),
+                     scan_len_chooser_(nullptr), ordered_inserts_(true)
     {
     }
 
     virtual ~CoreWorkload()
     {
       delete field_len_generator_;
-      delete key_chooser_;
       delete field_chooser_;
       delete scan_len_chooser_;
-      delete insert_key_sequence_;
-      delete transaction_insert_key_sequence_;
     }
 
   protected:
@@ -212,16 +208,16 @@ namespace ycsbc
     void BuildValues(std::vector<DB::Field> &values);
     void BuildSingleValue(std::vector<DB::Field> &update);
 
-    uint64_t NextTransactionKeyNum();
+    uint64_t NextTransactionKeyNum(ClientConfig *config);
     std::string NextFieldName();
 
-    DB::Status TransactionRead(DB &db, int client_id, std::string table_name);
-    DB::Status TransactionReadModifyWrite(DB &db);
-    DB::Status TransactionScan(DB &db, int client_id, std::string table_name);
-    DB::Status TransactionUpdate(DB &db, int client_id, std::string table_name);
-    DB::Status TransactionRandomInsert(DB &db, int client_id, std::string table_name);
-    DB::Status TransactionInsert(DB &db);
-    DB::Status TransactionInsertBatch(DB &db, int client_id, std::string table_name);
+    DB::Status TransactionRead(DB &db, ClientConfig *config);
+    DB::Status TransactionReadModifyWrite(DB &db, ClientConfig *config);
+    DB::Status TransactionScan(DB &db, ClientConfig *config);
+    DB::Status TransactionUpdate(DB &db, ClientConfig *config);
+    DB::Status TransactionRandomInsert(DB &db, ClientConfig *config);
+    DB::Status TransactionInsert(DB &db, ClientConfig *config);
+    DB::Status TransactionInsertBatch(DB &db, ClientConfig *config);
 
     std::string table_name_;
     int field_count_;
@@ -229,16 +225,10 @@ namespace ycsbc
     bool read_all_fields_;
     bool write_all_fields_;
     Generator<uint64_t> *field_len_generator_;
-    DiscreteGenerator<Operation> op_chooser_;
-    Generator<uint64_t> *key_chooser_; // transaction key gen
     Generator<uint64_t> *field_chooser_;
     Generator<uint64_t> *scan_len_chooser_;
-    CounterGenerator *insert_key_sequence_;                         // load insert key gen
-    AcknowledgedCounterGenerator *transaction_insert_key_sequence_; // transaction insert key gen
     bool ordered_inserts_;
-    size_t record_count_;
     int zero_padding_;
-    bool op_mode_real_;
   };
 
 } // ycsbc

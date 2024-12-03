@@ -1,7 +1,13 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
+#include "generator.h"
+#include "uniform_generator.h"
+#include "zipfian_generator.h"
+#include "scrambled_zipfian_generator.h"
+#include "skewed_latest_generator.h"
 #include "discrete_generator.h"
+#include "acknowledged_counter_generator.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -12,6 +18,7 @@
 #include <jsoncpp/json/json.h>
 #include <yaml-cpp/yaml.h>
 #include <functional>
+#include <optional>
 
 namespace ycsbc
 {
@@ -60,15 +67,24 @@ namespace ycsbc
 
     struct ClientConfig
     {
-        int client_id;                                             // Unique ID for the client.
-        std::string cf;                                            // Column family for the client's operations.
-        std::unique_ptr<DiscreteGenerator<Operation>> op_chooser_; // Operation chooser
-        std::vector<Behavior> behaviors;                           // List of behaviors for this client.
+        int client_id;                                                                  // Unique client ID
+        std::string cf;                                                                 // Column family name
+        std::unique_ptr<DiscreteGenerator<Operation>> op_chooser_;                      // Operation chooser
+        std::unique_ptr<Generator<uint64_t>> key_chooser_;                              // Key chooser (e.g., Uniform, Zipfian, etc.)
+        std::unique_ptr<CounterGenerator> insert_key_sequence_;                         // Sequence for insert keys
+        std::unique_ptr<AcknowledgedCounterGenerator> transaction_insert_key_sequence_; // Sequence for transaction inserts
+        std::vector<Behavior> behaviors;                                                // Client behaviors
+        int record_count_;                                                              // Total records
+        int insert_start_ = 0;                                                          // Starting key for inserts (default 0)
+        std::string request_distribution = "uniform";                                   // Request distribution (default: uniform)
+        std::optional<double> zipfian_const;                                            // Optional Zipfian constant for zipfian distribution
 
-        ClientConfig()
-            : client_id(0),
-              cf("default"),
-              op_chooser_(std::make_unique<DiscreteGenerator<Operation>>()) {}
+        ClientConfig(int client_id, const std::string &cf_value, int record_count_)
+            : client_id(client_id), cf(cf_value), // Initialize in declaration order
+              op_chooser_(std::make_unique<DiscreteGenerator<Operation>>()),
+              record_count_(record_count_)
+        {
+        }
     };
 
     Operation stringToOperation(const std::string &operationName);
@@ -77,7 +93,9 @@ namespace ycsbc
 
     std::vector<ClientConfig> loadClientBehaviors(const std::string &yaml_file);
 
-    int calculateTotalOperations(const std::vector<ClientConfig> &clients);
+    int calculateOperations(const std::vector<Behavior> &behaviors);
+
+    void generateKeyChooser(ClientConfig &client_config, int op_count);
 
 }
 
