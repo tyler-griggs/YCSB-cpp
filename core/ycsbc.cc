@@ -57,7 +57,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
   time_point<system_clock> start = system_clock::now();
   bool done = false;
 
-  int print_intervals = 50;
+  int print_intervals = 10;
   int cur_interval = 0;
   bool should_print = false;
   while (1) {

@@ -61,14 +61,14 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
   // int total_exp_duration_s = 150;
   if (burst_gap_s > 0) {
     if (client_id == 3 || client_id == 4) {
-      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
-      adjusted_num_ops = 1;
+      // std::this_thread::sleep_for(std::chrono::seconds(20));
+      adjusted_num_ops = 10000000;
     }
     // adjusted_num_ops = 123; 
     // adjusted_num_ops = 145; 
     // adjusted_num_ops = 180; 
     // adjusted_num_ops = burst_size_ops;
-    num_bursts = 100;
+    num_bursts = 1;
   }
  
   std::vector<int> op_progress;       
@@ -140,6 +140,14 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
           // wl->DoTransaction(*db, client_id);
         }
         ops++;
+
+        // if (i % 5000 == 0 && (client_id ==3 || client_id == 4)) {
+        //   auto current_time2 = std::chrono::system_clock::now();
+        //   auto fullElapsedTime = std::chrono::duration_cast<std::chrono::seconds>(current_time2 - client_start);
+        //   if (fullElapsedTime.count() >= 45) {
+        //     break;
+        //   }
+        // }
 
         // Periodically check whether log interval has been hit
         if (i % 100 == 0) {
