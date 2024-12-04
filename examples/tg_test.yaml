@@ -21,7 +21,7 @@ clients:                    # Define clients and their behaviors.
       RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 1
@@ -33,7 +33,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 2
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 2
@@ -45,14 +45,14 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 3
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 3
     cf: "cf3"
     record_count: 3125000
     op_distribution:
-      RANDOM_INSERT: 1.0
+      INSERT_BATCH: 1.0
     behaviors:
       - type: INACTIVE
         duration: 4
@@ -64,7 +64,7 @@ clients:                    # Define clients and their behaviors.
     cf: "cf4"
     record_count: 3125000
     op_distribution:
-      RANDOM_INSERT: 1.0
+      INSERT_BATCH: 1.0
     behaviors:
       - type: INACTIVE
         duration: 5
@@ -81,7 +81,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 6
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 6
@@ -93,7 +93,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 7
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
         
   - client_id: 7
@@ -105,7 +105,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 8
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 8
@@ -117,7 +117,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 9
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 9
@@ -129,7 +129,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 10
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 10
@@ -141,7 +141,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 11
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 11
@@ -153,7 +153,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 12
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 12
@@ -165,7 +165,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 13
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 13
@@ -177,7 +177,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 14
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 14
@@ -189,7 +189,7 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 15
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
 
   - client_id: 15
@@ -201,5 +201,5 @@ clients:                    # Define clients and their behaviors.
       - type: INACTIVE
         duration: 16
       - type: STEADY
-        request_rate: 5000   
+        request_rate: 8000   
         duration: 100
