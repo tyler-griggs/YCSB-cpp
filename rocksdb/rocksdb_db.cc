@@ -597,24 +597,24 @@ namespace ycsbc
   if (vals.size() != cf_opt.size()) {
     throw utils::Exception("PROP_CACHE_SIZE doesn't match number of column families");
   }
+
+  // TODO(tgriggs|devbali): cache additions
   bool use_pooled = props.GetProperty(PROP_FAIRDB_USE_POOLED, PROP_FAIRDB_USE_POOLED_DEFAULT) == "true";
-  auto client_to_cf = Prop2vector(props, CoreWorkload::CLIENT_TO_CF_MAP, CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT);
+  // auto client_to_cf = Prop2vector(props, CoreWorkload::CLIENT_TO_CF_MAP, CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT);
 
   for (size_t i = 0; i < cf_opt.size(); ++i) {
-    // TODO(tgriggs|devbali): cache additions
-    int client_idx = -1;
-    std::string cf_name = cf_names[i];
-    for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
-      std::string cf_to_idx = client_to_cf[client_to_cf_i];
-          printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
+    // int client_idx = -1;
+    // std::string cf_name = cf_names[i];
+    // for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
+    //   std::string cf_to_idx = client_to_cf[client_to_cf_i];
+    //       printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
 
-      if (cf_to_idx == cf_name) {
-        client_idx = client_to_cf_i;
-        break;
-      }
-    }
-    assert (client_idx != -1);
-
+    //   if (cf_to_idx == cf_name) {
+    //     client_idx = client_to_cf_i;
+    //     break;
+    //   }
+    // }
+    // assert (client_idx != -1);
 
     rocksdb::BlockBasedTableOptions table_options;
     std::string val = vals[i];
@@ -630,10 +630,8 @@ namespace ycsbc
       cache_opts.read_io_mbps = 5000;
       cache_opts.additional_rampups_supported = 2;
       cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
-
       table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
-      printf("block caches by client size %d, client %d\n", block_caches_by_client_.size(), client_idx );
-      block_caches_by_client_.insert(block_caches_by_client_.begin() + client_idx, table_options.block_cache);
+      block_caches_by_client_.insert(block_caches_by_client_.begin() + i, table_options.block_cache);
     } else {
       table_options.no_block_cache = true;  // Disable block cache
     }

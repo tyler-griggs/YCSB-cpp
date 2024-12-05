@@ -34,7 +34,7 @@ class RocksdbDB : public DB {
   }
 
   std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) {
-    if (client_idx >= block_caches_by_client_.size()) return nullptr;
+    if (static_cast<size_t>(client_idx) >= block_caches_by_client_.size()) return nullptr;
     return block_caches_by_client_[client_idx];
   }
 
@@ -44,8 +44,8 @@ class RocksdbDB : public DB {
 
   Status Read(const std::string &table, const std::string &key,
               const std::vector<std::string> *fields, std::vector<Field> &result,
-              int client_id) {
-    return (this->*(method_read_))(table, key, fields, result, client_id);
+              int client_id = 0) {
+    return (this->*(method_read_))(table, key, fields, result);
   }
 
   Status Scan(const std::string &table, const std::string &key, int len,
@@ -87,7 +87,7 @@ class RocksdbDB : public DB {
   void GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                   std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs);
   void GetCfOptions(const utils::Properties &props, 
-                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt, std::vector<std::string>& cf_names);
+                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt);
   static void SerializeRow(const std::vector<Field> &values, std::string &data);
   static void DeserializeRowFilter(std::vector<Field> &values, const char *p, const char *lim,
                                    const std::vector<std::string> &fields);
@@ -97,7 +97,7 @@ class RocksdbDB : public DB {
   static void DeserializeRow(std::vector<Field> &values, const std::string &data);
 
   Status ReadSingle(const std::string &table, const std::string &key,
-                    const std::vector<std::string> *fields, std::vector<Field> &result, int client_id);
+                    const std::vector<std::string> *fields, std::vector<Field> &result);
   Status ScanSingle(const std::string &table, const std::string &key, int len,
                     const std::vector<std::string> *fields,
                     std::vector<std::vector<Field>> &result);
@@ -112,7 +112,7 @@ class RocksdbDB : public DB {
                       std::vector<Field> &values, int num_keys);
 
   Status (RocksdbDB::*method_read_)(const std::string &, const std:: string &,
-                                    const std::vector<std::string> *, std::vector<Field> &, int client_id);
+                                    const std::vector<std::string> *, std::vector<Field> &);
   Status (RocksdbDB::*method_scan_)(const std::string &, const std::string &,
                                     int, const std::vector<std::string> *,
                                     std::vector<std::vector<Field>> &);

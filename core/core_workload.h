@@ -164,16 +164,11 @@ namespace ycsbc
     ///
     static const std::string ZIPFIAN_CONST_PROPERTY;
 
-    static const std::string CLIENT_TO_CF_MAP;
-    static const std::string CLIENT_TO_CF_MAP_DEFAULT;
+    static const std::string OP_MODE_PROPERTY;
+    static const std::string OP_MODE_DEFAULT;
 
     static const std::string CLIENT_TO_CF_OFFSET;
     static const std::string CLIENT_TO_CF_OFFSET_DEFAULT;
-    static const std::string CLIENT_TO_CF_MAP;
-    static const std::string CLIENT_TO_CF_MAP_DEFAULT;
-
-    static const std::string CLIENT_TO_OP_MAP;
-    static const std::string CLIENT_TO_OP_MAP_DEFAULT;
 
     ///
     /// Initialize the scenario.
