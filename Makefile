@@ -18,8 +18,10 @@ BIND_SQLITE ?= 0
 
 # Extra options
 DEBUG_BUILD ?=
-EXTRA_CXXFLAGS ?= -I/home/tylergriggs/rocksdb/include/
-EXTRA_LDFLAGS ?= -L/home/tylergriggs/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4
+
+USER := $(shell whoami)
+EXTRA_CXXFLAGS ?= -I/home/$(USER)/rocksdb/include/ -I/usr/include/jsoncpp -I/usr/include/yaml-cpp
+EXTRA_LDFLAGS ?= -L/home/$(USER)/rocksdb/ -ldl -lz -lsnappy -lzstd -lbz2 -llz4 -ljsoncpp -lyaml-cpp
 
 
 # HdrHistogram for tail latency report

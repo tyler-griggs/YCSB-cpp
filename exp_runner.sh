@@ -54,7 +54,6 @@ mpstat_pid=$!
 
 #   -threads 16 \
 #   -p rocksdb.num_cfs=16 \
-#   -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10,cf11,cf12,cf13,cf14,cf15" \
 #   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
 #   -target_rates "380,420,395,405,401,399,409,415,385,382,418,412,391,383,392,400" \
 #   -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
@@ -76,35 +75,26 @@ mpstat_pid=$!
 #     -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
 #   -target_rates "3800,4200,3950,1500,1500,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
 
+#   -p wbm_size="750" \
+#   -p wbm_steady_res_size="600" \
+#   -p wbm_limits="86,86,86,186,186,86,86,86,86,86,86,86,86,86,86,86" \
 
 # Start ycsb process in the background
-./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties \
+./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
+  -p config=examples/tg_mt.yaml \
   -p readallfields=true \
-  -p requestdistribution=zipfian \
-  -s -p operationcount=35000000 \
-  -p recordcount=3125000 \
   -p fieldcount=1 \
   -p fieldlength=1024 \
-  -p updateproportion=0 \
-  -p insertproportion=0 \
-  -p readproportion=1 \
-  -p scanproportion=0 \
-  -p randominsertproportion=0 \
-  -p real_op_mode=false \
-  -threads 16 \
-  -p rocksdb.num_cfs=16 \
   -p tpool_threads=16 \
-  -p client_to_cf_map="default,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10,cf11,cf12,cf13,cf14,cf15" \
-    -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-  -target_rates "3800,4200,3950,3950,3990,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
-  -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
+  -p rocksdb.num_cfs=16 \
+  -p wbm_size="850" \
+  -p wbm_steady_res_size="650" \
+  -p wbm_limits="750,750,750,750,750,750,750,750,750,750,750,750,750,750,750,750" \
   -p status.interval_ms=100 \
-  -p burst_gap_s=0 \
-  -p burst_size_ops=1 \
-  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
-  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
+  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
+  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
   -p refill_period=50 \
   -p rsched=false \
   -p rsched_interval_ms=10 \

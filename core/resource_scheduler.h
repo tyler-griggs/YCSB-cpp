@@ -243,7 +243,6 @@ void CentralResourceSchedulerThread(
       std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
         interval_usage[i] = ycsbc::utils::ComputeResourceUsageRateInInterval(prev_usage[i], total_usage[i], options.rsched_interval_ms);
-        
         // TODO(tgriggs): correct this!!! switch to kb/s??
       }
 

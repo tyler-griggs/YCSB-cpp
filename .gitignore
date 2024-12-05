@@ -8,3 +8,8 @@ tags
 compile_commands.json
 .clangd/
 .cache/
+nohup.out
+*.csv
+*.txt
+logs/
+!CMakeLists.txt
