@@ -19,6 +19,8 @@
 #include "utils/utils.h"
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
+#include <rocksdb/rocksdb_db.h>
+
 
 namespace ycsbc {
 
@@ -41,7 +43,8 @@ class DBWrapper : public DB {
               const std::vector<std::string> *fields, std::vector<Field> &result,
               int client_id) {
     timer_.Start();
-    Status s = db_->Read(table, key, fields, result);
+    Status s = db_->Read(table, key, fields, result, client_id);
+
     uint64_t elapsed = timer_.End();
     if (s == kOK) {
       measurements_->Report(READ, elapsed);
@@ -145,6 +148,10 @@ class DBWrapper : public DB {
 
   void PrintDbStats() {
     db_->PrintDbStats();
+  }
+
+  std::shared_ptr<rocksdb::Cache> GetCacheByClientIdx (int client_idx) {
+    return db_->GetCacheByClientIdx(client_idx);
   }
   
  private:

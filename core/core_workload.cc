@@ -81,8 +81,9 @@ const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 const string CoreWorkload::INSERT_BATCH_PROPORTION_PROPERTY = "insertbatchproportion";
 const string CoreWorkload::INSERT_BATCH_PROPORTION_DEFAULT = "0.0";
 
+// TODO(tgriggs|devbali): make this per-clien and add to client config
 const string CoreWorkload::REQUEST_DISTRIBUTION_PROPERTY = "requestdistribution";
-const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform";
+const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform,uniform,uniform,uniform"; // -
 
 const string CoreWorkload::ZERO_PADDING_PROPERTY = "zeropadding";
 const string CoreWorkload::ZERO_PADDING_DEFAULT = "1";
@@ -102,16 +103,21 @@ const string CoreWorkload::INSERT_ORDER_DEFAULT = "ordered";
 const string CoreWorkload::INSERT_START_PROPERTY = "insertstart";
 const string CoreWorkload::INSERT_START_DEFAULT = "0";
 
+// TODO(tgriggs|devbali): make this per-clien and add to client config
 const string CoreWorkload::RECORD_COUNT_PROPERTY = "recordcount";
 const string CoreWorkload::OPERATION_COUNT_PROPERTY = "operationcount";
 
 const std::string CoreWorkload::FIELD_NAME_PREFIX = "fieldnameprefix";
 const std::string CoreWorkload::FIELD_NAME_PREFIX_DEFAULT = "field";
 
-const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const";
+const std::string CoreWorkload::ZIPFIAN_CONST_PROPERTY = "zipfian_const"; //
 
 const std::string CoreWorkload::OP_MODE_PROPERTY = "real_op_mode";
 const std::string CoreWorkload::OP_MODE_DEFAULT = "true";
+
+// TODO(tgriggs|devbali): add these to the client config if needed.
+const std::string CoreWorkload::CLIENT_TO_CF_OFFSET = "client_to_cf_offset";
+const std::string CoreWorkload::CLIENT_TO_CF_OFFSET_DEFAULT = "0,0,0,0";
 
 namespace ycsbc
 {
@@ -300,6 +306,8 @@ namespace ycsbc
 
   DB::Status CoreWorkload::TransactionRead(DB &db, ClientConfig *config)
   {
+    // TODO(tgriggs|devbali): add offset here
+    
     uint64_t key_num = NextTransactionKeyNum(config);
     std::string table_name = config->cf;
     int client_id = config->client_id;
@@ -375,6 +383,7 @@ namespace ycsbc
 
   DB::Status CoreWorkload::TransactionUpdate(DB &db, ClientConfig *config)
   {
+    // TODO(tgriggs|devbali): add offset here
     uint64_t key_num = NextTransactionKeyNum(config);
     std::string table_name = config->cf;
     int client_id = config->client_id;

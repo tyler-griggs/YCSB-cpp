@@ -164,9 +164,11 @@ namespace ycsbc
     ///
     static const std::string ZIPFIAN_CONST_PROPERTY;
 
-    static const std::string OP_MODE_PROPERTY;
-    static const std::string OP_MODE_DEFAULT;
+    static const std::string CLIENT_TO_CF_MAP;
+    static const std::string CLIENT_TO_CF_MAP_DEFAULT;
 
+    static const std::string CLIENT_TO_CF_OFFSET;
+    static const std::string CLIENT_TO_CF_OFFSET_DEFAULT;
     static const std::string CLIENT_TO_CF_MAP;
     static const std::string CLIENT_TO_CF_MAP_DEFAULT;
 
@@ -182,12 +184,8 @@ namespace ycsbc
     virtual bool DoInsert(DB &db, ClientConfig *config);
     virtual bool DoTransaction(DB &db, ClientConfig *config);
 
-    bool
-    read_all_fields() const
-    {
-      return read_all_fields_;
-    }
-    bool write_all_fields() const { return write_all_fields_; }
+  bool read_all_fields() const { return read_all_fields_; }
+  bool write_all_fields() const { return write_all_fields_; }
 
     CoreWorkload() : field_count_(0), read_all_fields_(false), write_all_fields_(false),
                      field_len_generator_(nullptr), field_chooser_(nullptr),
@@ -218,7 +216,7 @@ namespace ycsbc
     DB::Status TransactionRandomInsert(DB &db, ClientConfig *config);
     DB::Status TransactionInsert(DB &db, ClientConfig *config);
     DB::Status TransactionInsertBatch(DB &db, ClientConfig *config);
-
+  // TODO(tgriggs): record counts and offsets
     std::string table_name_;
     int field_count_;
     std::string field_prefix_;
