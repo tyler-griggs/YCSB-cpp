@@ -79,7 +79,7 @@ namespace ycsbc
             auto queueing_delay = std::chrono::duration_cast<std::chrono::nanoseconds>(dequeue_time - enqueue_start_time).count();
             queuing_delay_measurements[client_config->client_id]->Report(QUEUE, queueing_delay);
 
-            wl->DoTransaction(*db, client_config);
+          wl->DoTransaction(*db, client_config);
             return nullptr; // to match void* return
           };
           threadpool->async_dispatch(client_config->client_id, transaction_task);
