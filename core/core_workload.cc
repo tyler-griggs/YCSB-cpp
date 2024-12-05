@@ -413,7 +413,8 @@ namespace ycsbc
     uint64_t key_num = NextTransactionKeyNum(config);
     std::string table_name = config->cf;
     int client_id = config->client_id;
-    int batch_size = 400;
+    int batch_size = 86;  // 86 * 1KB == 86KB
+    // int batch_size = 86'000;
     uint64_t client_key_num = key_num;
     client_key_num = std::min(key_num, uint64_t(3125000 - batch_size));
 
