@@ -71,6 +71,9 @@ mpstat_pid=$!
 #   -target_rates "3800,4200,3950,1000,1000,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
 #   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
 
+#   -p wbm_size="750" \
+#   -p wbm_steady_res_size="600" \
+#   -p wbm_limits="86,86,86,186,186,86,86,86,86,86,86,86,86,86,86,86" \
 
 # Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
@@ -83,8 +86,8 @@ mpstat_pid=$!
   -p tpool_threads=16 \
   -p rocksdb.num_cfs=16 \
   -p wbm_size="750" \
-  -p wbm_steady_res_size="600" \
-  -p wbm_limits="86,86,86,186,186,86,86,86,86,86,86,86,86,86,86,86" \
+  -p wbm_steady_res_size="550" \
+  -p wbm_limits="750,750,750,750,750,750,750,750,750,750,750,750,750,750,750,750" \
   -p status.interval_ms=100 \
   -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
   -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \

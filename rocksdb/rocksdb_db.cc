@@ -546,12 +546,16 @@ namespace ycsbc
 
     // size_t write_buffer_memory_limit = 2 * num_clients * 64 * 1024 * 1024; // 1GB
     size_t write_buffer_memory_limit = std::stoi(props.GetProperty("wbm_size", "1024"));
+    size_t steady_reservation_size = std::stoi(props.GetProperty("wbm_steady_res_size", "0"));
 
     std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
-        std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients);
+        std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients, steady_reservation_size * 1024 * 1024);
     for (size_t i = 0; i < wbm_limits.size(); ++i)
     {
       write_buffer_manager->SetPerClientBufferSize(i, wbm_limits[i] * 1024 * 1024);
+      if (i != 3 && i != 4) {
+        write_buffer_manager->SetClientAsSteady(i, true);
+      }
     }
     opt->write_buffer_manager = write_buffer_manager;
   }

@@ -52,25 +52,37 @@ clients:                    # Define clients and their behaviors.
     cf: "cf3"
     record_count: 3125000
     op_distribution:
-      INSERT_BATCH: 1.0
+      RANDOM_INSERT: 1.0
+      # INSERT_BATCH: 1.0
     behaviors:
       - type: INACTIVE
         duration: 4
       - type: STEADY
-        request_rate: 1000   
+        request_rate: 6000   
         duration: 100
+      # - type: BURSTY 
+      #   request_rate: 1
+      #   burst_duration: 1 
+      #   idle_duration: 10 
+      #   repeats: 9 
 
   - client_id: 4
     cf: "cf4"
     record_count: 3125000
     op_distribution:
-      INSERT_BATCH: 1.0
+      RANDOM_INSERT: 1.0
+      # INSERT_BATCH: 1.0
     behaviors:
       - type: INACTIVE
         duration: 5
       - type: STEADY
-        request_rate: 1000   
+        request_rate: 6000   
         duration: 100
+      # - type: BURSTY 
+      #   request_rate: 1 
+      #   burst_duration: 1 
+      #   idle_duration: 10 
+      #   repeats: 9 
 
   - client_id: 5
     cf: "cf5"
