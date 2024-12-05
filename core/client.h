@@ -36,7 +36,7 @@ void EnforceClientRateLimit(long op_start_time_ns, long target_ops_per_s, long t
 
 inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops, bool is_loading,
                         bool init_db, bool cleanup_db, utils::CountDownLatch *latch, utils::RateLimiter *rlim, ThreadPool *threadpool, 
-                        int client_id, int target_ops_per_s, int burst_gap_s, int burst_size_ops) {
+                        int client_id, int target_ops_per_s, int burst_gap_ms, int burst_size_ops, uint64_t first_burst_ops = 0) {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
 
@@ -50,22 +50,11 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
     std::exit(1);
   }
 
-  int num_bursts = 1;
-  int adjusted_num_ops = num_ops;
-
-  // TODO(tgriggs): remove this post-experiment
-  // int total_exp_duration_s = 150;
-  if (burst_gap_s > 0) {
-    if (client_id == 6 || client_id == 7) {
-      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
-      adjusted_num_ops = 24;
-    }
-    // adjusted_num_ops = 123; 
-    // adjusted_num_ops = 145; 
-    // adjusted_num_ops = 180; 
-    // adjusted_num_ops = burst_size_ops;
-    num_bursts = 100;
+  int num_bursts = burst_size_ops;
+  if (burst_size_ops == 0) {
+    num_bursts = 1;
   }
+  int adjusted_num_ops = num_ops;
  
   std::vector<int> op_progress;       
   int client_log_interval_s = 1;                 
@@ -88,6 +77,13 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
 
     int ops = 0;
     for (int b = 0; b < num_bursts; ++b) {
+      if (num_bursts == 2 && first_burst_ops != 0) {
+        if (b == 0) {
+          adjusted_num_ops = first_burst_ops;
+        } else {
+          adjusted_num_ops = num_ops - first_burst_ops;
+        }
+      }
       for (int i = 0; i < adjusted_num_ops; ++i) {
         if (rlim) {
           rlim->Consume(1);
@@ -135,7 +131,7 @@ inline std::tuple<long long, std::vector<int>> ClientThread(ycsbc::DB *db, ycsbc
         
         EnforceClientRateLimit(op_start_time_ns, target_ops_per_s, target_ops_tick_ns, ops);
       }
-      std::this_thread::sleep_for(std::chrono::seconds(burst_gap_s));
+      std::this_thread::sleep_for(std::chrono::milliseconds(burst_gap_ms));
     }
 
     if (cleanup_db) {

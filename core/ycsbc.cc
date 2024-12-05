@@ -81,11 +81,17 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     auto duration_since_epoch = now.time_since_epoch();
     auto duration_since_epoch_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
 
+
     // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i) {
       std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
-      
-      std::shared_ptr<rocksdb::Cache> block_cache = dbs[0]->GetCacheByClientIdx(i);
+      int j = -1;
+      std::shared_ptr<rocksdb::Cache> block_cache = nullptr;
+      while (block_cache == nullptr && j < (int) (per_client_measurements.size()-1)) {
+        j++;
+        block_cache = dbs[j]->GetCacheByClientIdx(i);
+      }
+
       uint64_t cache_hits = 0;
       uint64_t cache_misses = 0;
       if (block_cache) {
@@ -283,7 +289,7 @@ int main(const int argc, const char *argv[]) {
         thread_ops++;
       }
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
-                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0, 0, 0));
+                                             thread_ops, true, /*init_db=*/true, !do_transaction, &latch, nullptr, nullptr, i, /*target_op_per_s*/0, 0, 0, 0));
     }
     assert((int)client_threads.size() == num_threads);
 
@@ -313,7 +319,7 @@ int main(const int argc, const char *argv[]) {
   ThreadPool threadpool;
   // threadpool.start(/*num_threads=*/ 1);
 
-  int burst_gap_s = std::stoi(props.GetProperty("burst_gap_s", "0"));
+  int burst_gap_ms = std::stoi(props.GetProperty("burst_gap_ms", "0"));
   int burst_size_ops = std::stoi(props.GetProperty("burst_size_ops", "0"));
 
   // transaction phase
@@ -342,13 +348,25 @@ int main(const int argc, const char *argv[]) {
     std::vector<ycsbc::utils::RateLimiter *> rate_limiters;
 
     uint64_t total_target_rates = 0;
+    std::vector<int> ramp_durations = stringToIntVector(props.GetProperty("ramp_duration", "0,0,0"));
+    std::vector<int> ramp_starts = stringToIntVector(props.GetProperty("ramp_start", "0,0,0"));
     for (int i = 0; i < num_threads; i++) {
       total_target_rates += target_rates[i];
     }
 
     for (int i = 0; i < num_threads; ++i) {
-      printf("TOTAL OPS %d target rate %d total target rate %ld\n", total_ops, target_rates[i], total_target_rates);
       uint64_t thread_ops = ((uint64_t) total_ops * target_rates[i]) / total_target_rates;
+
+      burst_gap_ms = 0;
+      burst_size_ops = 0;
+      uint64_t first_burst_ops = 0;
+      if (ramp_durations.size() > i && ramp_durations[i] > 0) {
+        int estimated_time_ms = (thread_ops * 1000) / target_rates[i];
+        burst_size_ops = 2;
+        burst_gap_ms = (estimated_time_ms * ramp_durations[i]) / 120;
+        first_burst_ops = (thread_ops * ramp_starts[i]) / 120;
+        thread_ops = (thread_ops * (120-ramp_durations[i])) / 120;
+      }
 
       ycsbc::utils::RateLimiter *rlim = nullptr;
       if (ops_limit > 0 || rate_file != "") {
@@ -358,8 +376,8 @@ int main(const int argc, const char *argv[]) {
       rate_limiters.push_back(rlim);
       client_threads.emplace_back(std::async(std::launch::async, ycsbc::ClientThread, dbs[i], &wl,
                                              thread_ops, false, !do_load, true, &latch, rlim, 
-                                             &threadpool, i, target_rates[i], burst_gap_s, 
-                                             burst_size_ops));
+                                             &threadpool, i, target_rates[i], burst_gap_ms, 
+                                             burst_size_ops, first_burst_ops));
     }
 
     std::future<void> rlim_future;
