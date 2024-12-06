@@ -199,6 +199,18 @@ void CentralResourceSchedulerThread(
   std::vector<ycsbc::Measurements*> per_client_measurements, ResourceSchedulerOptions options,
   ycsbc::utils::CountDownLatch *latch) {
 
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(17, &cpuset);
+    std::cout << "[FAIRDB_LOG] Pinning rsched thread to core " << 17 << std::endl;
+    int rc = pthread_setaffinity_np(pthread_self(),
+                                    sizeof(cpu_set_t), &cpuset);
+    if (rc != 0)
+    {
+      fprintf(stderr, "Couldn't set thread affinity.\n");
+      std::exit(1);
+    }
+
     std::string resource_share_filename = "logs/resource_shares.log";
     std::ofstream resource_share_logfile;
     resource_share_logfile.open(resource_share_filename, std::ios::out | std::ios::trunc);

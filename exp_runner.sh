@@ -20,7 +20,7 @@ process_iostat_output() {
             current_timestamp=$(echo $line | awk '{print $2, $3}')
         elif [[ $line == *md0* ]]; then
             # Write the current timestamp along with the iostat metrics
-            echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$6,",",$7,",",$8,",",$9,",",$12,",",$13}' >> iostat_results.csv
+            echo "$line" | awk -v ts="$current_timestamp" '{print ts ",",$2 ",",$3 ",",$6 ",",$7 ",",$8 ",",$9 ",",$12 ",",$13}' >> iostat_results.csv
         fi
     done < iostat_output.txt
 }
@@ -33,8 +33,8 @@ process_mpstat_output() {
           # Extract timestamp
           current_timestamp=$(echo $line | awk '{print $2, $3}')
       else
-          # Write the current timestamp along with the iostat metrics
-          echo "$line" | awk -v ts="$current_timestamp" '{print ts,",",$2,",",$3,",",$5,",",$6,",",$8,",",$12}' >> mpstat_results.csv
+          # Write the current timestamp along with the mpstat metrics
+          echo "$line" | awk -v ts="$current_timestamp" '{print ts ",",$2 ",",$3 ",",$5 ",",$6 ",",$8 ",",$12}' >> mpstat_results.csv
       fi
   done < mpstat_output.txt
 }
@@ -49,50 +49,35 @@ iostat_pid=$!
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
 mpstat_pid=$!
 
+# Default values for YCSB parameters if not set by the environment
+: "${CONFIG:=examples/tg_read.yaml}"
+: "${FIELDCOUNT:=1}"
+: "${FIELDLENGTH:=1024}"
+: "${TPOOL_THREADS:=16}"
+: "${ROCKSDB_NUM_CFS:=16}"
+: "${FAIRDB_USE_POOLED:=true}"
+: "${ROCKSDB_CACHE_SIZE:=1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576}"
+: "${CACHE_NUM_SHARD_BITS:=8}"
+: "${WBM_SIZE:=850}"
+: "${WBM_STEADY_RES_SIZE:=650}"
+: "${WBM_LIMITS:=750,750,750,750,750,750,750,750,750,750,750,750,750,750,750,750}"
 
-
-
-#   -threads 16 \
-#   -p rocksdb.num_cfs=16 \
-#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
-#   -target_rates "380,420,395,405,401,399,409,415,385,382,418,412,391,383,392,400" \
-#   -p wbm_limits="256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256" \
-#   -p status.interval_ms=500 \
-#   -p burst_gap_s=30 \
-#   -p burst_size_ops=1 \
-#   -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
-#   -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000" \
-
-#   -p client_to_op_map="READ,READ,READ,READ" \
-#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-
-#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-#   -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-#   -target_rates "3800,4200,3950,1000,1000,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
-#   -p client_to_op_map="READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ,READ" \
-#   -target_rates "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1" \
-
-#     -p client_to_op_map="RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,INSERT_BATCH,INSERT_BATCH,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT,RANDOM_INSERT" \
-#   -target_rates "3800,4200,3950,1500,1500,3990,4090,4150,3850,3820,4180,4120,3910,3830,3920,4000" \
-
-#   -p wbm_size="750" \
-#   -p wbm_steady_res_size="600" \
-#   -p wbm_limits="86,86,86,186,186,86,86,86,86,86,86,86,86,86,86,86" \
-
-# Start ycsb process in the background
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-  -p config=examples/tg_read.yaml \
+  -p config="$CONFIG" \
   -p readallfields=true \
-  -p fairdb_use_pooled=true \
-  -p fieldcount=1 \
-  -p fieldlength=1024 \
-  -p tpool_threads=16 \
-  -p rocksdb.num_cfs=16 \
-  -p wbm_size="850" \
-  -p wbm_steady_res_size="650" \
-  -p wbm_limits="750,750,750,750,750,750,750,750,750,750,750,750,750,750,750,750" \
+  -p fieldcount="$FIELDCOUNT" \
+  -p fieldlength="$FIELDLENGTH" \
+  -p tpool_threads="$TPOOL_THREADS" \
+  -p rocksdb.num_cfs="$ROCKSDB_NUM_CFS" \
+  -p fairdb_use_pooled="$FAIRDB_USE_POOLED" \
+  -p rocksdb.cache_size="$ROCKSDB_CACHE_SIZE" \
+  -p cache_num_shard_bits="$CACHE_NUM_SHARD_BITS" \
+  -p fairdb_cache_rad="$CACHE_RAD_MICROSECONDS" \
+  -p wbm_size="$WBM_SIZE" \
+  -p wbm_steady_res_size="$WBM_STEADY_RES_SIZE" \
+  -p wbm_limits="$WBM_LIMITS" \
   -p status.interval_ms=100 \
   -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
   -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
@@ -109,105 +94,7 @@ mpstat_pid=$!
   -p min_memtable_size_kb=$((64 * 1024)) \
   | tee status_thread.txt &
 
-# To add:
-# rocksdb parameters for memtable size, etc.
-
-# Multi column family
-# ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data \
-#   -s -p operationcount=35000000 \
-#   -p recordcount=1562500 \
-#   -p updateproportion=0 \
-#   -p insertproportion=0 \
-#   -p readproportion=1 \
-#   -p scanproportion=0 \
-#   -p randominsertproportion=0 \
-#   -threads 2 \
-#   -p op_mode=real \
-#   -target_rates "900,900" \
-#   -p requestdistribution=uniform \
-#   | tee status_thread.txt &
-
-# Multi column family
-# ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p rocksdb.dbname=/mnt/multi-cf2/ycsb-rocksdb-data-2 \
-#   -s -p operationcount=35000000 \
-#   -p recordcount=1562500 \
-#   -p updateproportion=0 \
-#   -p insertproportion=0 \
-#   -p readproportion=1 \
-#   -p scanproportion=0 \
-#   -p randominsertproportion=0 \
-#   -threads 2 \
-#   -p op_mode=fake \
-#   -target_rates "200,900" \
-#   -p rate_limits=60 \
-#   -p read_rate_limits=60 \
-#   -p refill_period=10 \
-#   -p requestdistribution=uniform \
-#   | tee status_thread2.txt &
-
 ycsb_pid=$!
 echo "YCSB pid: ${ycsb_pid}"
 # Wait for the ycsb process to finish
 wait $ycsb_pid
-
-# The script exits here, triggering the cleanup function
-
-# GDB format
-# gdb --args ./ycsb -run -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
-#   -s -p operationcount=35000000 \
-#   -p recordcount=1562500 \
-#   -p updateproportion=1 \
-#   -p insertproportion=0 \
-#   -p readproportion=0 \
-#   -p scanproportion=0 \
-#   -p randominsertproportion=0 \
-#   -threads 4 \
-#   -p rate_limits=200 \
-#   -p requestdistribution=uniform \
-#   | tee status_thread.txt
-
-# nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -p table=default \
-#   -threads 1 \
-#   -p op_mode=real \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
-
-# nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -p table=cf2 \
-#   -threads 1 \
-#   -p op_mode=real \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
-
-#   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -p table=cf3 \
-#   -threads 1 \
-#   -p op_mode=real \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
-
-#   nohup ./ycsb -load -db rocksdb -P workloads/workloada -P rocksdb/rocksdb.properties \
-#   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-#   -p recordcount=3125000 \
-#   -p fieldcount=16 \
-#   -p fieldlength=1024 \
-#   -p table=cf4 \
-#   -threads 1 \
-#   -p op_mode=real \
-#   -p requestdistribution=uniform \
-#   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data -s | tee status_thread.txt &
