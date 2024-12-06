@@ -317,43 +317,45 @@ int main(const int argc, const char *argv[])
   // load phase
   if (do_load)
   {
-    const int total_ops = stoi(props[ycsbc::CoreWorkload::RECORD_COUNT_PROPERTY]);
+    throw ycsbc::utils::Exception("[FAIRDB_ERR] Loading not currently supported.");
 
-    ycsbc::utils::CountDownLatch latch(num_threads);
-    ycsbc::utils::Timer<double> timer;
+    // const int total_ops = stoi(props[ycsbc::CoreWorkload::RECORD_COUNT_PROPERTY]);
 
-    timer.Start();
-    std::future<void> status_future;
-    if (show_status)
-    {
-      status_future = std::async(std::launch::async, StatusThread,
-                                 measurements, per_client_measurements, queuing_delay_measurements, &latch, status_interval_ms, dbs);
-    }
-    std::vector<std::future<long long>> client_threads;
-    for (int i = 0; i < num_threads; ++i)
-    {
-      int thread_ops = total_ops / num_threads;
-      if (i < total_ops % num_threads)
-      {
-        thread_ops++;
-      }
-      client_threads.emplace_back(
-          std::async(std::launch::async,
-                     [dbs, &wl, thread_ops, do_transaction, &latch, &clients, &queuing_delay_measurements, i]()
-                     {
-                       return ycsbc::ClientThread(
-                           dbs[i], &wl, thread_ops, true,
-                           /*init_db=*/true, !do_transaction,
-                           &latch, nullptr, nullptr,
-                           &clients[i], queuing_delay_measurements);
-                     }));
-    }
-    assert((int)client_threads.size() == num_threads);
+    // ycsbc::utils::CountDownLatch latch(num_threads);
+    // ycsbc::utils::Timer<double> timer;
 
-    if (show_status)
-    {
-      status_future.wait();
-    }
+    // timer.Start();
+    // std::future<void> status_future;
+    // if (show_status)
+    // {
+    //   status_future = std::async(std::launch::async, StatusThread,
+    //                              measurements, per_client_measurements, queuing_delay_measurements, &latch, status_interval_ms, dbs);
+    // }
+    // std::vector<std::future<long long>> client_threads;
+    // for (int i = 0; i < num_threads; ++i)
+    // {
+    //   int thread_ops = total_ops / num_threads;
+    //   if (i < total_ops % num_threads)
+    //   {
+    //     thread_ops++;
+    //   }
+    //   client_threads.emplace_back(
+    //       std::async(std::launch::async,
+    //                  [dbs, &wl, thread_ops, do_transaction, &latch, &clients, &queuing_delay_measurements, i]()
+    //                  {
+    //                    return ycsbc::ClientThread(
+    //                        dbs[i], &wl, thread_ops, true,
+    //                        /*init_db=*/true, !do_transaction,
+    //                        &latch, nullptr, nullptr,
+    //                        &clients[i], queuing_delay_measurements);
+    //                  }));
+    // }
+    // assert((int)client_threads.size() == num_threads);
+
+    // if (show_status)
+    // {
+    //   status_future.wait();
+    // }
   }
 
   measurements->Reset();
