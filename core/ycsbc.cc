@@ -54,8 +54,8 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
 {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
-  CPU_SET(17, &cpuset);
-  // std::cout << "[FAIRDB_LOG] Pinning client " << client_id << " to core " << cpu_for_client << std::endl;
+  CPU_SET(16, &cpuset);
+  std::cout << "[FAIRDB_LOG] Pinning status thread to core " << 16 << std::endl;
   int rc = pthread_setaffinity_np(pthread_self(),
                                   sizeof(cpu_set_t), &cpuset);
   if (rc != 0)
