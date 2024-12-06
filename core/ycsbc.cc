@@ -81,7 +81,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     auto elapsed_time_s = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
     if (elapsed_time_s % 5 == 0)
     {
-      std::cout << "[TGRIGGS_LOG] Exp time: " << elapsed_time_s << "s" << std::endl;
+      std::cout << "[FAIRDB_LOG] Exp time: " << elapsed_time_s << "s" << std::endl;
     }
 
     auto duration_since_epoch = now.time_since_epoch();

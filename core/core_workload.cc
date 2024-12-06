@@ -81,10 +81,6 @@ const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 const string CoreWorkload::INSERT_BATCH_PROPORTION_PROPERTY = "insertbatchproportion";
 const string CoreWorkload::INSERT_BATCH_PROPORTION_DEFAULT = "0.0";
 
-// TODO(tgriggs|devbali): make this per-clien and add to client config
-const string CoreWorkload::REQUEST_DISTRIBUTION_PROPERTY = "requestdistribution";
-const string CoreWorkload::REQUEST_DISTRIBUTION_DEFAULT = "uniform,uniform,uniform,uniform"; // -
-
 const string CoreWorkload::ZERO_PADDING_PROPERTY = "zeropadding";
 const string CoreWorkload::ZERO_PADDING_DEFAULT = "1";
 
@@ -102,10 +98,6 @@ const string CoreWorkload::INSERT_ORDER_DEFAULT = "ordered";
 
 const string CoreWorkload::INSERT_START_PROPERTY = "insertstart";
 const string CoreWorkload::INSERT_START_DEFAULT = "0";
-
-// TODO(tgriggs|devbali): make this per-clien and add to client config
-const string CoreWorkload::RECORD_COUNT_PROPERTY = "recordcount";
-const string CoreWorkload::OPERATION_COUNT_PROPERTY = "operationcount";
 
 const std::string CoreWorkload::FIELD_NAME_PREFIX = "fieldnameprefix";
 const std::string CoreWorkload::FIELD_NAME_PREFIX_DEFAULT = "field";
@@ -144,8 +136,6 @@ namespace ycsbc
     field_prefix_ = p.GetProperty(FIELD_NAME_PREFIX, FIELD_NAME_PREFIX_DEFAULT);
     field_len_generator_ = GetFieldLenGenerator(p);
 
-    std::string request_dist = p.GetProperty(REQUEST_DISTRIBUTION_PROPERTY,
-                                             REQUEST_DISTRIBUTION_DEFAULT);
     int min_scan_len = std::stoi(p.GetProperty(MIN_SCAN_LENGTH_PROPERTY, MIN_SCAN_LENGTH_DEFAULT));
     int max_scan_len = std::stoi(p.GetProperty(MAX_SCAN_LENGTH_PROPERTY, MAX_SCAN_LENGTH_DEFAULT));
     std::string scan_len_dist = p.GetProperty(SCAN_LENGTH_DISTRIBUTION_PROPERTY,
@@ -297,7 +287,7 @@ namespace ycsbc
       status = TransactionInsertBatch(db, config);
       break;
     default:
-      std::cout << "[TGRIGGS_LOG] Unknown op: " << op_choice << std::endl;
+      std::cout << "[FAIRDB_LOG] Unknown op: " << op_choice << std::endl;
       throw utils::Exception("Operation request is not recognized!");
     }
 

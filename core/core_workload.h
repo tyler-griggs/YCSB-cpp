@@ -150,7 +150,6 @@ namespace ycsbc
     static const std::string INSERT_START_PROPERTY;
     static const std::string INSERT_START_DEFAULT;
 
-    static const std::string RECORD_COUNT_PROPERTY;
     static const std::string OPERATION_COUNT_PROPERTY;
 
     ///

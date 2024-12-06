@@ -271,7 +271,7 @@ namespace ycsbc
             // Parse optional fields
             int insert_start = client_node["insert_start"] ? client_node["insert_start"].as<int>() : 0;
             client.insert_start_ = insert_start;
-            std::string request_distribution = client_node["request_distribution"]
+            client.request_distribution = client_node["request_distribution"]
                                                    ? client_node["request_distribution"].as<std::string>()
                                                    : "uniform";
             if (client_node["zipfian_const"])

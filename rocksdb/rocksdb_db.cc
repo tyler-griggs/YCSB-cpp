@@ -619,7 +619,6 @@ namespace ycsbc
     rocksdb::BlockBasedTableOptions table_options;
     std::string val = vals[i];
     if (std::stoul(val) > 0) {
-      std::cout << "[FAIRDB_LOG] Creating cache of size " << val << std::endl;
       rocksdb::LRUCacheOptions cache_opts;
       cache_opts.client_id = i;
       cache_opts.capacity = std::stoul(val);
@@ -632,6 +631,7 @@ namespace ycsbc
       cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
       table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
       block_caches_by_client_.insert(block_caches_by_client_.begin() + i, table_options.block_cache);
+      std::cout << "[FAIRDB_LOG] Creating cache for CF #" << i << " of size " << val << std::endl;
     } else {
       table_options.no_block_cache = true;  // Disable block cache
     }
