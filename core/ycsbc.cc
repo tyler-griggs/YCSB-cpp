@@ -154,6 +154,16 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
           std::cout << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
         }
       }
+      if (op_csv_stats.size() == 0) {
+        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << ',' << std::to_string(cache_usage) 
+          << ',' << std::to_string(cache_capacity) << ',' << std::to_string(cache_hits) << ',' << std::to_string(cache_misses)
+          << ',' << std::to_string(user_cache_usage) << ',' << std::to_string(user_cache_reserved) << ',' << std::to_string(user_cache_hits) << ',' << std::to_string(user_cache_misses)
+          << std::endl;
+      }
+
+      // TODO: add stuff here 
+      
+
       per_client_measurements[i]->Reset();
     }
     for (size_t i = 0; i < queuing_delay_measurements.size(); ++i)

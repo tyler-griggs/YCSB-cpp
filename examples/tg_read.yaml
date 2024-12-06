@@ -7,7 +7,7 @@ clients:                    # Define clients and their behaviors.
   #       request_rate: 50    # Requests per second.
   #       duration: 15        # Duration in seconds.
   #     - type: BURSTY        # Bursty request behavior.
-  #       request_rate: 200   # Requests per second during bursts.
+  #       request_rate: 23999   # Requests per second during bursts.
   #       burst_duration: 5   # Duration of each burst in seconds.
   #       idle_duration: 3    # Duration of idle time between bursts in seconds.
   #       repeats: 3          # Number of burst-and-idle cycles.
@@ -21,7 +21,7 @@ clients:                    # Define clients and their behaviors.
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 1
@@ -30,10 +30,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 2
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 2
@@ -42,10 +40,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 3
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 3
@@ -54,10 +50,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 3
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 4
@@ -66,10 +60,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 3
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 5
@@ -78,10 +70,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 6
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 6
@@ -90,10 +80,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 7
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
         
   - client_id: 7
@@ -102,10 +90,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 8
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 8
@@ -114,10 +100,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 9
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 9
@@ -126,10 +110,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 10
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 10
@@ -138,10 +120,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 11
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 11
@@ -150,10 +130,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 12
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 12
@@ -162,10 +140,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 13
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 13
@@ -174,10 +150,8 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 14
       - type: STEADY
-        request_rate: 4000   
+        request_rate: 23999
         duration: 180
 
   - client_id: 14
@@ -186,11 +160,15 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 15
       - type: STEADY
-        request_rate: 4000   
-        duration: 180
+        request_rate: 23999
+        duration: 60
+      - type: INACTIVE
+        duration: 20
+      - type: STEADY
+        request_rate: 23999
+        duration: 60
+      
 
   - client_id: 15
     cf: "cf15"
@@ -198,8 +176,11 @@ clients:                    # Define clients and their behaviors.
     op_distribution:
       READ: 1.0
     behaviors:
-      - type: INACTIVE
-        duration: 16
       - type: STEADY
-        request_rate: 4000   
-        duration: 180
+        request_rate: 23999
+        duration: 60
+      - type: INACTIVE
+        duration: 20
+      - type: STEADY
+        request_rate: 23999
+        duration: 60

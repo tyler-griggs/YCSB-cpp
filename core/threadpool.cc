@@ -22,16 +22,16 @@ void ThreadPool::start(int num_threads, int num_clients){
     for (int i = 0; i < num_threads; i++) {
         std::thread *t;
         t = new std::thread([this, i] {
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
-            CPU_SET(24 + i, &cpuset);
-            std::cout << "[FAIRDB_LOG] Pinning worker thread " << i << " to core " << (24 + i) << std::endl;
-            int rc = pthread_setaffinity_np(pthread_self(),
-                                            sizeof(cpu_set_t), &cpuset);
-            if (rc != 0) {
-                fprintf(stderr, "Couldn't set thread affinity.\n");
-                std::exit(1);
-            }
+            // cpu_set_t cpuset;
+            // CPU_ZERO(&cpuset);
+            // CPU_SET(24 + i, &cpuset);
+            // std::cout << "[FAIRDB_LOG] Pinning worker thread " << i << " to core " << (24 + i) << std::endl;
+            // int rc = pthread_setaffinity_np(pthread_self(),
+            //                                 sizeof(cpu_set_t), &cpuset);
+            // if (rc != 0) {
+            //     fprintf(stderr, "Couldn't set thread affinity.\n");
+            //     std::exit(1);
+            // }
 
 
             size_t client_index = i % this->num_clients; // Use this->num_clients
