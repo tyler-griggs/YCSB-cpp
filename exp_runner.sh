@@ -83,7 +83,7 @@ mpstat_pid=$!
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
-  -p config=examples/tg_mt.yaml \
+  -p config=examples/tg_read.yaml \
   -p readallfields=true \
   -p fieldcount=1 \
   -p fieldlength=1024 \
