@@ -52,6 +52,18 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
                   std::vector<ycsbc::Measurements *> queuing_delay_measurements,
                   ycsbc::utils::CountDownLatch *latch, double interval_ms, std::vector<ycsbc::DB *> dbs)
 {
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(17, &cpuset);
+  // std::cout << "[FAIRDB_LOG] Pinning client " << client_id << " to core " << cpu_for_client << std::endl;
+  int rc = pthread_setaffinity_np(pthread_self(),
+                                  sizeof(cpu_set_t), &cpuset);
+  if (rc != 0)
+  {
+    fprintf(stderr, "Couldn't set thread affinity.\n");
+    std::exit(1);
+  }
+
   std::string client_stats_filename = "logs/client_stats.log";
   std::ofstream client_stats_logfile;
   client_stats_logfile.open(client_stats_filename, std::ios::out | std::ios::trunc);
@@ -108,13 +120,18 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
 
       int cache_usage = 0;
       int cache_capacity = 0;
-
-      int user_cache_usage = 0,user_cache_reserved = 0,user_cache_hits =0,user_cache_misses=0;
+      int user_cache_usage = 0;
+      int user_cache_reserved = 0;
+      int user_cache_hits = 0;
+      int user_cache_misses=0;
 
       if (block_cache) {
         cache_usage = block_cache->GetUsage();
         cache_capacity = block_cache->GetCapacity();
         auto manager = (rocksdb::lru_cache::LRUCacheManager*) block_cache->manager;
+
+      // std::cout << "[FAIRDB_LOG] Did we find manager: " << manager << std::endl;
+        // TODO(tgriggs): manager doesn't exist here
 
         if (manager && manager->NumClients() == per_client_measurements.size()) {
           rocksdb::lru_cache::FairDBCacheMetadata* cache_data = manager->GetElement(i);
@@ -144,7 +161,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
       std::vector<std::string> op_csv_stats = queuing_delay_measurements[i]->GetCSVStatusMsg();
       for (const auto &csv : op_csv_stats)
       {
-        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << std::endl;
+        client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << "0,0,0,0,0,0,0,0,0" << std::endl;
       }
       queuing_delay_measurements[i]->Reset();
     }

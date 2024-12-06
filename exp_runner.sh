@@ -85,6 +85,7 @@ mpstat_pid=$!
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
   -p config=examples/tg_read.yaml \
   -p readallfields=true \
+  -p fairdb_use_pooled=true \
   -p fieldcount=1 \
   -p fieldlength=1024 \
   -p tpool_threads=16 \

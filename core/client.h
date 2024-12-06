@@ -34,9 +34,9 @@ namespace ycsbc
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
 
-    size_t cpu_for_client = client_config->client_id + 8;
+    size_t cpu_for_client = client_config->client_id;
     CPU_SET(cpu_for_client, &cpuset);
-    std::cout << "[FAIRDB_LOG] Pinning client to " << cpu_for_client << std::endl;
+    std::cout << "[FAIRDB_LOG] Pinning client " << client_config->client_id << " to core " << cpu_for_client << std::endl;
     int rc = pthread_setaffinity_np(pthread_self(),
                                     sizeof(cpu_set_t), &cpuset);
     if (rc != 0)
