@@ -352,11 +352,11 @@ namespace ycsbc
     uint64_t key_num = NextTransactionKeyNum(config);
     std::string table_name = config->cf;
     int client_id = config->client_id;
-    int len = 100;
-    uint64_t client_key_num = std::min(key_num, uint64_t(3125000 - len));
+    int len = 1000;
+    // uint64_t client_key_num = std::min(key_num, uint64_t(3125000 - len));
     // uint64_t client_key_num = key_num + (client_id%2) * (6250000 / 4);
 
-    const std::string key = BuildKeyName(client_key_num);
+    const std::string key = BuildKeyName(key_num);
     // int len = scan_len_chooser_->Next();
     std::vector<std::vector<DB::Field>> result;
     if (!read_all_fields())
