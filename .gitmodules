@@ -1,3 +1,11 @@
 [submodule "HdrHistogram_c"]
 	path = HdrHistogram_c
 	url = https://github.com/HdrHistogram/HdrHistogram_c.git
+
+[submodule "core/concurrentqueue"]
+	path = core/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
+
+[submodule "external/concurrentqueue"]
+	path = external/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
