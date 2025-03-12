@@ -106,7 +106,7 @@ def main():
     
   ############################ Parameters ######################################### 
     
-  # Dataset Parameters
+  # Dataset Parameters -- should be set based on loaded data
   fieldcount = "1"
   RECORD_SIZE = 4096
   fieldlength = str(RECORD_SIZE)
@@ -114,7 +114,7 @@ def main():
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "examples/tg_4client_read.yaml"
+  client_config = "examples/tg_4client_write.yaml"
       
   # RocksDB Parameters
   tpool_threads = "4"
@@ -124,7 +124,7 @@ def main():
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  CACHE_SIZE = 0
+  CACHE_SIZE = 0 
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
@@ -136,15 +136,16 @@ def main():
   cache_rad_microseconds = str(CACHE_RAD_MICROSECONDS)
   
   # Write Buffer Parameters
-  wbm_size = "850"
+  wbm_size = "850" # Vanilla RocksDB: Set to 0 to disable
   wbm_steady_res_size = "650"
   wbm_limits =  ",".join(["750"] * NUM_CFS)
   write_buffer_size = ",".join(["67108864"] * NUM_CFS)
   max_write_buffer_number = ",".join(["2"] * NUM_CFS)
   
   # I/O Bandwidth Parameters
-  write_rate_limits_mbps = '10000,10000,10000,10000,'
-  read_rate_limits_mbps = '10000,10000,10000,10000,'
+  enable_rate_limiter = "true"
+  write_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
+  read_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
   
   # Resource Scheduler Parameters
   rsched = "false"
@@ -188,7 +189,8 @@ def main():
       f"-p wbm_steady_res_size={wbm_steady_res_size} "
       f"-p wbm_limits={wbm_limits} "
       f"-p status.interval_ms={status_interval_ms} "
-      f"-p rate_limits={write_rate_limits_mbps} "
+      f"-p enable_rate_limiter={enable_rate_limiter} "
+      f"-p write_rate_limits={write_rate_limits_mbps} "
       f"-p read_rate_limits={read_rate_limits_mbps} "
       f"-p refill_period_ms={refill_period_ms} "
       f"-p rsched={rsched} "

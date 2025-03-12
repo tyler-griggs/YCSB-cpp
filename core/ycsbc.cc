@@ -99,7 +99,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     auto duration_since_epoch = now.time_since_epoch();
     auto duration_since_epoch_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
 
-
     // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i)
     {
@@ -130,9 +129,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
         cache_capacity = block_cache->GetCapacity();
         auto manager = (rocksdb::lru_cache::LRUCacheManager*) block_cache->manager;
 
-      // std::cout << "[FAIRDB_LOG] Did we find manager: " << manager << std::endl;
-        // TODO(tgriggs): manager doesn't exist here
-
         if (manager && manager->NumClients() == per_client_measurements.size()) {
           rocksdb::lru_cache::FairDBCacheMetadata* cache_data = manager->GetElement(i);
           if (cache_data) {
@@ -142,7 +138,6 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
             user_cache_misses = cache_data->miss_ctr;
           }
         }
-
       }
       for (const auto& csv : op_csv_stats) {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << ',' << std::to_string(cache_usage) 

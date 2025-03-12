@@ -119,8 +119,11 @@ namespace
   const std::string PROP_FS_URI = "rocksdb.fs_uri";
   const std::string PROP_FS_URI_DEFAULT = "";
 
-  const std::string PROP_RATE_LIMITS = "rate_limits";
-  const std::string PROP_RATE_LIMITS_DEFAULT = "";
+  const std::string PROP_ENABLE_RATE_LIMITER = "enable_rate_limiter";
+  const std::string PROP_ENABLE_RATE_LIMITER_DEFAULT = "false";
+
+  const std::string PROP_WRITE_RATE_LIMITS = "write_rate_limits";
+  const std::string PROP_WRITE_RATE_LIMITS_DEFAULT = "";
 
   const std::string PROP_FAIRDB_USE_POOLED = "fairdb_use_pooled";
   const std::string PROP_FAIRDB_USE_POOLED_DEFAULT = "false";
@@ -511,41 +514,49 @@ namespace ycsbc
       }
     }
 
-    // Convert rate limits from Mbps to bps
-    std::vector<int64_t> rate_limits = stringToIntVector(props.GetProperty(PROP_RATE_LIMITS, PROP_RATE_LIMITS_DEFAULT));
-    for (int64_t &limit : rate_limits)
-    {
-      limit *= 1024 * 1024;
-    }
-    std::vector<int64_t> read_rate_limits = stringToIntVector(props.GetProperty(PROP_READ_RATE_LIMITS, PROP_READ_RATE_LIMITS_DEFAULT));
-    for (int64_t &limit : read_rate_limits)
-    {
-      limit *= 1024 * 1024;
-    }
+    bool enable_rate_limiter = props.GetProperty(PROP_ENABLE_RATE_LIMITER, PROP_ENABLE_RATE_LIMITER_DEFAULT) == "true";
+    if (enable_rate_limiter) {
+      std::cout << "[FAIRDB_LOG] Rate limiter enabled" << std::endl;
+      // Convert rate limits from Mbps to bps
+      std::vector<int64_t> write_rate_limits = stringToIntVector(props.GetProperty(PROP_WRITE_RATE_LIMITS, PROP_WRITE_RATE_LIMITS_DEFAULT));
+      for (int64_t &limit : write_rate_limits)
+      {
+        limit *= 1024 * 1024;
+      }
+      std::vector<int64_t> read_rate_limits = stringToIntVector(props.GetProperty(PROP_READ_RATE_LIMITS, PROP_READ_RATE_LIMITS_DEFAULT));
+      for (int64_t &limit : read_rate_limits)
+      {
+        limit *= 1024 * 1024;
+      }
 
-    size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
-    if (refill_period == 0)
-    {
-      std::cout << "[FAIRDB_LOG] refill period set to 0" << std::endl;
-    }
+      if (static_cast<size_t>(num_clients) != write_rate_limits.size())
+      {
+        throw utils::Exception("Inconsistent thread counts and rate limit counts.");
+      }
 
-    if (static_cast<size_t>(num_clients) != rate_limits.size() && rate_limits.size() > 1)
-    {
-      throw utils::Exception("Inconsistent thread counts and rate limit counts.");
-    }
+      if (static_cast<size_t>(num_clients) != read_rate_limits.size())
+      {
+        throw utils::Exception("Inconsistent thread counts and rate limit counts.");
+      }
 
-    // if (rate_limits.size() > 0) {
-    //   // Add rate limiter
-    //   opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
-    //     num_clients,
-    //     rate_limits,
-    //     read_rate_limits,
-    //     refill_period * 1000,        // Refill period (ms)
-    //     10,                // Fairness (default)
-    //     rocksdb::RateLimiter::Mode::kAllIo, // All IO
-    //     /* single_burst_bytes */ 0
-    //   ));
-    // }
+      size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
+      if (refill_period == 0)
+      {
+        std::cout << "[FAIRDB_LOG] refill period set to 0" << std::endl;
+      }
+
+      opt->rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(rocksdb::NewMultiTenantRateLimiter(
+        num_clients,
+        write_rate_limits,
+        read_rate_limits,
+        refill_period * 1000,        // Refill period (ms-->us)
+        10,                // Fairness (default)
+        rocksdb::RateLimiter::Mode::kAllIo, // All IO
+        /* single_burst_bytes */ 0
+      ));
+    } else {
+      std::cout << "[FAIRDB_LOG] Rate limiter disabled" << std::endl;
+    }
 
     std::vector<int64_t> wbm_limits = stringToIntVector(props.GetProperty(PROP_WBM_LIMITS, PROP_WBM_LIMITS_DEFAULT));
     if (static_cast<size_t>(num_clients) != wbm_limits.size() && wbm_limits.size() > 1)
@@ -557,16 +568,21 @@ namespace ycsbc
     size_t write_buffer_memory_limit = std::stoi(props.GetProperty("wbm_size", "1024"));
     size_t steady_reservation_size = std::stoi(props.GetProperty("wbm_steady_res_size", "0"));
 
-    std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
-        std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients, steady_reservation_size * 1024 * 1024);
-    for (size_t i = 0; i < wbm_limits.size(); ++i)
-    {
-      write_buffer_manager->SetPerClientBufferSize(i, wbm_limits[i] * 1024 * 1024);
-      if (i != 3 && i != 4) {
-        write_buffer_manager->SetClientAsSteady(i, true);
+    if (write_buffer_memory_limit > 0) {
+      std::cout << "[FAIRDB_LOG] WBM enabled" << std::endl;
+      std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
+          std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients, steady_reservation_size * 1024 * 1024);
+      for (size_t i = 0; i < wbm_limits.size(); ++i)
+      {
+        write_buffer_manager->SetPerClientBufferSize(i, wbm_limits[i] * 1024 * 1024);
+        if (i != 3 && i != 4) {
+          write_buffer_manager->SetClientAsSteady(i, true);
+        }
       }
+      opt->write_buffer_manager = write_buffer_manager;
+    } else {
+      std::cout << "[FAIRDB_LOG] WBM disabled" << std::endl;
     }
-    opt->write_buffer_manager = write_buffer_manager;
   }
 
   void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions> &cf_opt)
