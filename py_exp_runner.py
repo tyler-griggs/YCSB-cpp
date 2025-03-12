@@ -102,45 +102,53 @@ def main():
     mpstat_cmd = "(echo \"Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')\"; mpstat -P ALL 1)"
     mpstat_proc = subprocess.Popen(mpstat_cmd, shell=True, stdout=mpstat_file, stderr=subprocess.STDOUT)
     print(f"Started mpstat (pid {mpstat_proc.pid})")
+    
+    
+  ############################ Parameters ######################################### 
+    
+  # Dataset Parameters
+  fieldcount = "1"
+  RECORD_SIZE = 4096
+  fieldlength = str(RECORD_SIZE)
+  NUM_CFS = 4
+  rocksdb_num_cfs = str(NUM_CFS)
+    
+  # Workload Parameters
+  client_config = "examples/tg_4client_read.yaml"
       
+  # RocksDB Parameters
+  tpool_threads = "4"
+  status_interval_ms = "100"
+  
+  # Cache Parameters
   CACHE_SIZE = 0
   NUM_RECORDS_PER_SHARD = 256
-  RECORD_SIZE=4096
-  NUM_CFS = 4
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
   CACHE_SHARD_BITS_ISOLATED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE)
   CACHE_RAD_MICROSECONDS = 10 * 1000 * 1000  # 10s
+  fairdb_use_pooled = "true"
+  rocksdb_cache_size = ",".join([str(CACHE_SIZE)] * NUM_CFS)
+  cache_num_shard_bits = str(CACHE_SHARD_BITS_POOLED)
+  cache_rad_microseconds = str(CACHE_RAD_MICROSECONDS)
+  
+  # Write Buffer Parameters
+  wbm_size = "850"
+  wbm_steady_res_size = "650"
+  wbm_limits =  ",".join(["750"] * NUM_CFS)
+  
+  # I/O Bandwidth Parameters
+  write_rate_limits_mbps = '10000,10000,10000,10000,'
+  read_rate_limits_mbps = '10000,10000,10000,10000,'
+  
+  # Resource Scheduler Parameters
+  rsched = "false"
+  refill_period_ms = "50"
+  rsched_interval_ms = "10"
+  lookback_intervals = "30"
+  rsched_rampup_multiplier = "1.2"
 
-  # Set the environment variables for the parameters you want to override
-  os.environ["CONFIG"] = "examples/tg_4client_read.yaml"
-  os.environ["FIELDCOUNT"] = "1"
-  os.environ["FIELDLENGTH"] = str(RECORD_SIZE)
-  os.environ["TPOOL_THREADS"] = "4"
-  os.environ["ROCKSDB_NUM_CFS"] = str(NUM_CFS)
-  os.environ["FAIRDB_USE_POOLED"] = "true"
-  os.environ["ROCKSDB_CACHE_SIZE"] = ",".join([str(CACHE_SIZE)] * NUM_CFS)
-  os.environ["CACHE_NUM_SHARD_BITS"] = str(CACHE_SHARD_BITS_POOLED)
-  os.environ["CACHE_RAD_MICROSECONDS"]  = str(CACHE_RAD_MICROSECONDS)
-  os.environ["WBM_SIZE"] = "850"
-  os.environ["WBM_STEADY_RES_SIZE"] = "650"
-  os.environ["WBM_LIMITS"] =  ",".join(["750"] * NUM_CFS)
-
-  # Build the YCSB command using environment variables (if set)
-  config = os.environ.get("CONFIG", "")
-  fieldcount = os.environ.get("FIELDCOUNT", "")
-  fieldlength = os.environ.get("FIELDLENGTH", "")
-  tpool_threads = os.environ.get("TPOOL_THREADS", "")
-  rocksdb_num_cfs = os.environ.get("ROCKSDB_NUM_CFS", "")
-  fairdb_use_pooled = os.environ.get("FAIRDB_USE_POOLED", "")
-  rocksdb_cache_size = os.environ.get("ROCKSDB_CACHE_SIZE", "")
-  cache_num_shard_bits = os.environ.get("CACHE_NUM_SHARD_BITS", "")
-  cache_rad_microseconds = os.environ.get("CACHE_RAD_MICROSECONDS", "")
-  wbm_size = os.environ.get("WBM_SIZE", "")
-  wbm_steady_res_size = os.environ.get("WBM_STEADY_RES_SIZE", "")
-  wbm_limits = os.environ.get("WBM_LIMITS", "")
-
-  # Compute arithmetic values equivalent to bash arithmetic expansion.
+  # System  Parameters
   io_read_capacity = 9000 * 1024
   io_write_capacity = 4500 * 1024
   memtable_capacity = 512 * 1024
@@ -148,12 +156,15 @@ def main():
   max_memtable_size = 64 * 1024
   min_memtable_size = 64 * 1024
 
+  ############################ End Parameters ######################################### 
+
+
   # Construct the YCSB command string.
   ycsb_cmd = (
       "./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s "
       f"-p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data "
       f"-p workload=com.yahoo.ycsb.workloads.CoreWorkload "
-      f"-p config={config} "
+      f"-p config={client_config} "
       "-p readallfields=true "
       f"-p fieldcount={fieldcount} "
       f"-p fieldlength={fieldlength} "
@@ -166,14 +177,14 @@ def main():
       f"-p wbm_size={wbm_size} "
       f"-p wbm_steady_res_size={wbm_steady_res_size} "
       f"-p wbm_limits={wbm_limits} "
-      "-p status.interval_ms=100 "
-      "-p rate_limits='10000,10000,10000,10000,' "
-      "-p read_rate_limits='10000,10000,10000,10000,' "
-      "-p refill_period=50 "
-      "-p rsched=false "
-      "-p rsched_interval_ms=10 "
-      "-p lookback_intervals=30 "
-      "-p rsched_rampup_multiplier=1.2 "
+      f"-p status.interval_ms={status_interval_ms} "
+      f"-p rate_limits={write_rate_limits_mbps} "
+      f"-p read_rate_limits={read_rate_limits_mbps} "
+      f"-p refill_period_ms={refill_period_ms} "
+      f"-p rsched={rsched} "
+      f"-p rsched_interval_ms={rsched_interval_ms} "
+      f"-p lookback_intervals={lookback_intervals} "
+      f"-p rsched_rampup_multiplier={rsched_rampup_multiplier} "
       f"-p io_read_capacity_kbps={io_read_capacity} "
       f"-p io_write_capacity_kbps={io_write_capacity} "
       f"-p memtable_capacity_kb={memtable_capacity} "
