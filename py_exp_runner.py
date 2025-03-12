@@ -119,6 +119,9 @@ def main():
   # RocksDB Parameters
   tpool_threads = "4"
   status_interval_ms = "100"
+  max_background_jobs = "12"
+  max_background_flushes = "8"  # Subset of jobs
+  max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
   CACHE_SIZE = 0
@@ -136,6 +139,8 @@ def main():
   wbm_size = "850"
   wbm_steady_res_size = "650"
   wbm_limits =  ",".join(["750"] * NUM_CFS)
+  write_buffer_size = ",".join(["67108864"] * NUM_CFS)
+  max_write_buffer_number = ",".join(["2"] * NUM_CFS)
   
   # I/O Bandwidth Parameters
   write_rate_limits_mbps = '10000,10000,10000,10000,'
@@ -169,9 +174,14 @@ def main():
       f"-p fieldcount={fieldcount} "
       f"-p fieldlength={fieldlength} "
       f"-p tpool_threads={tpool_threads} "
-      f"-p rocksdb.num_cfs={rocksdb_num_cfs} "
       f"-p fairdb_use_pooled={fairdb_use_pooled} "
+      f"-p rocksdb.num_cfs={rocksdb_num_cfs} "
       f"-p rocksdb.cache_size={rocksdb_cache_size} "
+      f"-p rocksdb.write_buffer_size={write_buffer_size} "
+      f"-p rocksdb.max_write_buffer_number={max_write_buffer_number} "
+      f"-p rocksdb.max_background_jobs={max_background_jobs} "
+      f"-p rocksdb.max_background_flushes={max_background_flushes} "
+      f"-p rocksdb.max_subcompactions={max_subcompactions} "
       f"-p cache_num_shard_bits={cache_num_shard_bits} "
       f"-p fairdb_cache_rad={cache_rad_microseconds} "
       f"-p wbm_size={wbm_size} "
