@@ -18,7 +18,7 @@ process_iostat_output() {
         if [[ $line == *"Time:"* ]]; then
             # Extract timestamp
             current_timestamp=$(echo $line | awk '{print $2, $3}')
-        elif [[ $line == *md0* ]]; then
+        elif [[ $line == *nvme0n1* ]]; then
             # Write the current timestamp along with the iostat metrics
             echo "$line" | awk -v ts="$current_timestamp" '{print ts ",",$2 ",",$3 ",",$6 ",",$7 ",",$8 ",",$9 ",",$12 ",",$13}' >> iostat_results.csv
         fi
@@ -43,25 +43,13 @@ process_mpstat_output() {
 trap cleanup EXIT
 
 # Start iostat in the background, appending a timestamp to each interval, and redirecting output to a file
-(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/md0 1;) > iostat_output.txt &
+(echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; iostat -xdm /dev/nvme0n1 1;) > iostat_output.txt &
 iostat_pid=$!
 
 (echo "Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')"; mpstat -P ALL 1;) > mpstat_output.txt &
 mpstat_pid=$!
 
-# Default values for YCSB parameters if not set by the environment
-: "${CONFIG:=examples/tg_read.yaml}"
-: "${FIELDCOUNT:=1}"
-: "${FIELDLENGTH:=1024}"
-: "${TPOOL_THREADS:=16}"
-: "${ROCKSDB_NUM_CFS:=16}"
-: "${FAIRDB_USE_POOLED:=true}"
-: "${ROCKSDB_CACHE_SIZE:=1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576,1048576}"
-: "${CACHE_NUM_SHARD_BITS:=8}"
-: "${WBM_SIZE:=850}"
-: "${WBM_STEADY_RES_SIZE:=650}"
-: "${WBM_LIMITS:=750,750,750,750,750,750,750,750,750,750,750,750,750,750,750,750}"
-
+set -x  # This will print the command before executing it
 ./ycsb -run -db rocksdb -P rocksdb/rocksdb.properties -s \
   -p rocksdb.dbname=/mnt/rocksdb/ycsb-rocksdb-data \
   -p workload=com.yahoo.ycsb.workloads.CoreWorkload \
@@ -79,8 +67,8 @@ mpstat_pid=$!
   -p wbm_steady_res_size="$WBM_STEADY_RES_SIZE" \
   -p wbm_limits="$WBM_LIMITS" \
   -p status.interval_ms=100 \
-  -p rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
-  -p read_rate_limits="10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," \
+  -p rate_limits="10000,10000,10000,10000," \
+  -p read_rate_limits="10000,10000,10000,10000," \
   -p refill_period=50 \
   -p rsched=false \
   -p rsched_interval_ms=10 \
@@ -93,6 +81,14 @@ mpstat_pid=$!
   -p max_memtable_size_kb=$((64 * 1024)) \
   -p min_memtable_size_kb=$((64 * 1024)) \
   | tee status_thread.txt &
+set +x
+
+ycsb_pid=$!
+echo "YCSB pid: ${ycsb_pid}"
+# Wait for the ycsb process to finish
+wait $ycsb_pid
+
+
 
 # To add:
 # rocksdb parameters for memtable size, etc.
@@ -132,10 +128,6 @@ mpstat_pid=$!
 #   -p requestdistribution=uniform \
 #   | tee status_thread2.txt &
 
-ycsb_pid=$!
-echo "YCSB pid: ${ycsb_pid}"
-# Wait for the ycsb process to finish
-wait $ycsb_pid
 
 # The script exits here, triggering the cleanup function
 
