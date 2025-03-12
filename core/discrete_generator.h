@@ -15,7 +15,7 @@
 #include <cassert>
 #include <vector>
 #include "utils/utils.h"
-
+#include <iostream>
 namespace ycsbc
 {
 
@@ -75,7 +75,8 @@ namespace ycsbc
         return pair.second;
       }
     }
-    throw std::invalid_argument("Value not found in DiscreteGenerator");
+    std::cout << "[FAIRDB_LOG] Value not found in DiscreteGenerator: " << value << ", defaulting to weight 0" << std::endl;
+    return 0;
   }
 
 } // ycsbc
