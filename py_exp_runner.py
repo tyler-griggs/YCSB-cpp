@@ -124,7 +124,7 @@ def main():
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  CACHE_SIZE = 0 
+  CACHE_SIZE = 0  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
@@ -143,18 +143,17 @@ def main():
   max_write_buffer_number = ",".join(["2"] * NUM_CFS)
   
   # I/O Bandwidth Parameters
-  enable_rate_limiter = "true"
+  enable_rate_limiter = "false" # Vanilla RocksDB: Set to false to disable
   write_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
   read_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
   
   # Resource Scheduler Parameters
-  rsched = "false"
+  rsched = "false" # Vanilla RocksDB: Set to false to disable
   refill_period_ms = "50"
   rsched_interval_ms = "10"
   lookback_intervals = "30"
   rsched_rampup_multiplier = "1.2"
-
-  # System  Parameters
+  # Note: only need to set these if rsched is true
   io_read_capacity = 9000 * 1024
   io_write_capacity = 4500 * 1024
   memtable_capacity = 512 * 1024
