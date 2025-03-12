@@ -108,35 +108,38 @@ def main():
     
   # Dataset Parameters -- should be set based on loaded data
   fieldcount = "1"
-  RECORD_SIZE = 4096
+  RECORD_SIZE = 64*1024
   fieldlength = str(RECORD_SIZE)
-  NUM_CFS = 4
+  NUM_CFS = 16
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "examples/tg_4client_write.yaml"
-      
+  client_config = "examples/tg_cache.yaml"
+
   # RocksDB Parameters
-  tpool_threads = "4"
+  tpool_threads = "8"
   status_interval_ms = "100"
-  max_background_jobs = "12"
-  max_background_flushes = "8"  # Subset of jobs
+  max_background_jobs = "4"
+  max_background_flushes = "3"  # Subset of jobs
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  CACHE_SIZE = 0  # Vanilla RocksDB: Set to 0 to disable
+  CACHE_SIZE = 8*500*1024*1024  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
   CACHE_SHARD_BITS_ISOLATED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE)
-  CACHE_RAD_MICROSECONDS = 10 * 1000 * 1000  # 10s
   fairdb_use_pooled = "true"
+  if fairdb_use_pooled == "true":
+    cache_num_shard_bits = str(CACHE_SHARD_BITS_POOLED)
+  else:
+    cache_num_shard_bits = str(CACHE_SHARD_BITS_ISOLATED)
   rocksdb_cache_size = ",".join([str(CACHE_SIZE)] * NUM_CFS)
-  cache_num_shard_bits = str(CACHE_SHARD_BITS_POOLED)
-  cache_rad_microseconds = str(CACHE_RAD_MICROSECONDS)
-  
+  cache_rad_microseconds = str(0) # 0s --> isolated, reduces to vanilla rocksdb
+  # cache_rad_microseconds = str(10 * 1000 * 1000) # 10s
+
   # Write Buffer Parameters
-  wbm_size = "850" # Vanilla RocksDB: Set to 0 to disable
+  wbm_size = "0" # Vanilla RocksDB: Set to 0 to disable
   wbm_steady_res_size = "650"
   wbm_limits =  ",".join(["750"] * NUM_CFS)
   write_buffer_size = ",".join(["67108864"] * NUM_CFS)

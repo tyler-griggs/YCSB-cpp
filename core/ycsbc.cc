@@ -129,7 +129,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
         cache_capacity = block_cache->GetCapacity();
         auto manager = (rocksdb::lru_cache::LRUCacheManager*) block_cache->manager;
 
-        if (manager && manager->NumClients() == per_client_measurements.size()) {
+        if (manager && i < manager->NumClients()) {
           rocksdb::lru_cache::FairDBCacheMetadata* cache_data = manager->GetElement(i);
           if (cache_data) {
             user_cache_usage = cache_data->capacity;
