@@ -3,6 +3,7 @@ clients:
     cf: "default"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -14,6 +15,7 @@ clients:
     cf: "cf1"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -23,8 +25,9 @@ clients:
 
   - client_id: 2
     cf: "cf2"
-    request_distribution: 'zipfian'
     record_count: 100000
+    request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -36,6 +39,7 @@ clients:
     cf: "cf3"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -47,6 +51,7 @@ clients:
     cf: "cf4"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -58,6 +63,7 @@ clients:
     cf: "cf5"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -69,6 +75,7 @@ clients:
     cf: "cf6"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
@@ -80,6 +87,7 @@ clients:
     cf: "cf7"
     record_count: 100000
     request_distribution: 'zipfian'
+    zipfian_const: 0.85
     op_distribution:
       READ: 1.0
     behaviors:
