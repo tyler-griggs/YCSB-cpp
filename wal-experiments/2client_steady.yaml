@@ -1,0 +1,21 @@
+clients: 
+  - client_id: 0
+    cf: "default"
+    record_count: 10000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: STEADY
+        request_rate: 10
+        duration: 60
+
+  - client_id: 1
+    cf: "cf1"
+    record_count: 10000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: STEADY
+        request_rate: 10
+        duration: 60
+

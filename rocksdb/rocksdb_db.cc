@@ -871,7 +871,6 @@ namespace ycsbc
     }
     rocksdb::WriteOptions wopt;
     // TODO: WAL disabled
-    wopt.disableWAL = true;
 
     data.clear();
     SerializeRow(current_values, data);

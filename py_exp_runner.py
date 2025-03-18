@@ -108,23 +108,23 @@ def main():
     
   # Dataset Parameters -- should be set based on loaded data
   fieldcount = "1"
-  RECORD_SIZE = 64*1024
+  RECORD_SIZE = 8*1024
   fieldlength = str(RECORD_SIZE)
   NUM_CFS = 16
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "examples/tg_cache.yaml"
+  client_config = "wal-experiments/2client_steady.yaml"
 
   # RocksDB Parameters
-  tpool_threads = "8"
+  tpool_threads = "2"
   status_interval_ms = "100"
   max_background_jobs = "4"
   max_background_flushes = "3"  # Subset of jobs
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  CACHE_SIZE = 8*500*1024*1024  # Vanilla RocksDB: Set to 0 to disable
+  CACHE_SIZE = 0  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
