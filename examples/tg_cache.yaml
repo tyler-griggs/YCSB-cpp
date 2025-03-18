@@ -3,94 +3,99 @@ clients:
     cf: "default"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 30
+      - type: INACTIVE
+        duration: 30
+      - type: STEADY
+        request_rate: 3000
+        duration: 4500
 
   - client_id: 1
     cf: "cf1"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9 
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 2
     cf: "cf2"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 3
     cf: "cf3"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 4
     cf: "cf4"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 5
     cf: "cf5"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 6
     cf: "cf6"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650
 
   - client_id: 7
     cf: "cf7"
     record_count: 100000
     request_distribution: 'zipfian'
-    zipfian_const: 0.85
+    zipfian_const: 0.9
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 1000
-        duration: 60
+        request_rate: 3000
+        duration: 1650

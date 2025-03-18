@@ -124,7 +124,10 @@ std::vector<std::string> HdrHistogramMeasurements::GetCSVStatusMsg() {
                << "," << hdr_max(histogram_[op]) / 1000.0
                << "," << hdr_min(histogram_[op]) / 1000.0
                << "," << hdr_mean(histogram_[op]) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 10) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 25) / 1000.0
                << "," << hdr_value_at_percentile(histogram_[op], 50) / 1000.0
+               << "," << hdr_value_at_percentile(histogram_[op], 75) / 1000.0
                << "," << hdr_value_at_percentile(histogram_[op], 90) / 1000.0
                << "," << hdr_value_at_percentile(histogram_[op], 99) / 1000.0
                << "," << hdr_value_at_percentile(histogram_[op], 99.9) / 1000.0;

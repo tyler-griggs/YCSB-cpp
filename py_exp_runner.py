@@ -117,14 +117,14 @@ def main():
   client_config = "examples/tg_cache.yaml"
 
   # RocksDB Parameters
-  tpool_threads = "8"
+  tpool_threads = "12"
   status_interval_ms = "100"
   max_background_jobs = "4"
   max_background_flushes = "3"  # Subset of jobs
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  CACHE_SIZE = 8*500*1024*1024  # Vanilla RocksDB: Set to 0 to disable
+  CACHE_SIZE = 5*8*120*1024*1024  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
@@ -135,8 +135,8 @@ def main():
   else:
     cache_num_shard_bits = str(CACHE_SHARD_BITS_ISOLATED)
   rocksdb_cache_size = ",".join([str(CACHE_SIZE)] * NUM_CFS)
-  cache_rad_microseconds = str(0) # 0s --> isolated, reduces to vanilla rocksdb
-  # cache_rad_microseconds = str(10 * 1000 * 1000) # 10s
+  # cache_rad_microseconds = str(0) # 0s --> isolated, reduces to vanilla rocksdb
+  cache_rad_microseconds = str(10 * 1000 * 1000) # 10s
 
   # Write Buffer Parameters
   wbm_size = "0" # Vanilla RocksDB: Set to 0 to disable

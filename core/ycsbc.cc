@@ -72,7 +72,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // TODO(tgriggs):  Handle file open failure, propagate exception
     // throw std::ios_base::failure("Failed to open the file.");
   }
-  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,50p,90p,99p,99.9p,global_cache_usage,global_cache_capacity,global_cache_hits,global_cache_misses,user_cache_usage,user_cache_reserved,user_cache_hits,user_cache_misses" << std::endl;
+  client_stats_logfile << "timestamp,client_id,op_type,count,max,min,avg,10p,25p,50p,75p,90p,99p,99.9p,global_cache_usage,global_cache_capacity,global_cache_hits,global_cache_misses,user_cache_usage,user_cache_reserved,user_cache_hits,user_cache_misses" << std::endl;
 
   time_point<system_clock> start = system_clock::now();
   bool done = false;
