@@ -114,10 +114,10 @@ def main():
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "wal-experiments/2client_steady.yaml"
+  client_config = "wal-experiments/16client_bursty.yaml"
 
   # RocksDB Parameters
-  tpool_threads = "2"
+  tpool_threads = "8"
   status_interval_ms = "100"
   max_background_jobs = "4"
   max_background_flushes = "3"  # Subset of jobs
@@ -164,6 +164,9 @@ def main():
   max_memtable_size = 64 * 1024
   min_memtable_size = 64 * 1024
 
+  # WAL Parameters
+  max_total_wal_size = 17179869
+
   ############################ End Parameters ######################################### 
 
 
@@ -204,7 +207,8 @@ def main():
       f"-p memtable_capacity_kb={memtable_capacity} "
       f"-p min_memtable_count={min_memtable_count} "
       f"-p max_memtable_size_kb={max_memtable_size} "
-      f"-p min_memtable_size_kb={min_memtable_size}"
+      f"-p min_memtable_size_kb={min_memtable_size} "
+      f"-p rocksdb.max_total_wal_size={max_total_wal_size}"
   )
 
   # Log the command (equivalent to bash set -x)

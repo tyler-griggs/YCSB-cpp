@@ -1,22 +1,22 @@
 clients: 
   - client_id: 0
     cf: "default"
-    record_count: 10000
+    record_count: 1000000
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate: 10
+        request_rate: 1000
         duration: 60
 
   - client_id: 1
     cf: "cf1"
-    record_count: 10000
+    record_count: 1000000
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
       - type: BURSTY 
-        request_rate: 50
+        request_rate: 5000
         idle_duration: 8
         burst_duration: 2 
         repeats: 6
