@@ -55,6 +55,23 @@ class DBWrapper : public DB {
     }
     return s;
   }
+  Status ReadBatch(const std::string &table, const std::vector<std::string> &keys,
+                   const std::vector<std::vector<std::string>> *fields,
+                   std::vector<std::vector<Field>> &result, int client_id) {
+    timer_.Start();
+    Status s = db_->ReadBatch(table, keys, fields, result, client_id);
+
+    uint64_t elapsed = timer_.End();
+    if (s == kOK) {
+      measurements_->Report(READ_BATCH, elapsed);
+      per_client_measurements_[client_id]->Report(READ_BATCH, elapsed);
+    } else {
+      measurements_->Report(READ_BATCH_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(READ_BATCH_FAILED, elapsed);
+    }
+    return s;
+  }
+  
   Status Scan(const std::string &table, const std::string &key, int record_count,
               const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result,
               int client_id) {

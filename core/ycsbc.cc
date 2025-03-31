@@ -333,7 +333,7 @@ int main(const int argc, const char *argv[])
 
   // print status periodically
   const bool show_status = (props.GetProperty("status", "false") == "true");
-  const bool use_rsched = (props.GetProperty("rsched", "false") == "true");
+  const bool enable_resource_scheduler = (props.GetProperty("enable_resource_scheduler", "false") == "true");
   const double status_interval_ms = std::stod(props.GetProperty("status.interval_ms", "500"));
 
   // load phase
@@ -439,7 +439,7 @@ int main(const int argc, const char *argv[])
     }
 
     std::future<void> rsched_future;
-    if (use_rsched)
+    if (enable_resource_scheduler)
     {
       ycsbc::ResourceSchedulerOptions rsched_options;
       rsched_options.rsched_interval_ms = std::stod(props.GetProperty("rsched_interval_ms"));
@@ -462,7 +462,7 @@ int main(const int argc, const char *argv[])
     {
       status_future.wait();
     }
-    if (use_rsched)
+    if (enable_resource_scheduler)
     {
       rsched_future.wait();
     }

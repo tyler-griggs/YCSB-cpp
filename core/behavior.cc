@@ -28,12 +28,12 @@ namespace ycsbc
         }
     }
 
-    void executeSteadyBehavior(int request_rate, int duration, const std::function<void()> &send_request)
+    void executeSteadyBehavior(int request_rate_qps, int duration_s, const std::function<void()> &send_request)
     {
-        int interval_us = 1'000'000 / request_rate; // Microseconds per request
-        for (int t = 0; t < duration; ++t)
+        int interval_us = 1'000'000 / request_rate_qps; // Microseconds per request
+        for (int t = 0; t < duration_s; ++t)
         {
-            for (int i = 0; i < request_rate; ++i)
+            for (int i = 0; i < request_rate_qps; ++i)
             {
                 send_request(); // Use the callback
                 enforceRequestRate(interval_us);
@@ -41,26 +41,24 @@ namespace ycsbc
         }
     }
 
-    void executeBurstyBehavior(int request_rate, int burst_duration, int idle_duration, int repeats, const std::function<void()> &send_request)
+    void executeBurstyBehavior(int request_rate_qps, int burst_duration_ms, int idle_duration_ms, int repeats, const std::function<void()> &send_request)
     {
-        int interval_us = 1'000'000 / request_rate; // Microseconds per request
+        int total_ops_per_cycle = request_rate_qps * burst_duration_ms / 1000;
+        int interval_us = 1'000'000 / request_rate_qps; // Microseconds per request
         for (int r = 0; r < repeats; ++r)
         {
-            for (int t = 0; t < burst_duration; ++t)
+            for (int i = 0; i < total_ops_per_cycle; ++i)
             {
-                for (int i = 0; i < request_rate; ++i)
-                {
-                    send_request(); // Use the callback
-                    enforceRequestRate(interval_us);
-                }
+                send_request(); // Use the callback
+                enforceRequestRate(interval_us);
             }
-            std::this_thread::sleep_for(std::chrono::seconds(idle_duration));
+            std::this_thread::sleep_for(std::chrono::milliseconds(idle_duration_ms));
         }
     }
 
-    void executeInactiveBehavior(int duration)
+    void executeInactiveBehavior(int duration_s)
     {
-        std::this_thread::sleep_for(std::chrono::seconds(duration));
+        std::this_thread::sleep_for(std::chrono::seconds(duration_s));
     }
 
     void executeReplayBehavior(const std::string &trace_file, int client_id, double scale_ratio, const std::function<void()> &send_request)
@@ -122,13 +120,13 @@ namespace ycsbc
             switch (behavior.type)
             {
             case STEADY:
-                executeSteadyBehavior(behavior.request_rate, behavior.duration, send_request);
+                executeSteadyBehavior(behavior.request_rate_qps, behavior.duration_s, send_request);
                 break;
             case BURSTY:
-                executeBurstyBehavior(behavior.request_rate, behavior.burst_duration, behavior.idle_duration, behavior.repeats, send_request);
+                executeBurstyBehavior(behavior.request_rate_qps, behavior.burst_duration_ms, behavior.idle_duration_ms, behavior.repeats, send_request);
                 break;
             case INACTIVE:
-                executeInactiveBehavior(behavior.duration);
+                executeInactiveBehavior(behavior.duration_s);
                 break;
             case REPLAY:
                 assert(!behavior.trace_file.empty() && "Replay behavior must have a valid trace file.");
@@ -246,17 +244,17 @@ namespace ycsbc
                 switch (behavior.type)
                 {
                 case STEADY:
-                    behavior.request_rate = behavior_node["request_rate"].as<int>();
-                    behavior.duration = behavior_node["duration"].as<int>();
+                    behavior.request_rate_qps = behavior_node["request_rate_qps"].as<int>();
+                    behavior.duration_s = behavior_node["duration_s"].as<int>();
                     break;
                 case BURSTY:
-                    behavior.request_rate = behavior_node["request_rate"].as<int>();
-                    behavior.burst_duration = behavior_node["burst_duration"].as<int>();
-                    behavior.idle_duration = behavior_node["idle_duration"].as<int>();
+                    behavior.request_rate_qps = behavior_node["request_rate_qps"].as<int>();
+                    behavior.burst_duration_ms = behavior_node["burst_duration_ms"].as<int>();
+                    behavior.idle_duration_ms = behavior_node["idle_duration_ms"].as<int>();
                     behavior.repeats = behavior_node["repeats"].as<int>();
                     break;
                 case INACTIVE:
-                    behavior.duration = behavior_node["duration"].as<int>();
+                    behavior.duration_s = behavior_node["duration_s"].as<int>();
                     break;
                 case REPLAY:
                     behavior.trace_file = behavior_node["trace_file"].as<std::string>();
@@ -364,10 +362,10 @@ namespace ycsbc
             switch (behavior.type)
             {
             case STEADY:
-                total_operations += behavior.request_rate * behavior.duration;
+                total_operations += behavior.request_rate_qps * behavior.duration_s;
                 break;
             case BURSTY:
-                total_operations += (behavior.request_rate * behavior.burst_duration) * behavior.repeats;
+                total_operations += (behavior.request_rate_qps * behavior.burst_duration_ms) * behavior.repeats;
                 break;
             case INACTIVE:
                 // No operations for INACTIVE
@@ -386,6 +384,7 @@ namespace ycsbc
         static const std::unordered_map<std::string, Operation> operationMap = {
             {"INSERT", INSERT},
             {"READ", READ},
+            {"READ_BATCH", READ_BATCH},
             {"UPDATE", UPDATE},
             {"SCAN", SCAN},
             {"READMODIFYWRITE", READMODIFYWRITE},
@@ -399,6 +398,7 @@ namespace ycsbc
             {"READMODIFYWRITE_FAILED", READMODIFYWRITE_FAILED},
             {"DELETE_FAILED", DELETE_FAILED},
             {"INSERT_BATCH_FAILED", INSERT_BATCH_FAILED},
+            {"READ_BATCH_FAILED", READ_BATCH_FAILED},
             {"MAXOPTYPE", MAXOPTYPE}};
 
         auto it = operationMap.find(operationName);

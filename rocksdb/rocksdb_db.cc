@@ -134,8 +134,8 @@ namespace
   const std::string PROP_CACHE_NUM_SHARD_BITS = "cache_num_shard_bits";
   const std::string PROP_CACHE_NUM_SHARD_BITS_DEFAULT = "-1";
 
-  const std::string PROP_REFILL_PERIOD = "refill_period";
-  const std::string PROP_REFILL_PERIOD_DEFAULT = "0";
+  const std::string PROP_REFILL_PERIOD_MS = "refill_period_ms";
+  const std::string PROP_REFILL_PERIOD_MS_DEFAULT = "0";
 
   const std::string PROP_READ_RATE_LIMITS = "read_rate_limits";
   const std::string PROP_READ_RATE_LIMITS_DEFAULT = "";
@@ -235,6 +235,7 @@ namespace ycsbc
     {
       format_ = kSingleRow;
       method_read_ = &RocksdbDB::ReadSingle;
+      method_read_batch_ = &RocksdbDB::ReadMany;
       method_scan_ = &RocksdbDB::ScanSingle;
       method_update_ = &RocksdbDB::UpdateSingle;
       method_insert_ = &RocksdbDB::InsertSingle;
@@ -539,8 +540,8 @@ namespace ycsbc
         throw utils::Exception("Inconsistent thread counts and rate limit counts.");
       }
 
-      size_t refill_period = std::stoi(props.GetProperty(PROP_REFILL_PERIOD, PROP_REFILL_PERIOD_DEFAULT));
-      if (refill_period == 0)
+      size_t refill_period_ms = std::stoi(props.GetProperty(PROP_REFILL_PERIOD_MS, PROP_REFILL_PERIOD_MS_DEFAULT));
+      if (refill_period_ms == 0)
       {
         std::cout << "[FAIRDB_LOG] refill period set to 0" << std::endl;
       }
@@ -549,7 +550,7 @@ namespace ycsbc
         num_clients,
         write_rate_limits,
         read_rate_limits,
-        refill_period * 1000,        // Refill period (ms-->us)
+        refill_period_ms * 1000,        // Refill period (ms-->us)
         10,                // Fairness (default)
         rocksdb::RateLimiter::Mode::kAllIo, // All IO
         /* single_burst_bytes */ 0
@@ -604,60 +605,60 @@ namespace ycsbc
     for (size_t i = 0; i < cf_opt.size(); ++i)
     {
       cf_opt[i].write_buffer_size = std::stoi(vals[i]);
-  }
-  const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
-  for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
-  }
-  vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
-  if (vals.size() != cf_opt.size()) {
-    throw utils::Exception("PROP_CACHE_SIZE doesn't match number of column families");
-  }
-
-  // TODO(tgriggs|devbali): cache additions
-  bool use_pooled = props.GetProperty(PROP_FAIRDB_USE_POOLED, PROP_FAIRDB_USE_POOLED_DEFAULT) == "true";
-  // auto client_to_cf = Prop2vector(props, CoreWorkload::CLIENT_TO_CF_MAP, CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT);
-
-  for (size_t i = 0; i < cf_opt.size(); ++i) {
-    // int client_idx = -1;
-    // std::string cf_name = cf_names[i];
-    // for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
-    //   std::string cf_to_idx = client_to_cf[client_to_cf_i];
-    //       printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
-
-    //   if (cf_to_idx == cf_name) {
-    //     client_idx = client_to_cf_i;
-    //     break;
-    //   }
-    // }
-    // assert (client_idx != -1);
-
-    rocksdb::BlockBasedTableOptions table_options;
-    std::string val = vals[i];
-    if (std::stoul(val) > 0) {
-      rocksdb::LRUCacheOptions cache_opts;
-      cache_opts.client_id = i;
-      cache_opts.capacity = std::stoul(val);
-      cache_opts.strict_capacity_limit = false;
-      cache_opts.fairdb_use_pooled = use_pooled;
-      cache_opts.pooled_capacity = std::stoul(val);
-      cache_opts.request_additional_delay_microseconds = std::stoi(props.GetProperty(PROP_FAIRDB_CACHE_RAD_MICROSECONDS, PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT));
-      cache_opts.read_io_mbps = 5000;
-      cache_opts.additional_rampups_supported = 2;
-      cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
-      table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
-      block_caches_by_client_.insert(block_caches_by_client_.begin() + i, table_options.block_cache);
-      std::cout << "[FAIRDB_LOG] Creating cache for CF #" << i << " of size " << val << std::endl;
-    } else {
-      table_options.no_block_cache = true;  // Disable block cache
     }
-    cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
+    const int min_write_buffer_number_to_merge = std::stoi(props.GetProperty(PROP_MIN_MEMTABLE_TO_MERGE, PROP_MIN_MEMTABLE_TO_MERGE_DEFAULT));
+    for (size_t i = 0; i < cf_opt.size(); ++i) {
+      cf_opt[i].min_write_buffer_number_to_merge = min_write_buffer_number_to_merge;
+    }
+    vals = Prop2vector(props, PROP_CACHE_SIZE, PROP_CACHE_SIZE_DEFAULT);
+    if (vals.size() != cf_opt.size()) {
+      throw utils::Exception("PROP_CACHE_SIZE doesn't match number of column families");
+    }
+
+    // TODO(tgriggs|devbali): cache additions
+    bool use_pooled = props.GetProperty(PROP_FAIRDB_USE_POOLED, PROP_FAIRDB_USE_POOLED_DEFAULT) == "true";
+    // auto client_to_cf = Prop2vector(props, CoreWorkload::CLIENT_TO_CF_MAP, CoreWorkload::CLIENT_TO_CF_MAP_DEFAULT);
+
+    for (size_t i = 0; i < cf_opt.size(); ++i) {
+      // int client_idx = -1;
+      // std::string cf_name = cf_names[i];
+      // for (int client_to_cf_i = 0; client_to_cf_i < client_to_cf.size(); client_to_cf_i ++) {
+      //   std::string cf_to_idx = client_to_cf[client_to_cf_i];
+      //       printf("cf_name %s, cf_to_idx %s\n", cf_name.c_str(), cf_to_idx.c_str());
+
+      //   if (cf_to_idx == cf_name) {
+      //     client_idx = client_to_cf_i;
+      //     break;
+      //   }
+      // }
+      // assert (client_idx != -1);
+
+      rocksdb::BlockBasedTableOptions table_options;
+      std::string val = vals[i];
+      if (std::stoul(val) > 0) {
+        rocksdb::LRUCacheOptions cache_opts;
+        cache_opts.client_id = i;
+        cache_opts.capacity = std::stoul(val);
+        cache_opts.strict_capacity_limit = false;
+        cache_opts.fairdb_use_pooled = use_pooled;
+        cache_opts.pooled_capacity = std::stoul(val);
+        cache_opts.request_additional_delay_microseconds = std::stoi(props.GetProperty(PROP_FAIRDB_CACHE_RAD_MICROSECONDS, PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT));
+        cache_opts.read_io_mbps = 5000;
+        cache_opts.additional_rampups_supported = 2;
+        cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
+        table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
+        block_caches_by_client_.insert(block_caches_by_client_.begin() + i, table_options.block_cache);
+        std::cout << "[FAIRDB_LOG] Creating cache for CF #" << i << " of size " << val << std::endl;
+      } else {
+        table_options.no_block_cache = true;  // Disable block cache
+      }
+      cf_opt[i].table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
+    }
+    int num_levels = std::stoi(props.GetProperty(PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT));
+    for (size_t i = 0; i < cf_opt.size(); ++i) {
+      cf_opt[i].num_levels = num_levels;
+    }
   }
-  int num_levels = std::stoi(props.GetProperty(PROP_NUM_LEVELS, PROP_NUM_LEVELS_DEFAULT));
-  for (size_t i = 0; i < cf_opt.size(); ++i) {
-    cf_opt[i].num_levels = num_levels;
-  }
-}
 
   void RocksdbDB::SerializeRow(const std::vector<Field> &values, std::string &data)
   {
@@ -795,6 +796,60 @@ namespace ycsbc
       DeserializeRow(result, data);
       assert(result.size() == static_cast<size_t>(fieldcount_));
     }
+    return kOK;
+  }
+
+  DB::Status RocksdbDB::ReadMany(const std::string &table, const std::vector<std::string> &keys,
+                   const std::vector<std::vector<std::string>> *fields,
+                   std::vector<std::vector<Field>> &result) {
+    auto *handle = table2handle(table);
+    if (handle == nullptr)
+    {
+      std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
+      return kError;
+    }
+
+    auto &thread_metadata = TG_GetThreadMetadata();
+    thread_metadata.client_id = table2clientId(table);
+
+    // Set the rate limiter priority to highest (USER request).
+    rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
+    read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
+
+    // Prepare vectors for MultiGet
+    std::vector<rocksdb::Slice> key_slices;
+    key_slices.reserve(keys.size());
+    for (const auto& key : keys) {
+      key_slices.push_back(key);
+    }
+
+    std::vector<std::string> values;
+    std::vector<std::string> timestamps;  // Required by the API but not used
+
+    // Create a vector of column family handles for MultiGet
+    std::vector<rocksdb::ColumnFamilyHandle*> handles(keys.size(), handle);
+
+    // Perform MultiGet
+    std::vector<rocksdb::Status> statuses = db_->MultiGet(read_options, handles, key_slices, &values, &timestamps);
+
+    // Process results
+    result.resize(keys.size());
+    for (size_t i = 0; i < keys.size(); i++) {
+      if (statuses[i].IsNotFound()) {
+        // Handle not found case - you might want to set a specific status for this
+        continue;
+      } else if (!statuses[i].ok()) {
+        throw utils::Exception(std::string("RocksDB Get for key ") + keys[i] + ": " + statuses[i].ToString());
+      }
+
+      if (fields != nullptr) {
+        DeserializeRowFilter(result[i], values[i], (*fields)[i]);
+      } else {
+        DeserializeRow(result[i], values[i]);
+        assert(result[i].size() == static_cast<size_t>(fieldcount_));
+      }
+    }
+
     return kOK;
   }
 
@@ -1051,7 +1106,7 @@ namespace ycsbc
     std::cout << "[FAIRDB_LOG] " << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::MEMTABLE_HIT)
               << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L0)
               << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L1)
-              << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP);
+              << db_->GetOptions().statistics->getTickerCount(rocksdb::Tickers::GET_HIT_L2_AND_UP) << std::endl;
 
     // Histogram of Get() operations
     // std::string hist_data = db_->GetOptions().statistics->getHistogramString(0);

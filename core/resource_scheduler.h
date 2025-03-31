@@ -238,7 +238,7 @@ void CentralResourceSchedulerThread(
     std::vector<ResourceUsageReport> usage_report_buffer;
     usage_report_buffer.reserve(buffer_dump_threshold);
     
-    // TODO(tgriggs): fix this, which pulls from dbs, but if num threads i
+    // TODO(tgriggs): fix this, which pulls from dbs, but if num threads is
     // less, then it breaks
     size_t num_clients = dbs.size();
 
@@ -249,9 +249,22 @@ void CentralResourceSchedulerThread(
     // std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
     std::deque<std::vector<MultiTenantResourceUsage>> interval_usages;
 
+    // Add counters and accumulators for timing statistics
+    int64_t iteration_count = 0;
+    int64_t get_usage_total = 0;
+    int64_t update_shares_total = 0;
+    int64_t iteration_total = 0;
+
     while (!latch->AwaitForMs(options.rsched_interval_ms)) {
+      auto iteration_start_time = std::chrono::high_resolution_clock::now();
+      
       // TODO(tgriggs): Optimize this path next -- are any locks taken?
+      // Get total resource usage from all DBs
+      auto start_time = std::chrono::high_resolution_clock::now();
       std::vector<MultiTenantResourceUsage> total_usage = dbs[0]->GetResourceUsage();
+      auto end_time = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+      get_usage_total += duration.count();
       std::vector<MultiTenantResourceUsage> interval_usage(num_clients);
       for (size_t i = 0; i < num_clients; ++i) {
         interval_usage[i] = ycsbc::utils::ComputeResourceUsageRateInInterval(prev_usage[i], total_usage[i], options.rsched_interval_ms);
@@ -315,9 +328,13 @@ void CentralResourceSchedulerThread(
       }
 
       // TODO(tgriggs): Access a single "Resource" object instead of going through a single DB
+      auto update_start_time = std::chrono::high_resolution_clock::now();
       dbs[0]->UpdateResourceShares(res_opts);
+      auto update_end_time = std::chrono::high_resolution_clock::now();
+      auto update_duration = std::chrono::duration_cast<std::chrono::microseconds>(update_end_time - update_start_time);
+      update_shares_total += update_duration.count();
 
-      // TODO(tgriggs): Add new shares to a buffer, then dump at threshold
+      // TODO(tgriggs): Add new shares to a log buffer, then dump at threshold
       auto now_us = std::chrono::time_point_cast<std::chrono::microseconds>( std::chrono::high_resolution_clock::now());
       long now = now_us.time_since_epoch().count();
       for (size_t i = 0; i < res_opts.size(); ++i) {
@@ -328,6 +345,24 @@ void CentralResourceSchedulerThread(
         DumpResourceReports(usage_report_buffer, resource_usage_logfile, share_report_buffer, resource_share_logfile);
         usage_report_buffer.clear();
         share_report_buffer.clear();
+      }
+
+      auto iteration_end_time = std::chrono::high_resolution_clock::now();
+      auto iteration_duration = std::chrono::duration_cast<std::chrono::microseconds>(iteration_end_time - iteration_start_time);
+      iteration_total += iteration_duration.count();
+
+      iteration_count++;
+      if (iteration_count % 1000 == 0) {
+        std::cout << "Average timings over last 1000 intervals:" << std::endl;
+        std::cout << "  GetResourceUsage(): " << (get_usage_total / 1000) << " microseconds" << std::endl;
+        std::cout << "  UpdateResourceShares(): " << (update_shares_total / 1000) << " microseconds" << std::endl;
+        std::cout << "  Total iteration: " << (iteration_total / 1000) << " microseconds" << std::endl;
+        std::cout << "----------------------------------------" << std::endl;
+        
+        // Reset accumulators
+        get_usage_total = 0;
+        update_shares_total = 0;
+        iteration_total = 0;
       }
 
       // TODO(tgriggs): also optionally record and dump usage

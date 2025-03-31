@@ -4,20 +4,20 @@ clients:
     record_count: 15000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      READ_BATCH: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 2000
+        request_rate_qps: 20
         duration_s: 45
       - type: INACTIVE
         duration_s: 30
       - type: BURSTY       
-        request_rate_qps: 100000
-        burst_duration_ms: 10 # 10ms burst at 100000 qps --> 1k requests in the burst
+        request_rate_qps: 1000
+        burst_duration_ms: 10 # 10ms burst at 1000 qps with 100reqs/batch --> 1k requests in the burst
         idle_duration_ms: 0
         repeats: 1
       - type: STEADY
-        request_rate_qps: 2000
+        request_rate_qps: 20
         duration_s: 30
 
   - client_id: 1

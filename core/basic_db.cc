@@ -45,6 +45,27 @@ DB::Status BasicDB::Read(const std::string &table, const std::string &key,
   return kOK;
 }
 
+DB::Status BasicDB::ReadBatch(const std::string &table, const std::vector<std::string> &keys,
+                   const std::vector<std::vector<std::string>> *fields,
+                   std::vector<std::vector<Field>> &result, int client_id) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "READ_BATCH " << table << ' ' << keys.size() << std::endl;
+  
+  for (size_t i = 0; i < keys.size(); i++) {
+    *out_ << "  Key: " << keys[i] << std::endl;
+    if (fields) {
+      *out_ << "    Fields: [ ";
+      for (const auto& field : (*fields)[i]) {
+        *out_ << field << ' ';
+      }
+      *out_ << ']' << std::endl;
+    } else {
+      *out_ << "    Fields: < all fields >" << std::endl;
+    }
+  }
+  return kOK;
+}
+
 DB::Status BasicDB::Scan(const std::string &table, const std::string &key, int len,
                          const std::vector<std::string> *fields,
                          std::vector<std::vector<Field>> &result, int client_id) {

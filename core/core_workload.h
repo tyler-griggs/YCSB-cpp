@@ -77,6 +77,9 @@ namespace ycsbc
     static const std::string READ_PROPORTION_PROPERTY;
     static const std::string READ_PROPORTION_DEFAULT;
 
+    static const std::string READ_BATCH_PROPORTION_PROPERTY;
+    static const std::string READ_BATCH_PROPORTION_DEFAULT;
+
     ///
     /// The name of the property for the proportion of update transactions.
     ///
@@ -204,6 +207,7 @@ namespace ycsbc
     std::string NextFieldName();
 
     DB::Status TransactionRead(DB &db, ClientConfig *config);
+    DB::Status TransactionReadBatch(DB &db, ClientConfig *config);
     DB::Status TransactionReadModifyWrite(DB &db, ClientConfig *config);
     DB::Status TransactionScan(DB &db, ClientConfig *config);
     DB::Status TransactionUpdate(DB &db, ClientConfig *config);

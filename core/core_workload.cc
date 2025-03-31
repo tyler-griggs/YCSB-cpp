@@ -34,13 +34,15 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
     "RANDOM_INSERT",
     "INSERT_BATCH",
     "QUEUE",
+    "READ_BATCH",
     "INSERT-FAILED",
     "READ-FAILED",
     "UPDATE-FAILED",
     "SCAN-FAILED",
     "READMODIFYWRITE-FAILED",
     "DELETE-FAILED",
-    "INSERT_BATCH-FAILED"};
+    "INSERT_BATCH-FAILED",
+    "READ_BATCH-FAILED"};
 
 const string CoreWorkload::TABLENAME_PROPERTY = "table";
 const string CoreWorkload::TABLENAME_DEFAULT = "usertable";
@@ -80,6 +82,9 @@ const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
 
 const string CoreWorkload::INSERT_BATCH_PROPORTION_PROPERTY = "insertbatchproportion";
 const string CoreWorkload::INSERT_BATCH_PROPORTION_DEFAULT = "0.0";
+
+const string CoreWorkload::READ_BATCH_PROPORTION_PROPERTY = "readbatchproportion";
+const string CoreWorkload::READ_BATCH_PROPORTION_DEFAULT = "0.0";
 
 const string CoreWorkload::ZERO_PADDING_PROPERTY = "zeropadding";
 const string CoreWorkload::ZERO_PADDING_DEFAULT = "1";
@@ -268,6 +273,9 @@ namespace ycsbc
     case READ:
       status = TransactionRead(db, config);
       break;
+    case READ_BATCH:
+      status = TransactionReadBatch(db, config);
+      break;
     case UPDATE:
       status = TransactionUpdate(db, config);
       break;
@@ -315,6 +323,38 @@ namespace ycsbc
     else
     {
       return db.Read(table_name, key, NULL, result, client_id);
+    }
+  }
+
+  DB::Status CoreWorkload::TransactionReadBatch(DB &db, ClientConfig *config)
+  {
+    const int batch_size = 100;  // Number of keys to read in each batch
+    std::vector<std::string> keys;
+    keys.reserve(batch_size);
+    
+    // Generate batch_size keys
+    for (int i = 0; i < batch_size; i++) {
+      uint64_t key_num = NextTransactionKeyNum(config);
+      uint64_t client_key_num = key_num;
+      keys.push_back(BuildKeyName(client_key_num));
+    }
+
+    std::string table_name = config->cf;
+    int client_id = config->client_id;
+    std::vector<std::vector<DB::Field>> results(batch_size);
+
+    if (!read_all_fields())
+    {
+      // Create a vector of field vectors, one for each key
+      std::vector<std::vector<std::string>> fields(batch_size);
+      for (int i = 0; i < batch_size; i++) {
+        fields[i].push_back(NextFieldName());
+      }
+      return db.ReadBatch(table_name, keys, &fields, results, client_id);
+    }
+    else
+    {
+      return db.ReadBatch(table_name, keys, NULL, results, client_id);
     }
   }
 

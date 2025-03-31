@@ -34,6 +34,7 @@ namespace ycsbc
         RANDOM_INSERT,
         INSERT_BATCH,
         QUEUE,
+        READ_BATCH,
         INSERT_FAILED,
         READ_FAILED,
         UPDATE_FAILED,
@@ -41,6 +42,7 @@ namespace ycsbc
         READMODIFYWRITE_FAILED,
         DELETE_FAILED,
         INSERT_BATCH_FAILED,
+        READ_BATCH_FAILED,
         MAXOPTYPE
     };
 
@@ -56,10 +58,10 @@ namespace ycsbc
     struct Behavior
     {
         BehaviorType type;
-        int request_rate;         // For STEADY and BURSTY
-        int duration;             // For STEADY and INACTIVE
-        int burst_duration;       // For BURSTY
-        int idle_duration;        // For BURSTY
+        int request_rate_qps;         // For STEADY and BURSTY
+        int duration_s;             // For STEADY and INACTIVE
+        int burst_duration_ms;       // For BURSTY
+        int idle_duration_ms;        // For BURSTY
         int repeats;              // For BURSTY
         std::string trace_file;   // For REPLAY
         int client_id = -1;       // Client ID in the trace file (default: -1)
