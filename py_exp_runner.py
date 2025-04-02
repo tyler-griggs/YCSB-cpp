@@ -114,7 +114,7 @@ def main():
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "examples/tg_io_sharing.yaml"
+  client_config = "examples/tg_multiget.yaml"
 
   # RocksDB Parameters
   tpool_threads = "16"
@@ -125,7 +125,7 @@ def main():
   
   # Cache Parameters
   # CACHE_SIZE = 0
-  CACHE_SIZE = 600 * 8 * 1024*1024  # Vanilla RocksDB: Set to 0 to disable
+  CACHE_SIZE = 320 * 8 * 1024*1024  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
@@ -147,13 +147,13 @@ def main():
   max_write_buffer_number = ",".join(["2"] * NUM_CFS)
   
   # I/O Bandwidth Parameters
-  enable_rate_limiter = "true" # Vanilla RocksDB: Set to false to disable
+  enable_rate_limiter = "false" # Vanilla RocksDB: Set to false to disable
   write_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
   read_rate_limits_mbps = ",".join(["10000"] * NUM_CFS)
   refill_period_ms = "10"
   
   # Resource Scheduler Parameters
-  enable_resource_scheduler = "true" # Vanilla RocksDB: Set to false to disable
+  enable_resource_scheduler = "false" # Vanilla RocksDB: Set to false to disable
   rsched_interval_ms = "10"
   lookback_intervals = "30"
   rsched_rampup_multiplier = "1.2"

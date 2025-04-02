@@ -77,7 +77,7 @@ clients:
 
   - client_id: 6
     cf: "cf6"
-    record_count: 100000
+    record_count: 15000
     request_distribution: 'uniform'
     op_distribution:
       READ: 1.0
@@ -88,7 +88,7 @@ clients:
 
   - client_id: 7
     cf: "cf7"
-    record_count: 100000
+    record_count: 15000
     request_distribution: 'uniform'
     op_distribution:
       READ: 1.0
