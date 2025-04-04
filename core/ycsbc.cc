@@ -102,7 +102,12 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     // Print status message less frequently
     for (size_t i = 0; i < per_client_measurements.size(); ++i)
     {
-      std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg();
+      std::vector<std::string> op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg(/*noop=*/false);
+
+      if (op_csv_stats.size() == 0) {
+        op_csv_stats = per_client_measurements[i]->GetCSVStatusMsg(/*noop=*/true);
+      }
+
       int j = -1;
       std::shared_ptr<rocksdb::Cache> block_cache = nullptr;
       while (block_cache == nullptr && j < (int) (per_client_measurements.size()-1)) {
@@ -163,7 +168,7 @@ void StatusThread(ycsbc::Measurements *measurements, std::vector<ycsbc::Measurem
     }
     for (size_t i = 0; i < queuing_delay_measurements.size(); ++i)
     {
-      std::vector<std::string> op_csv_stats = queuing_delay_measurements[i]->GetCSVStatusMsg();
+      std::vector<std::string> op_csv_stats = queuing_delay_measurements[i]->GetCSVStatusMsg(/*noop=*/false);
       for (const auto &csv : op_csv_stats)
       {
         client_stats_logfile << duration_since_epoch_ms << ',' << i << ',' << csv << "0,0,0,0,0,0,0,0,0" << std::endl;

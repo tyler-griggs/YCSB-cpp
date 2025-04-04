@@ -115,6 +115,7 @@ def main():
     
   # Workload Parameters
   client_config = "examples/tg_multiget.yaml"
+  # client_config = "examples/tg_compact.yaml"
 
   # RocksDB Parameters
   tpool_threads = "16"
@@ -137,7 +138,7 @@ def main():
     cache_num_shard_bits = str(CACHE_SHARD_BITS_ISOLATED)
   rocksdb_cache_size = ",".join([str(CACHE_SIZE)] * NUM_CFS)
   # cache_rad_microseconds = str(0) # 0s --> isolated, reduces to vanilla rocksdb
-  cache_rad_microseconds = str(10 * 1000 * 1000) # 10s
+  cache_rad_microseconds = str(5 * 1000 * 1000)
 
   # Write Buffer Parameters
   wbm_size = "0" # Vanilla RocksDB: Set to 0 to disable
@@ -158,7 +159,7 @@ def main():
   lookback_intervals = "30"
   rsched_rampup_multiplier = "1.2"
   # Note: only need to set these if rsched is true
-  io_read_capacity_kbps = 630 * 1024
+  io_read_capacity_kbps = 650 * 1024
   io_write_capacity_kbps = 350 * 1024
   memtable_capacity = 512 * 1024
   min_memtable_count = 16
@@ -188,6 +189,7 @@ def main():
       f"-p rocksdb.max_subcompactions={max_subcompactions} "
       f"-p cache_num_shard_bits={cache_num_shard_bits} "
       f"-p fairdb_cache_rad={cache_rad_microseconds} "
+      f"-p fairdb_io_read_capacity_mbps={io_read_capacity_kbps / 1024} "
       f"-p wbm_size={wbm_size} "
       f"-p wbm_steady_res_size={wbm_steady_res_size} "
       f"-p wbm_limits={wbm_limits} "

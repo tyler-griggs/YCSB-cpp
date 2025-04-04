@@ -131,6 +131,9 @@ namespace
   const std::string PROP_FAIRDB_CACHE_RAD_MICROSECONDS = "fairdb_cache_rad";
   const std::string PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT = "100";
 
+  const std::string PROP_FAIRDB_IO_READ_CAPACITY_MBPS = "fairdb_io_read_capacity_mbps";
+  const std::string PROP_FAIRDB_IO_READ_CAPACITY_MBPS_DEFAULT = "0";
+
   const std::string PROP_CACHE_NUM_SHARD_BITS = "cache_num_shard_bits";
   const std::string PROP_CACHE_NUM_SHARD_BITS_DEFAULT = "-1";
 
@@ -636,15 +639,23 @@ namespace ycsbc
       rocksdb::BlockBasedTableOptions table_options;
       std::string val = vals[i];
       if (std::stoul(val) > 0) {
+
+        int request_additional_delay_microseconds = std::stoi(props.GetProperty(PROP_FAIRDB_CACHE_RAD_MICROSECONDS, PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT));
+        int read_io_mbps = std::stoi(props.GetProperty(PROP_FAIRDB_IO_READ_CAPACITY_MBPS, PROP_FAIRDB_IO_READ_CAPACITY_MBPS_DEFAULT));
+
+        if (read_io_mbps <= 0) {
+          std::cout << "[FAIRDB_LOG] Read IO limit set to 0" << std::endl;
+        }
+
         rocksdb::LRUCacheOptions cache_opts;
         cache_opts.client_id = i;
         cache_opts.capacity = std::stoul(val);
         cache_opts.strict_capacity_limit = false;
         cache_opts.fairdb_use_pooled = use_pooled;
         cache_opts.pooled_capacity = std::stoul(val);
-        cache_opts.request_additional_delay_microseconds = std::stoi(props.GetProperty(PROP_FAIRDB_CACHE_RAD_MICROSECONDS, PROP_FAIRDB_CACHE_RAD_MICROSECONDS_DEFAULT));
-        cache_opts.read_io_mbps = 5000;
-        cache_opts.additional_rampups_supported = 2;
+        cache_opts.request_additional_delay_microseconds = request_additional_delay_microseconds;
+        cache_opts.read_io_mbps = read_io_mbps;
+        cache_opts.additional_rampups_supported = 0;
         cache_opts.num_shard_bits = std::stoi(props.GetProperty(PROP_CACHE_NUM_SHARD_BITS, PROP_CACHE_NUM_SHARD_BITS_DEFAULT));
         table_options.block_cache = rocksdb::NewLRUCache(cache_opts);
         block_caches_by_client_.insert(block_caches_by_client_.begin() + i, table_options.block_cache);

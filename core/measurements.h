@@ -25,7 +25,7 @@ class Measurements {
  public:
   virtual void Report(Operation op, uint64_t latency) = 0;
   virtual std::string GetStatusMsg() = 0;
-  virtual std::vector<std::string> GetCSVStatusMsg() = 0;
+  virtual std::vector<std::string> GetCSVStatusMsg(bool noop) = 0;
   virtual void Reset() = 0;
 };
 
@@ -34,7 +34,7 @@ class BasicMeasurements : public Measurements {
   BasicMeasurements();
   void Report(Operation op, uint64_t latency) override;
   std::string GetStatusMsg() override;
-  std::vector<std::string> GetCSVStatusMsg() override {
+  std::vector<std::string> GetCSVStatusMsg(bool noop) override {
     // Unimplemented
     return {};
   };
@@ -52,7 +52,7 @@ class HdrHistogramMeasurements : public Measurements {
   HdrHistogramMeasurements();
   void Report(Operation op, uint64_t latency) override;
   std::string GetStatusMsg() override;
-  std::vector<std::string> GetCSVStatusMsg() override;
+  std::vector<std::string> GetCSVStatusMsg(bool noop) override;
   void Reset() override;
   const hdr_histogram* GetHistogram(int op) {
     return histogram_[op];
