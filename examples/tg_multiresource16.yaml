@@ -4,11 +4,21 @@ clients:
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      READ_MODIFY_INSERT_BATCH: 1.0
     behaviors:
       - type: STEADY
         request_rate_qps: 5
-        duration_s: 115
+        duration_s: 30
+      - type: INACTIVE
+        duration_s: 10
+      - type: BURSTY
+        request_rate_qps: 100000
+        burst_duration_ms: 4 # 10ms burst at 100000 qps --> 1k requests in the burst
+        idle_duration_ms: 0
+        repeats: 1
+      - type: STEADY
+        request_rate_qps: 5
+        duration_s: 30
 
   - client_id: 1
     cf: "cf1"
@@ -18,8 +28,8 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 2
     cf: "cf2"
@@ -29,8 +39,8 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 3
     cf: "cf3"
@@ -40,8 +50,8 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 4
     cf: "cf4"
@@ -51,96 +61,96 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 5
     cf: "cf5"
-    record_count: 30000
+    record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 6
     cf: "cf6"
-    record_count: 30000
+    record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1000
+        duration_s: 70
 
   - client_id: 7
     cf: "cf7"
-    record_count: 30000
+    record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 8
     cf: "cf8"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 9
     cf: "cf9"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 10
     cf: "cf10"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 11
     cf: "cf11"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 12
     cf: "cf12"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 50
+        duration_s: 70
 
   - client_id: 13
     cf: "cf13"
@@ -150,8 +160,8 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1500
+        duration_s: 70
 
   - client_id: 14
     cf: "cf14"
@@ -161,16 +171,16 @@ clients:
       READ: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 1500
+        duration_s: 70
 
   - client_id: 15
     cf: "cf15"
     record_count: 10000
     request_distribution: 'uniform'
     op_distribution:
-      READ: 1.0
+      RANDOM_INSERT: 1.0
     behaviors:
       - type: STEADY
-        request_rate_qps: 5
-        duration_s: 115
+        request_rate_qps: 100
+        duration_s: 70

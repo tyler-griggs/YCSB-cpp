@@ -116,8 +116,8 @@ def main():
   # Workload Parameters
   # client_config = "examples/tg_multiget_lite16.yaml"
   # client_config = "examples/tg_multiget16.yaml"
-  client_config = "examples/tg_compact16.yaml"
-  # client_config = "examples/tg_multiresource16.yaml"
+  # client_config = "examples/tg_compact16.yaml"
+  client_config = "examples/tg_multiresource16.yaml"
   readmodifyinsertbatchsize = "10" # TODO: this should be moved to yaml
 
   # RocksDB Parameters
