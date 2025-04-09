@@ -21,7 +21,6 @@
 #include <rocksdb/options.h>
 #include <rocksdb/rocksdb_db.h>
 
-
 namespace ycsbc {
 
 class DBWrapper : public DB {
@@ -42,10 +41,10 @@ class DBWrapper : public DB {
   Status Read(const std::string &table, const std::string &key,
               const std::vector<std::string> *fields, std::vector<Field> &result,
               int client_id) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->Read(table, key, fields, result, client_id);
 
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(READ, elapsed);
       per_client_measurements_[client_id]->Report(READ, elapsed);
@@ -58,10 +57,10 @@ class DBWrapper : public DB {
   Status ReadBatch(const std::string &table, const std::vector<std::string> &keys,
                    const std::vector<std::vector<std::string>> *fields,
                    std::vector<std::vector<Field>> &result, int client_id) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->ReadBatch(table, keys, fields, result, client_id);
 
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(READ_BATCH, elapsed);
       per_client_measurements_[client_id]->Report(READ_BATCH, elapsed);
@@ -75,9 +74,9 @@ class DBWrapper : public DB {
   Status Scan(const std::string &table, const std::string &key, int record_count,
               const std::vector<std::string> *fields, std::vector<std::vector<Field>> &result,
               int client_id) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->Scan(table, key, record_count, fields, result);
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(SCAN, elapsed);
       per_client_measurements_[client_id]->Report(SCAN, elapsed);
@@ -89,9 +88,9 @@ class DBWrapper : public DB {
   }
   Status Update(const std::string &table, const std::string &key, std::vector<Field> &values,
                 int client_id) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->Update(table, key, values);
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(UPDATE, elapsed);
       per_client_measurements_[client_id]->Report(UPDATE, elapsed);
@@ -103,9 +102,9 @@ class DBWrapper : public DB {
     return s;
   }
   Status Insert(const std::string &table, const std::string &key, std::vector<Field> &values, int client_id) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->Insert(table, key, values);
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(INSERT, elapsed);
       per_client_measurements_[client_id]->Report(INSERT, elapsed);
@@ -117,9 +116,9 @@ class DBWrapper : public DB {
     return s;
   }
   Status Delete(const std::string &table, const std::string &key) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->Delete(table, key);
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(DELETE, elapsed);
     } else {
@@ -129,9 +128,9 @@ class DBWrapper : public DB {
   }
 
   Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) {
-    timer_.Start();
+    ns_timer_.Start();
     Status s = db_->InsertBatch(table, start_key, values, num_keys);
-    uint64_t elapsed = timer_.End();
+    uint64_t elapsed = ns_timer_.End();
     if (s == kOK) {
       measurements_->Report(INSERT_BATCH, elapsed);
       per_client_measurements_[client_id]->Report(INSERT_BATCH, elapsed);
@@ -139,6 +138,25 @@ class DBWrapper : public DB {
     } else {
       measurements_->Report(INSERT_BATCH_FAILED, elapsed);
       per_client_measurements_[client_id]->Report(INSERT_BATCH_FAILED, elapsed);
+    }
+    return s;
+  }
+
+  Status ReadModifyInsertBatch(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values, int client_id = 0) {
+    ns_timer_.Start();
+    Status s = db_->ReadModifyInsertBatch(table, keys, fields, result, new_values);
+    uint64_t elapsed = ns_timer_.End();
+    if (s == kOK) {
+      measurements_->Report(READ_MODIFY_INSERT_BATCH, elapsed);
+      per_client_measurements_[client_id]->Report(READ_MODIFY_INSERT_BATCH, elapsed);
+      per_client_bytes_written_->update(client_id, keys.size() * new_values.size() * new_values[0].value.size());
+    } else {
+      measurements_->Report(READ_MODIFY_INSERT_BATCH_FAILED, elapsed);
+      per_client_measurements_[client_id]->Report(READ_MODIFY_INSERT_BATCH_FAILED, elapsed);
     }
     return s;
   }
@@ -176,7 +194,7 @@ class DBWrapper : public DB {
   Measurements *measurements_;
   std::vector<Measurements*> per_client_measurements_;
   std::shared_ptr<ycsbc::utils::MultiTenantCounter> per_client_bytes_written_;
-  utils::Timer<uint64_t, std::nano> timer_;
+  utils::Timer<uint64_t, std::nano> ns_timer_;
 };
 
 } // ycsbc

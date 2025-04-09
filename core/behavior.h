@@ -35,6 +35,7 @@ namespace ycsbc
         INSERT_BATCH,
         QUEUE,
         READ_BATCH,
+        READ_MODIFY_INSERT_BATCH,
         INSERT_FAILED,
         READ_FAILED,
         UPDATE_FAILED,
@@ -43,6 +44,7 @@ namespace ycsbc
         DELETE_FAILED,
         INSERT_BATCH_FAILED,
         READ_BATCH_FAILED,
+        READ_MODIFY_INSERT_BATCH_FAILED,
         MAXOPTYPE
     };
 

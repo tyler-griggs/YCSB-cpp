@@ -108,8 +108,14 @@ class DB {
   ///
   virtual Status Delete(const std::string &table, const std::string &key) = 0;
 
-    virtual Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) = 0;
+  virtual Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0) = 0;
 
+  virtual Status ReadModifyInsertBatch(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values, int client_id = 0) = 0;
+  
     virtual void UpdateRateLimit(int client_id, int64_t rate_limit_bytes) = 0;
     virtual void UpdateMemtableSize(int client_id, int memtable_size_bytes) = 0;
     virtual void UpdateResourceShares(std::vector<ycsbc::utils::MultiTenantResourceShares> res_opts) = 0;

@@ -47,6 +47,12 @@ class BasicDB : public DB {
 
   Status InsertBatch(const std::string &table, int start_key, std::vector<Field> &values, int num_keys, int client_id = 0);
 
+  Status ReadModifyInsertBatch(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values, int client_id = 0);
+
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
 
   void Cleanup() {}

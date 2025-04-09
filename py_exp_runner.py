@@ -42,7 +42,7 @@ def process_iostat_output():
             if len(parts) >= 3:
               # Concatenate 2nd and 3rd tokens for the timestamp
               current_timestamp = parts[1] + " " + parts[2]
-          elif "nvme0n1" in line:
+          elif "md0" in line:
             parts = line.split()
             # Ensure we have at least 13 fields (awk uses fields 2,3,6,7,8,9,12,13)
             if len(parts) >= 13:
@@ -93,7 +93,7 @@ def main():
   # Start iostat in the background.
   # The command prepends a timestamp and then runs "iostat -xdm /dev/nvme0n1 1".
   with open("iostat_output.txt", "w") as iostat_file:
-    iostat_cmd = "(echo \"Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')\"; iostat -xdm /dev/nvme0n1 1)"
+    iostat_cmd = "(echo \"Time: $(date +'%Y-%m-%d %H:%M:%S.%3N')\"; iostat -xdm /dev/md0 1)"
     iostat_proc = subprocess.Popen(iostat_cmd, shell=True, stdout=iostat_file, stderr=subprocess.STDOUT)
     print(f"Started iostat (pid {iostat_proc.pid})")
 
@@ -105,28 +105,31 @@ def main():
     
     
   ############################ Parameters ######################################### 
-    
+
   # Dataset Parameters -- should be set based on loaded data
   fieldcount = "1"
   RECORD_SIZE = 64*1024
   fieldlength = str(RECORD_SIZE)
   NUM_CFS = 16
   rocksdb_num_cfs = str(NUM_CFS)
-    
+
   # Workload Parameters
-  client_config = "examples/tg_multiget.yaml"
-  # client_config = "examples/tg_compact.yaml"
+  # client_config = "examples/tg_multiget_lite16.yaml"
+  # client_config = "examples/tg_multiget16.yaml"
+  client_config = "examples/tg_compact16.yaml"
+  # client_config = "examples/tg_multiresource16.yaml"
+  readmodifyinsertbatchsize = "10" # TODO: this should be moved to yaml
 
   # RocksDB Parameters
-  tpool_threads = "16"
+  tpool_threads = "48"
   status_interval_ms = "100"
-  max_background_jobs = "4"
-  max_background_flushes = "3"  # Subset of jobs
+  max_background_jobs = "8"
+  max_background_flushes = "4"  # Subset of jobs
   max_subcompactions = "1" # Multiplier on max_background_jobs
   
   # Cache Parameters
-  # CACHE_SIZE = 0
-  CACHE_SIZE = 320 * 8 * 1024*1024  # Vanilla RocksDB: Set to 0 to disable
+  CACHE_SIZE = 0
+  # CACHE_SIZE = 320 * 16 * 1024*1024  # Vanilla RocksDB: Set to 0 to disable
   NUM_RECORDS_PER_SHARD = 256
   CACHE_SHARD_BITS_CALC = lambda size: int(math.log2(size // (RECORD_SIZE * NUM_RECORDS_PER_SHARD)))
   CACHE_SHARD_BITS_POOLED = 0 if CACHE_SIZE == 0 else CACHE_SHARD_BITS_CALC(CACHE_SIZE * NUM_CFS)
@@ -138,7 +141,7 @@ def main():
     cache_num_shard_bits = str(CACHE_SHARD_BITS_ISOLATED)
   rocksdb_cache_size = ",".join([str(CACHE_SIZE)] * NUM_CFS)
   # cache_rad_microseconds = str(0) # 0s --> isolated, reduces to vanilla rocksdb
-  cache_rad_microseconds = str(5 * 1000 * 1000)
+  cache_rad_microseconds = str(10 * 1000 * 1000)
 
   # Write Buffer Parameters
   wbm_size = "0" # Vanilla RocksDB: Set to 0 to disable
@@ -159,7 +162,7 @@ def main():
   lookback_intervals = "30"
   rsched_rampup_multiplier = "1.2"
   # Note: only need to set these if rsched is true
-  io_read_capacity_kbps = 650 * 1024
+  io_read_capacity_kbps = 2650 * 1024
   io_write_capacity_kbps = 350 * 1024
   memtable_capacity = 512 * 1024
   min_memtable_count = 16
@@ -191,6 +194,7 @@ def main():
       f"-p fairdb_cache_rad={cache_rad_microseconds} "
       f"-p fairdb_io_read_capacity_mbps={io_read_capacity_kbps / 1024} "
       f"-p wbm_size={wbm_size} "
+      f"-p readmodifyinsertbatchsize={readmodifyinsertbatchsize} "
       f"-p wbm_steady_res_size={wbm_steady_res_size} "
       f"-p wbm_limits={wbm_limits} "
       f"-p status.interval_ms={status_interval_ms} "

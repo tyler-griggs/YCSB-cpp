@@ -35,6 +35,7 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
     "INSERT_BATCH",
     "QUEUE",
     "READ_BATCH",
+    "READ_MODIFY_INSERT_BATCH",
     "INSERT-FAILED",
     "READ-FAILED",
     "UPDATE-FAILED",
@@ -42,7 +43,8 @@ const char *ycsbc::kOperationString[ycsbc::MAXOPTYPE] = {
     "READMODIFYWRITE-FAILED",
     "DELETE-FAILED",
     "INSERT_BATCH-FAILED",
-    "READ_BATCH-FAILED"};
+    "READ_BATCH-FAILED",
+    "READ_MODIFY_INSERT_BATCH-FAILED"};
 
 const string CoreWorkload::TABLENAME_PROPERTY = "table";
 const string CoreWorkload::TABLENAME_DEFAULT = "usertable";
@@ -74,8 +76,11 @@ const string CoreWorkload::INSERT_PROPORTION_DEFAULT = "0.0";
 const string CoreWorkload::SCAN_PROPORTION_PROPERTY = "scanproportion";
 const string CoreWorkload::SCAN_PROPORTION_DEFAULT = "0.0";
 
-const string CoreWorkload::READMODIFYWRITE_PROPORTION_PROPERTY = "readmodifywriteproportion";
-const string CoreWorkload::READMODIFYWRITE_PROPORTION_DEFAULT = "0.0";
+// const string CoreWorkload::READMODIFYWRITE_PROPORTION_PROPERTY = "readmodifywriteproportion";
+// const string CoreWorkload::READMODIFYWRITE_PROPORTION_DEFAULT = "0.0";
+
+const string CoreWorkload::READ_MODIFY_INSERT_BATCH_SIZE_PROPERTY = "readmodifyinsertbatchsize";
+const string CoreWorkload::READ_MODIFY_INSERT_BATCH_SIZE_DEFAULT = "100";
 
 const string CoreWorkload::RANDOM_INSERT_PROPORTION_PROPERTY = "randominsertproportion";
 const string CoreWorkload::RANDOM_INSERT_PROPORTION_DEFAULT = "0.0";
@@ -152,6 +157,8 @@ namespace ycsbc
                                                       READ_ALL_FIELDS_DEFAULT));
     write_all_fields_ = utils::StrToBool(p.GetProperty(WRITE_ALL_FIELDS_PROPERTY,
                                                        WRITE_ALL_FIELDS_DEFAULT));
+    read_modify_insert_batch_size_ = std::stoi(p.GetProperty(READ_MODIFY_INSERT_BATCH_SIZE_PROPERTY,
+                                                              READ_MODIFY_INSERT_BATCH_SIZE_DEFAULT));
 
     // if (p.GetProperty(INSERT_ORDER_PROPERTY, INSERT_ORDER_DEFAULT) == "hashed") {
     //   ordered_inserts_ = false;
@@ -293,6 +300,9 @@ namespace ycsbc
       break;
     case INSERT_BATCH:
       status = TransactionInsertBatch(db, config);
+      break;
+    case READ_MODIFY_INSERT_BATCH:
+      status = TransactionReadModifyInsertBatch(db, config);
       break;
     default:
       std::cout << "[FAIRDB_LOG] Unknown op: " << op_choice << std::endl;
@@ -463,6 +473,40 @@ namespace ycsbc
     std::vector<DB::Field> values;
     BuildValues(values);
     return db.InsertBatch(table_name, client_key_num, values, batch_size, client_id);
+  }
+
+  DB::Status CoreWorkload::TransactionReadModifyInsertBatch(DB &db, ClientConfig *config)
+  {
+    const int batch_size = read_modify_insert_batch_size_;
+    std::vector<std::string> keys;
+    keys.reserve(batch_size);
+    
+    // Generate batch_size keys
+    for (int i = 0; i < batch_size; i++) {
+      uint64_t key_num = NextTransactionKeyNum(config);
+      uint64_t client_key_num = key_num;
+      keys.push_back(BuildKeyName(client_key_num));
+    }
+
+    std::string table_name = config->cf;
+    int client_id = config->client_id;
+    std::vector<std::vector<DB::Field>> results(batch_size);
+    std::vector<DB::Field> new_values;
+    BuildValues(new_values);  // Generate new values to write
+
+    if (!read_all_fields())
+    {
+      // Create a vector of field vectors, one for each key
+      std::vector<std::vector<std::string>> fields(batch_size);
+      for (int i = 0; i < batch_size; i++) {
+        fields[i].push_back(NextFieldName());
+      }
+      return db.ReadModifyInsertBatch(table_name, keys, &fields, results, new_values, client_id);
+    }
+    else
+    {
+      return db.ReadModifyInsertBatch(table_name, keys, NULL, results, new_values, client_id);
+    }
   }
 
   DB::Status CoreWorkload::TransactionInsert(DB &db, ClientConfig *config)

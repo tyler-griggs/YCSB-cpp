@@ -102,14 +102,20 @@ namespace ycsbc
     /// The name of the property for the proportion of
     /// read-modify-write transactions.
     ///
-    static const std::string READMODIFYWRITE_PROPORTION_PROPERTY;
-    static const std::string READMODIFYWRITE_PROPORTION_DEFAULT;
+    // static const std::string READMODIFYWRITE_PROPORTION_PROPERTY;
+    // static const std::string READMODIFYWRITE_PROPORTION_DEFAULT;
 
     static const std::string RANDOM_INSERT_PROPORTION_PROPERTY;
     static const std::string RANDOM_INSERT_PROPORTION_DEFAULT;
 
     static const std::string INSERT_BATCH_PROPORTION_PROPERTY;
     static const std::string INSERT_BATCH_PROPORTION_DEFAULT;
+
+    static const std::string READ_MODIFY_INSERT_BATCH_PROPORTION_PROPERTY;
+    static const std::string READ_MODIFY_INSERT_BATCH_PROPORTION_DEFAULT;
+
+    static const std::string READ_MODIFY_INSERT_BATCH_SIZE_PROPERTY;
+    static const std::string READ_MODIFY_INSERT_BATCH_SIZE_DEFAULT;
 
     ///
     /// The name of the property for the the distribution of request keys.
@@ -214,12 +220,14 @@ namespace ycsbc
     DB::Status TransactionRandomInsert(DB &db, ClientConfig *config);
     DB::Status TransactionInsert(DB &db, ClientConfig *config);
     DB::Status TransactionInsertBatch(DB &db, ClientConfig *config);
+    DB::Status TransactionReadModifyInsertBatch(DB &db, ClientConfig *config);
   // TODO(tgriggs): record counts and offsets
     std::string table_name_;
     int field_count_;
     std::string field_prefix_;
     bool read_all_fields_;
     bool write_all_fields_;
+    int read_modify_insert_batch_size_;
     Generator<uint64_t> *field_len_generator_;
     Generator<uint64_t> *field_chooser_;
     Generator<uint64_t> *scan_len_chooser_;

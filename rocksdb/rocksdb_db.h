@@ -74,6 +74,13 @@ class RocksdbDB : public DB {
   Status Delete(const std::string &table, const std::string &key) {
     return (this->*(method_delete_))(table, key);
   }
+  Status ReadModifyInsertBatch(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values, int client_id = 0) {
+    return (this->*(method_read_modify_insert_batch_))(table, keys, fields, result, new_values);
+  }
 
   void UpdateRateLimit(int client_id, int64_t rate_limit_bytes);
   void UpdateMemtableSize(int client_id, int memtable_size_bytes);
@@ -119,6 +126,11 @@ class RocksdbDB : public DB {
   Status DeleteSingle(const std::string &table, const std::string &key);
   Status InsertMany(const std::string &table, int start_key,
                       std::vector<Field> &values, int num_keys);
+  Status ReadModifyInsertMany(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values);
 
   Status (RocksdbDB::*method_read_)(const std::string &, const std:: string &,
                                     const std::vector<std::string> *, std::vector<Field> &);
@@ -134,6 +146,9 @@ class RocksdbDB : public DB {
   Status (RocksdbDB::*method_insert_batch_)(const std::string &, int,
                                       std::vector<Field> &, int);
   Status (RocksdbDB::*method_delete_)(const std::string &, const std::string &);
+  Status (RocksdbDB::*method_read_modify_insert_batch_)(const std::string &, const std::vector<std::string> &,
+                                      const std::vector<std::vector<std::string>> *, std::vector<std::vector<Field>> &,
+                                      std::vector<Field> &);
 
   int fieldcount_;
 

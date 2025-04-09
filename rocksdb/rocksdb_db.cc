@@ -244,6 +244,7 @@ namespace ycsbc
       method_insert_ = &RocksdbDB::InsertSingle;
       method_delete_ = &RocksdbDB::DeleteSingle;
       method_insert_batch_ = &RocksdbDB::InsertMany;
+      method_read_modify_insert_batch_ = &RocksdbDB::ReadModifyInsertMany;
 #ifdef USE_MERGEUPDATE
       if (props.GetProperty(PROP_MERGEUPDATE, PROP_MERGEUPDATE_DEFAULT) == "true")
       {
@@ -1020,6 +1021,75 @@ namespace ycsbc
     {
       throw utils::Exception(std::string("RocksDB WriteBatch: ") + s.ToString());
     }
+    return kOK;
+  }
+
+
+  DB::Status RocksdbDB::ReadModifyInsertMany(const std::string &table, 
+                                            const std::vector<std::string> &keys,
+                                            const std::vector<std::vector<std::string>> *fields,
+                                            std::vector<std::vector<Field>> &result,
+                                            std::vector<Field> &new_values) {
+    auto *handle = table2handle(table);
+    if (handle == nullptr) {
+      std::cout << "[FAIRDB_LOG] Bad table/handle: " << table << std::endl;
+      return kError;
+    }
+
+    auto &thread_metadata = TG_GetThreadMetadata();
+    thread_metadata.client_id = table2clientId(table);
+
+    // First perform the read operation
+    rocksdb::ReadOptions read_options = rocksdb::ReadOptions();
+    read_options.rate_limiter_priority = rocksdb::Env::IOPriority::IO_USER;
+
+    std::vector<rocksdb::Slice> key_slices;
+    key_slices.reserve(keys.size());
+    for (const auto& key : keys) {
+      key_slices.push_back(key);
+    }
+
+    std::vector<std::string> values;
+    std::vector<std::string> timestamps;
+
+    std::vector<rocksdb::ColumnFamilyHandle*> handles(keys.size(), handle);
+    std::vector<rocksdb::Status> read_statuses = db_->MultiGet(read_options, handles, key_slices, &values, &timestamps);
+
+    // Process read results
+    result.resize(keys.size());
+    for (size_t i = 0; i < keys.size(); i++) {
+      if (read_statuses[i].IsNotFound()) {
+        continue;
+      } else if (!read_statuses[i].ok()) {
+        throw utils::Exception(std::string("RocksDB Get for key ") + keys[i] + ": " + read_statuses[i].ToString());
+      }
+
+      if (fields != nullptr) {
+        DeserializeRowFilter(result[i], values[i], (*fields)[i]);
+      } else {
+        DeserializeRow(result[i], values[i]);
+        assert(result[i].size() == static_cast<size_t>(fieldcount_));
+      }
+    }
+
+    // Now perform the write operation with the new values
+    std::string data;
+    SerializeRow(new_values, data);
+    rocksdb::WriteBatch batch;
+    
+    // Write the new value for each key that was read
+    for (const auto& key : keys) {
+      batch.Put(handle, key, data);
+    }
+
+    rocksdb::WriteOptions wopt;
+    wopt.disableWAL = true;  // Maintaining the same WAL setting as InsertMany
+    rocksdb::Status write_status = db_->Write(wopt, &batch);
+
+    if (!write_status.ok()) {
+      throw utils::Exception(std::string("RocksDB WriteBatch: ") + write_status.ToString());
+    }
+
     return kOK;
   }
 

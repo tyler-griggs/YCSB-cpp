@@ -115,7 +115,16 @@ DB::Status BasicDB::InsertBatch(const std::string &table, int start_key, std::ve
   std::lock_guard<std::mutex> lock(mutex_);
   *out_ << "INSERT_BATCH " << table << ' ' << start_key << std::endl;
   return kOK;
+}
 
+DB::Status BasicDB::ReadModifyInsertBatch(const std::string &table,
+                             const std::vector<std::string> &keys,
+                             const std::vector<std::vector<std::string>> *fields,
+                             std::vector<std::vector<Field>> &result,
+                             std::vector<Field> &new_values, int client_id) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  *out_ << "READ_MODIFY_INSERT_BATCH " << table << ' ' << keys.size() << std::endl;
+  return kOK;
 }
 
 void BasicDB::UpdateRateLimit(int client_id, int64_t rate_limit_bytes) {

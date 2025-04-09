@@ -391,6 +391,7 @@ namespace ycsbc
             {"DELETE", DELETE},
             {"RANDOM_INSERT", RANDOM_INSERT},
             {"INSERT_BATCH", INSERT_BATCH},
+            {"READ_MODIFY_INSERT_BATCH", READ_MODIFY_INSERT_BATCH},
             {"INSERT_FAILED", INSERT_FAILED},
             {"READ_FAILED", READ_FAILED},
             {"UPDATE_FAILED", UPDATE_FAILED},
@@ -399,6 +400,7 @@ namespace ycsbc
             {"DELETE_FAILED", DELETE_FAILED},
             {"INSERT_BATCH_FAILED", INSERT_BATCH_FAILED},
             {"READ_BATCH_FAILED", READ_BATCH_FAILED},
+            {"READ_MODIFY_INSERT_BATCH_FAILED", READ_MODIFY_INSERT_BATCH_FAILED},
             {"MAXOPTYPE", MAXOPTYPE}};
 
         auto it = operationMap.find(operationName);
