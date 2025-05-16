@@ -1,13 +1,20 @@
-clients: 
+clients:
+  # ==============================================
+  # Rotating Anchor CFs (15 total)
+  # Each writes for 20s then pauses for 280s
+  # Staggered at 20s intervals to ensure continuous blockage
+  # ==============================================
   - client_id: 0
     cf: "default"
     record_count: 1000000
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: STEADY
+        request_rate: 375  # 375 RPS * 8KB = 0.26MB/s → 5.2MB in 20s
+        duration: 20
+      - type: INACTIVE
+        duration: 280
 
   - client_id: 1
     cf: "cf1"
@@ -15,11 +22,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: BURSTY 
-          request_rate: 5000
-          idle_duration: 8
-          burst_duration: 2 
-          repeats: 6
+      - type: INACTIVE
+        duration: 20
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 260
 
   - client_id: 2
     cf: "cf2"
@@ -27,9 +36,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 40
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 240
 
   - client_id: 3
     cf: "cf3"
@@ -37,11 +50,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: BURSTY 
-          request_rate: 5000
-          idle_duration: 6
-          burst_duration: 4
-          repeats: 6
+      - type: INACTIVE
+        duration: 60
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 220
 
   - client_id: 4
     cf: "cf4"
@@ -49,9 +64,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 80
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 200
 
   - client_id: 5
     cf: "cf5"
@@ -59,11 +78,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: BURSTY 
-          request_rate: 5000
-          idle_duration: 4
-          burst_duration: 6 
-          repeats: 6
+      - type: INACTIVE
+        duration: 100
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 180
 
   - client_id: 6
     cf: "cf6"
@@ -71,9 +92,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 120
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 160
 
   - client_id: 7
     cf: "cf7"
@@ -81,11 +106,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: BURSTY 
-          request_rate: 5000
-          idle_duration: 2
-          burst_duration: 8 
-          repeats: 6
+      - type: INACTIVE
+        duration: 140
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 140
 
   - client_id: 8
     cf: "cf8"
@@ -93,9 +120,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 160
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 120
 
   - client_id: 9
     cf: "cf9"
@@ -103,11 +134,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: BURSTY 
-          request_rate: 5000
-          idle_duration: 9
-          burst_duration: 1 
-          repeats: 6
+      - type: INACTIVE
+        duration: 180
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 100
 
   - client_id: 10
     cf: "cf10"
@@ -115,9 +148,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 200
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 80
 
   - client_id: 11
     cf: "cf11"
@@ -125,9 +162,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 220
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 60
 
   - client_id: 12
     cf: "cf12"
@@ -135,9 +176,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 240
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 40
 
   - client_id: 13
     cf: "cf13"
@@ -145,9 +190,13 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 260
+      - type: STEADY
+        request_rate: 375
+        duration: 20
+      - type: INACTIVE
+        duration: 20
 
   - client_id: 14
     cf: "cf14"
@@ -155,16 +204,21 @@ clients:
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: INACTIVE
+        duration: 280
+      - type: STEADY
+        request_rate: 375
+        duration: 20
 
+  # ==============================================
+  # Single Filler CF (Uses remaining RPS)
+  # ==============================================
   - client_id: 15
     cf: "cf15"
     record_count: 1000000
     op_distribution:
       RANDOM_INSERT: 1.0
     behaviors:
-        - type: STEADY
-          request_rate: 1000
-          duration: 60
+      - type: STEADY
+        request_rate: 5000 # 7625
+        duration: 300

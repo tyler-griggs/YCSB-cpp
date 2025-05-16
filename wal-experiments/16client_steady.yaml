@@ -6,8 +6,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 1
     cf: "cf1"
@@ -16,8 +16,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 2
     cf: "cf2"
@@ -26,8 +26,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 3
     cf: "cf3"
@@ -36,8 +36,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 4
     cf: "cf4"
@@ -46,8 +46,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 5
     cf: "cf5"
@@ -56,8 +56,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 6
     cf: "cf6"
@@ -66,8 +66,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 7
     cf: "cf7"
@@ -76,8 +76,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 8
     cf: "cf8"
@@ -86,8 +86,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 9
     cf: "cf9"
@@ -96,8 +96,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 10
     cf: "cf10"
@@ -106,8 +106,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 11
     cf: "cf11"
@@ -116,8 +116,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 12
     cf: "cf12"
@@ -126,8 +126,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 13
     cf: "cf13"
@@ -136,8 +136,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 14
     cf: "cf14"
@@ -146,8 +146,8 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300
 
   - client_id: 15
     cf: "cf15"
@@ -156,5 +156,5 @@ clients:
       RANDOM_INSERT: 1.0
     behaviors:
         - type: STEADY
-          request_rate: 1000
-          duration: 60
+          request_rate: 500
+          duration: 300

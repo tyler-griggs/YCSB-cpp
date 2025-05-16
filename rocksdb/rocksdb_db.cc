@@ -20,7 +20,7 @@
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/options_util.h>
 #include <rocksdb/write_batch.h>
-
+#include "rocksdb/env.h"
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
 #include <rocksdb/rate_limiter.h>
@@ -148,6 +148,24 @@ namespace
 
   const std::string PROP_NUM_LEVELS = "rocksdb.num_levels";
   const std::string PROP_NUM_LEVELS_DEFAULT = "4";
+
+  const std::string PROP_ROCKSDB_MAX_TOTAL_WAL_SIZE = "rocksdb.max_total_wal_size";
+  const std::string PROP_ROCKSDB_MAX_TOTAL_WAL_SIZE_DEFAULT = "17179869184";
+
+  const std::string PROP_ROCKSDB_WAL_STEADY_RES_SIZE = "rocksdb.wal_steady_res_size";
+  const std::string PROP_ROCKSDB_WAL_STEADY_RES_SIZE_DEFAULT = "0";
+
+  const std::string PROP_FLUSH_THREAD_LMAX = "flush_thread_lmax";
+  const std::string PROP_FLUSH_THREAD_LMAX_DEFAULT = "0";
+
+  const std::string PROP_FLUSH_THREAD_K = "flush_thread_k";
+  const std::string PROP_FLUSH_THREAD_K_DEFAULT = "1";
+
+  const std::string PROP_CF_DELTAS = "cf_deltas";
+  const std::string PROP_CF_DELTAS_DEFAULT = "-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1";
+
+  const std::string PROP_CF_WEIGHTS = "cf_weights";
+  const std::string PROP_CF_WEIGHTS_DEFAULT = "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1";
 
   static std::shared_ptr<rocksdb::Env> env_guard;
   static std::shared_ptr<rocksdb::Cache> block_cache;
@@ -277,9 +295,14 @@ namespace ycsbc
     opt.create_if_missing = true;
     opt.create_missing_column_families = true;
     std::vector<rocksdb::ColumnFamilyDescriptor> cf_descs;
+    opt.max_background_flushes = 1;
+    opt.max_reserve_flushes = 1;
+    opt.max_background_compactions = 3;
+    opt.use_direct_io_for_flush_and_compaction = true;
+
     GetOptions(num_cfs, props, &opt, &cf_descs);
 
-    GetCfOptions(props, cf_opts);
+    GetCfOptions(props, cf_opts, opt);
     for (int i = 0; i < num_cfs; ++i)
     {
       std::string cf_name;
@@ -345,6 +368,8 @@ namespace ycsbc
     std::string fs_uri = props.GetProperty(PROP_FS_URI, PROP_FS_URI_DEFAULT);
     rocksdb::Env *env = rocksdb::Env::Default();
     ;
+    env->SetBackgroundThreads(opt->max_background_flushes, rocksdb::Env::MEDIUM);
+    env->SetBackgroundThreads(opt->max_reserve_flushes, rocksdb::Env::HIGH);
     if (!env_uri.empty() || !fs_uri.empty())
     {
       rocksdb::Status s = rocksdb::Env::CreateFromUri(rocksdb::ConfigOptions(),
@@ -567,25 +592,58 @@ namespace ycsbc
     // size_t write_buffer_memory_limit = 2 * num_clients * 64 * 1024 * 1024; // 1GB
     size_t write_buffer_memory_limit = std::stoi(props.GetProperty("wbm_size", "1024"));
     size_t steady_reservation_size = std::stoi(props.GetProperty("wbm_steady_res_size", "0"));
+    size_t wal_steady_res_size = std::stoi(props.GetProperty("rocksdb.wal_steady_res_size", "0"));
 
-    if (write_buffer_memory_limit > 0) {
-      std::cout << "[FAIRDB_LOG] WBM enabled" << std::endl;
+    if (wal_steady_res_size > 0) {
+      std::cout << "[FAIRDB_LOG] WAL Manager enabled" << std::endl;
       std::shared_ptr<rocksdb::WriteBufferManager> write_buffer_manager =
           std::make_shared<rocksdb::WriteBufferManager>(write_buffer_memory_limit * 1024 * 1024, nullptr, true, num_clients, steady_reservation_size * 1024 * 1024);
-      for (size_t i = 0; i < wbm_limits.size(); ++i)
+      /*for (size_t i = 0; i < wbm_limits.size(); ++i)
       {
         write_buffer_manager->SetPerClientBufferSize(i, wbm_limits[i] * 1024 * 1024);
         if (i != 3 && i != 4) {
           write_buffer_manager->SetClientAsSteady(i, true);
+        }
+        if (opt->)
+      }*/
+      for (size_t i = 0; i < num_clients; ++i) {
+        if (i == 15) {
+          std::cout << "[FAIRDB_LOG] Setting column family reservation for CF #" << i << " to " << wal_steady_res_size << std::endl;
+          write_buffer_manager->SetColumnFamilyReservation(i, wal_steady_res_size * 1024, 0);
+        } else if (i < 15) {
+          std::cout << "[FAIRDB_LOG] Setting column family reservation for CF #" << i << " to " << steady_reservation_size << std::endl;
+          write_buffer_manager->SetColumnFamilyReservation(i, wal_steady_res_size * 1024, 0);
         }
       }
       opt->write_buffer_manager = write_buffer_manager;
     } else {
       std::cout << "[FAIRDB_LOG] WBM disabled" << std::endl;
     }
+    opt->max_total_wal_size = std::stoull(props.GetProperty(PROP_ROCKSDB_MAX_TOTAL_WAL_SIZE, PROP_ROCKSDB_MAX_TOTAL_WAL_SIZE_DEFAULT));\
+    std::cout << "[FAIRDB_LOG] Max total WAL size: " << opt->max_total_wal_size << std::endl;
+
+
+    uint32_t lmax = std::stoul(props.GetProperty(PROP_FLUSH_THREAD_LMAX, PROP_FLUSH_THREAD_LMAX_DEFAULT));
+    opt->flush_thread_lmax = lmax;
+
+    uint32_t min_delta;
+    std::vector<std::string> deltas = Prop2vector(props, PROP_CF_DELTAS, PROP_CF_DELTAS_DEFAULT);
+    assert(std::all_of(deltas.begin(), deltas.end(), [](const std::string &delta) { return (delta == "-1" | delta > lmax);}));
+
+    min_delta = lmax * 1.2;
+
+    opt->flush_thread_quanta = min_delta;
+
+
+    uint32_t k = std::stoul(props.GetProperty(PROP_FLUSH_THREAD_K, PROP_FLUSH_THREAD_K_DEFAULT));
+    if (k != 0)
+    {
+      opt->flush_thread_k = k;
+    }
+
   }
 
-  void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions> &cf_opt)
+  void RocksdbDB::GetCfOptions(const utils::Properties &props, std::vector<rocksdb::ColumnFamilyOptions> &cf_opt, rocksdb::Options &opts)
   {
     std::vector<std::string> vals = Prop2vector(props, PROP_MAX_WRITE_BUFFER, PROP_MAX_WRITE_BUFFER_DEFAULT);
     if (vals.size() < cf_opt.size())
@@ -657,6 +715,54 @@ namespace ycsbc
   for (size_t i = 0; i < cf_opt.size(); ++i) {
     cf_opt[i].num_levels = num_levels;
   }
+
+  std::cout << "[FAIRDB_LOG] Flush Thread Quanta: " << opts.flush_thread_quanta << std::endl;
+  std::cout << "[FAIRDB_LOG] Flush Thread Lmax: " << opts.flush_thread_lmax << std::endl;
+  std::cout << "[FAIRDB_LOG] Flush Thread K: " << opts.flush_thread_k << std::endl;
+  std::cout << "[FAIRDB_LOG] Max Background Flushes: " << opts.max_background_flushes << std::endl;
+
+  vals = Prop2vector(props, PROP_CF_DELTAS, PROP_CF_DELTAS_DEFAULT);
+  for (size_t i = 0; i < cf_opt.size(); ++i)
+  {
+    if (std::stoi(vals[i]) == -1)
+    {
+      cf_opt[i].dfs_delta_ms = std::numeric_limits<uint32_t>::max();
+      cf_opt[i].is_steady = false;
+    }
+    else
+    {
+      cf_opt[i].dfs_delta_ms = std::stoul(vals[i]);
+      cf_opt[i].is_steady = true;
+    }
+  }
+
+  vals = Prop2vector(props, PROP_CF_WEIGHTS, PROP_CF_WEIGHTS_DEFAULT);
+  double weight_sum = 0;
+  for (size_t i = 0; i < cf_opt.size(); ++i)
+  {
+    cf_opt[i].dfs_weight = std::stod(vals[i]);
+    weight_sum += cf_opt[i].dfs_weight;
+  }
+
+  for (size_t i = 0; i < cf_opt.size(); ++i)
+  {
+    cf_opt[i].dfs_fair_share_ms = (opts.max_background_flushes + opts.max_reserve_flushes) * cf_opt[i].dfs_weight / weight_sum;
+  }
+  for (size_t i = 0; i < cf_opt.size(); ++i)
+  {
+    cf_opt[i].dfs_rho_ms = std::max(0.0, cf_opt[i].dfs_fair_share_ms + opts.flush_thread_lmax - cf_opt[i].dfs_delta_ms);
+  }
+
+  for (size_t i = 0; i < cf_opt.size(); ++i)
+  {
+    std::cout << "[FAIRDB_LOG] CF #" << i << " delta: " << cf_opt[i].dfs_delta_ms
+              << ", weight: " << cf_opt[i].dfs_weight
+              << ", fair share: " << cf_opt[i].dfs_fair_share_ms
+              << ", rho: " << cf_opt[i].dfs_rho_ms
+              << ", steady: " << cf_opt[i].is_steady
+              << std::endl;
+  }
+
 }
 
   void RocksdbDB::SerializeRow(const std::vector<Field> &values, std::string &data)
@@ -871,6 +977,7 @@ namespace ycsbc
     }
     rocksdb::WriteOptions wopt;
     // TODO: WAL disabled
+    
 
     data.clear();
     SerializeRow(current_values, data);
@@ -913,7 +1020,6 @@ namespace ycsbc
     SerializeRow(values, data);
     rocksdb::WriteOptions wopt;
     // TODO: WAL disabled
-    wopt.disableWAL = true;
     rocksdb::Status s = db_->Put(wopt, handle, key, data);
     // rocksdb::Status s = db_->Put(wopt, key, data);
     if (!s.ok())
@@ -946,7 +1052,6 @@ namespace ycsbc
 
     rocksdb::WriteOptions wopt;
     // TODO: WAL disabled
-    wopt.disableWAL = true;
     rocksdb::Status s = db_->Write(wopt, &batch);
 
     if (!s.ok())

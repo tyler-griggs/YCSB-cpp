@@ -1,0 +1,13 @@
+clients:
+  # ==============================================
+  # Single Filler CF (Uses remaining RPS)
+  # ==============================================
+  - client_id: 0
+    cf: "default"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: STEADY
+        request_rate: 8000 
+        duration: 300

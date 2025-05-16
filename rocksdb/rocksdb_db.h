@@ -87,7 +87,7 @@ class RocksdbDB : public DB {
   void GetOptions(const int num_clients, const utils::Properties &props, rocksdb::Options *opt,
                   std::vector<rocksdb::ColumnFamilyDescriptor> *cf_descs);
   void GetCfOptions(const utils::Properties &props, 
-                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt);
+                    std::vector<rocksdb::ColumnFamilyOptions>& cf_opt, rocksdb::Options &opt);
   static void SerializeRow(const std::vector<Field> &values, std::string &data);
   static void DeserializeRowFilter(std::vector<Field> &values, const char *p, const char *lim,
                                    const std::vector<std::string> &fields);

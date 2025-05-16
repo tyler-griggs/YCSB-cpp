@@ -1,0 +1,230 @@
+clients:
+  # ==============================================
+  # Rotating Anchor CFs (15 total)
+  # All write concurrently for 20s, then pause for 280s
+  # ==============================================
+  - client_id: 0
+    cf: "default"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 1
+    cf: "cf1"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 2
+    cf: "cf2"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 3
+    cf: "cf3"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 4
+    cf: "cf4"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 5
+    cf: "cf5"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 6
+    cf: "cf6"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 7
+    cf: "cf7"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 8
+    cf: "cf8"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 9
+    cf: "cf9"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 10
+    cf: "cf10"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 11
+    cf: "cf11"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 12
+    cf: "cf12"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 13
+    cf: "cf13"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  - client_id: 14
+    cf: "cf14"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: BURSTY
+        request_rate: 350 
+        burst_duration: 20
+        idle_duration: 30
+        repeats: 6
+
+  # ==============================================
+  # Single Filler CF (Uses remaining RPS)
+  # ==============================================
+  - client_id: 15
+    cf: "cf15"
+    record_count: 1000000
+    op_distribution:
+      RANDOM_INSERT: 1.0
+    behaviors:
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30
+      - type: STEADY
+        request_rate: 750
+        duration: 20
+      - type: STEADY
+        request_rate: 6000
+        duration: 30

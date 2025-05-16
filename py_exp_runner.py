@@ -5,11 +5,117 @@ import sys
 import signal
 import atexit
 import subprocess
+import asyncio
+import time
+from pathlib import Path
 
 # Global process handles
 iostat_proc = None
 mpstat_proc = None
 ycsb_proc = None
+
+def current_milliseconds():
+    """Get current time in milliseconds since epoch."""
+    return int(time.time() * 1000)
+
+async def monitor_folder(folder_path: str, log_file: str):
+    """
+    Asynchronously monitors a folder for .log files, logs changes, and 
+    tracks the total size of all .log files with timestamps in milliseconds.
+
+    Args:
+        folder_path (str): The folder to monitor.
+        log_file (str): The path to the log file where changes will be recorded.
+    """
+    folder = Path(folder_path)
+    previous_files = set()
+
+    with open(log_file, "w") as log:
+        log.write(f"--- Monitoring started at {current_milliseconds()} ---\n")
+        print(f"Monitoring folder: {folder_path}")
+        
+    try:
+        while True:
+            current_files = {f for f in folder.glob("*.log") if f.is_file()}
+
+            # Detect new and removed files
+            new_files = current_files - previous_files
+            removed_files = previous_files - current_files
+
+            # Calculate total size of .log files
+            total_size = sum(f.stat().st_size for f in current_files)
+
+            # Log changes with timestamps
+            timestamp = current_milliseconds()
+            with open(log_file, "a") as log:
+                for f in new_files:
+                    log.write(f"[{timestamp}] [+] {f.name} appeared ({f.stat().st_size} bytes)\n")
+                
+                for f in removed_files:
+                    log.write(f"[{timestamp}] [-] {f.name} disappeared\n")
+
+                # Log the total size with a timestamp
+                log.write(f"[{timestamp}] [=] Total .log file size: {total_size} bytes\n")
+
+            previous_files = current_files
+
+            # Sleep before the next check
+            await asyncio.sleep(0.1)
+
+    except asyncio.CancelledError:
+        with open(log_file, "a") as log:
+            log.write(f"\n--- Monitoring stopped at {current_milliseconds()} ---\n")
+        print("Folder monitoring stopped.")
+
+async def stream_output(stream, log_file, prefix=""):
+    """
+    Asynchronously stream output to the terminal and log file.
+    """
+    with open(log_file, "w") as log:
+        while True:
+            line = await stream.readline()
+            if not line:
+                break
+            # Write to terminal and log file
+            sys.stdout.write(f"{prefix}{line.decode()}")
+            sys.stdout.flush()
+            log.write(line.decode())
+
+async def run_ycsb(monitor_task, ycsb_cmd, log_file):
+    """
+    Run the YCSB benchmark process asynchronously while the monitoring task runs.
+    
+    Args:
+        monitor_task: The asyncio task running the folder monitor.
+        ycsb_cmd (str): The full YCSB command to run.
+        log_file (str): The log file to save the YCSB output.
+    """
+    print(f"Executing YCSB command:\n{ycsb_cmd}")
+
+    # Create the subprocess with streaming output
+    process = await asyncio.create_subprocess_shell(
+        ycsb_cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    print(f"YCSB pid: {process.pid}")
+
+    # Stream both stdout and stderr concurrently
+    await asyncio.gather(
+        stream_output(process.stdout, log_file, ""),
+        stream_output(process.stderr, log_file, "")
+    )
+
+    # Wait for the YCSB process to finish
+    await process.wait()
+    
+    print("YCSB process finished.")
+
+    # Cancel the monitoring task after YCSB finishes
+    monitor_task.cancel()
+    await monitor_task
+
 
 def cleanup():
   """Kill background processes and process output files."""
@@ -79,7 +185,7 @@ def process_mpstat_output():
   except Exception as e:
     print(f"Error processing mpstat output: {e}", file=sys.stderr)
 
-def main():
+async def main():
   global iostat_proc, mpstat_proc, ycsb_proc
 
   # Register cleanup to be called on exit.
@@ -114,7 +220,7 @@ def main():
   rocksdb_num_cfs = str(NUM_CFS)
     
   # Workload Parameters
-  client_config = "wal-experiments/16client_bursty.yaml"
+  client_config = "wal-experiments/16client_ramp_up.yaml"
 
   # RocksDB Parameters
   tpool_threads = "8"
@@ -165,7 +271,19 @@ def main():
   min_memtable_size = 64 * 1024
 
   # WAL Parameters
-  max_total_wal_size = 17179869
+  max_total_wal_size = 1024 * max_memtable_size * NUM_CFS * 2
+  wal_steady_res_size = 0 # Vanilla RocksDB: Set to 0 to disable
+
+  rocksdb_folder = "/mnt/rocksdb/ycsb-rocksdb-data"
+  log_file_path = "./logs/disc_log.txt"
+  tmplog = "./tmplog.txt"
+
+  cf_deltas = ",".join([str(-1)] * (NUM_CFS - 1) + [str(1000)])
+  cf_weights = ",".join([str(1)] * NUM_CFS)
+  
+  flush_thread_lmax = "800"
+  flush_thread_k = "1"
+
 
   ############################ End Parameters ######################################### 
 
@@ -208,7 +326,12 @@ def main():
       f"-p min_memtable_count={min_memtable_count} "
       f"-p max_memtable_size_kb={max_memtable_size} "
       f"-p min_memtable_size_kb={min_memtable_size} "
-      f"-p rocksdb.max_total_wal_size={max_total_wal_size}"
+      f"-p rocksdb.max_total_wal_size={max_total_wal_size} "
+      f"-p rocksdb.wal_steady_res_size={wal_steady_res_size} "
+      f"-p cf_deltas={cf_deltas} "
+      f"-p cf_weights={cf_weights} "
+      f"-p flush_thread_lmax={flush_thread_lmax} "
+      f"-p flush_thread_k={flush_thread_k} "
   )
 
   # Log the command (equivalent to bash set -x)
@@ -218,12 +341,23 @@ def main():
   # Start the YCSB process. Its output is piped to tee so that output is both logged and saved.
   # Using shell=True allows the pipe to work as expected.
   ycsb_full_cmd = ycsb_cmd + " | tee status_thread.txt"
-  ycsb_proc = subprocess.Popen(ycsb_full_cmd, shell=True)
-  print(f"YCSB pid: {ycsb_proc.pid}")
 
-  # Wait for the YCSB process to finish.
-  ycsb_proc.wait()
-  print("YCSB process finished.")
+
+  process = await asyncio.create_subprocess_shell(
+      ycsb_cmd,
+      stdout=asyncio.subprocess.PIPE,
+      stderr=asyncio.subprocess.PIPE
+  )
+
+  print(f"YCSB pid: {process.pid}")
+
+  log_file = "templog.txt"
+
+  await asyncio.gather(
+      stream_output(process.stdout, log_file, ""),
+      stream_output(process.stderr, log_file, "")
+  )
+
 
 if __name__ == "__main__":
-  main()
+  asyncio.run(main())
